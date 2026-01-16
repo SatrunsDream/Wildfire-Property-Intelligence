@@ -1,6 +1,5 @@
 # CSV files
-*.csv
-*.csv.gz
+*Capstone2025_nsi_lvl9_with_landcover_and_color.csv
 
 # Python
 __pycache__/
