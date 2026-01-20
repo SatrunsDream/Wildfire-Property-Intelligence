@@ -1,0 +1,6 @@
+exposure_bin,n_h3_cells,total_structures,pct_h3_cells,pct_structures
+Very Low (<5),67338,142864,30.45,5.91
+Low (5-9),29878,203742,13.51,8.43
+Moderate (10-19),106118,1602487,47.99,66.28
+Medium (20-49),17650,461846,7.98,19.1
+High (50+),124,6827,0.06,0.28
