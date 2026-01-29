@@ -40,3 +40,7 @@ wheels/
 .DS_Store
 Thumbs.db
 
+# Project-specific
+rules_templet.md
+results.md
+methods/bayesian_shrinkage_pooling/Bayesian shrinkage.md
