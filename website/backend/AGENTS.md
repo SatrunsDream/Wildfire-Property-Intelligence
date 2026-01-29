@@ -61,7 +61,7 @@ Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df
 cd backend
 uv sync
 source .venv/bin/activate
-python main.py  # runs on port 8000
+uv run main.py # runs on port 8000
 ```
 
 **With pip:**
