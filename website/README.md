@@ -26,6 +26,8 @@ pip install fastapi uvicorn polars httpx scipy h3
 
 # Run
 python main.py
+# or
+uv run main.py
 ```
 
 Backend runs at http://localhost:8000
