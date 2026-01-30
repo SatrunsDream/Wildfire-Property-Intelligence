@@ -22,3 +22,9 @@ class CountyCompareRequest(BaseModel):
     fips_a: str
     fips_b: str
     conditions: list[ConditionFilter] | None = None
+
+
+class BayesianMapRequest(BaseModel):
+    lc_type: str | None = None
+    metric: str = "movement"  # "movement", "shrinkage_weight", "abs_movement"
+    color_category: str | None = None  # Filter by specific color category

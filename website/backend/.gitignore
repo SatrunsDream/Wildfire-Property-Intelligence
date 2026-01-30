@@ -104,12 +104,26 @@ celerybeat.pid
 
 # Environments
 .env
+.venv/
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Python package files
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# uv
+.uv/
+uv.lock
 
 data/Capstone2025_nsi_lvl9_with_landcover_and_color.csv
 

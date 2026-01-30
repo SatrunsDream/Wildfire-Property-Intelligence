@@ -1116,3 +1116,54 @@ tr.unreliable {
     font-size: 0.9rem;
     text-align: center;
 }
+
+.map-stats {
+    padding: 0.75rem 1rem;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.county-detail {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.county-detail h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.landcover-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.landcover-section h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    color: #444;
+}
+
+.landcover-section h4 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #555;
+}
+
+.comparison-chart {
+    margin-top: 1rem;
+}

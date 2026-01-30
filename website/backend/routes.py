@@ -7,12 +7,15 @@ from constants import (
     COUNTY_NAME_TO_FIPS, FIPS_TO_COUNTY_NAME, COUNTY_CENTROIDS,
     COLUMN_META, H3_LEVELS
 )
-from models import ConditionalProbRequest, MapRequest, CountyCompareRequest
+from models import ConditionalProbRequest, MapRequest, CountyCompareRequest, BayesianMapRequest
 from utils import (
     estimate_alpha_eb, aggregate_hexes_to_resolution,
     build_hex_geojson, get_feature_distribution
 )
-from data import df, neighbors_df, c2st_df, ca_counties_geojson
+from data import (
+    df, neighbors_df, c2st_df, ca_counties_geojson,
+    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df
+)
 
 router = APIRouter()
 
@@ -641,4 +644,270 @@ def get_c2st_pair(fips_a: str, fips_b: str):
         "county_b": county_b_name,
         "by_landcover": by_lc,
         "insufficient_data": insufficient_data
+    }
+
+
+# ============================================================================
+# M02: Empirical Bayes Pooling Endpoints
+# ============================================================================
+
+@router.get("/bayesian/baseline-distributions")
+def get_baseline_distributions(lc_type: str | None = None):
+    """Get baseline distributions by landcover type."""
+    try:
+        data = bayesian_baseline_df
+        if len(data) == 0:
+            raise HTTPException(500, "Baseline data is empty")
+        
+        if lc_type:
+            data = data.filter(pl.col("lc_type") == lc_type)
+        
+        return {
+            "distributions": data.to_dicts(),
+            "landcover_types": sorted(bayesian_baseline_df["lc_type"].unique().to_list())
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Error loading baseline distributions: {str(e)}")
+
+
+@router.get("/bayesian/test-data")
+def test_bayesian_data():
+    """Test endpoint to check if Bayesian data is loaded correctly."""
+    try:
+        return {
+            "baseline_rows": len(bayesian_baseline_df),
+            "stabilized_rows": len(bayesian_stabilized_df),
+            "counts_rows": len(bayesian_counts_df),
+            "baseline_columns": bayesian_baseline_df.columns,
+            "stabilized_columns": bayesian_stabilized_df.columns,
+            "stabilized_sample": bayesian_stabilized_df.head(3).to_dicts() if len(bayesian_stabilized_df) > 0 else [],
+            "unique_fips": sorted(bayesian_stabilized_df["fips"].unique().to_list()) if len(bayesian_stabilized_df) > 0 else []
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": str(e.__traceback__)}
+
+
+@router.get("/bayesian/stabilized-distributions")
+def get_stabilized_distributions(fips: str | None = None, lc_type: str | None = None):
+    """Get stabilized distributions, optionally filtered by county and/or landcover."""
+    data = bayesian_stabilized_df
+    
+    if fips:
+        fips_int = int(fips.lstrip("0")) if fips.startswith("0") else int(fips)
+        data = data.filter(pl.col("fips") == fips_int)
+    
+    if lc_type:
+        data = data.filter(pl.col("lc_type") == lc_type)
+    
+    return {
+        "distributions": data.to_dicts(),
+        "total_records": len(data)
+    }
+
+
+@router.post("/bayesian/map/counties")
+def get_bayesian_county_map(req: BayesianMapRequest):
+    """Get county-level map data for Bayesian shrinkage visualization."""
+    from data import ca_counties_geojson
+    
+    if not ca_counties_geojson:
+        raise HTTPException(500, "County GeoJSON not loaded")
+    
+    try:
+        data = bayesian_stabilized_df
+        
+        if len(data) == 0:
+            raise HTTPException(500, "Bayesian stabilized data is empty")
+        
+        if req.lc_type:
+            data = data.filter(pl.col("lc_type") == req.lc_type)
+        
+        if req.color_category:
+            data = data.filter(pl.col("clr") == req.color_category)
+        
+        if len(data) == 0:
+            return {
+                "type": "FeatureCollection",
+                "features": [],
+                "metric": req.metric,
+                "lc_type": req.lc_type,
+                "stats": {
+                    "total_counties": 0,
+                    "mean_value": 0.0,
+                    "max_value": 0.0
+                }
+            }
+        
+        # Aggregate by county
+        if req.metric == "movement":
+            agg_col = "movement"
+        elif req.metric == "abs_movement":
+            agg_col = "abs_movement"
+        elif req.metric == "shrinkage_weight":
+            agg_col = "shrinkage_weight"
+        else:
+            agg_col = "movement"
+        
+        # Check if column exists
+        if agg_col not in data.columns:
+            raise HTTPException(400, f"Metric column '{agg_col}' not found in data")
+        
+        county_stats = (
+            data
+            .group_by("fips")
+            .agg([
+                pl.col(agg_col).mean().alias("mean_value"),
+                pl.col(agg_col).max().alias("max_value"),
+                pl.col("exposure").sum().alias("total_exposure"),
+                pl.col("shrinkage_weight").mean().alias("mean_shrinkage_weight"),
+                pl.struct(["clr", "movement", "observed_prop", "stabilized_prop"])
+                  .sort_by("abs_movement", descending=True)
+                  .first()
+                  .alias("top_change")
+            ])
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Error processing data: {str(e)}")
+    
+    # Create a mapping of FIPS to stats
+    stats_by_fips = {}
+    for row in county_stats.to_dicts():
+        try:
+            fips_str = str(row["fips"]).zfill(5)
+            top_change = row.get("top_change")
+            
+            # Handle top_change - it might be a dict or None
+            top_color = None
+            top_movement = None
+            top_observed_prop = None
+            top_stabilized_prop = None
+            
+            if top_change:
+                if isinstance(top_change, dict):
+                    top_color = top_change.get("clr")
+                    if top_change.get("movement") is not None:
+                        top_movement = float(top_change.get("movement"))
+                    if top_change.get("observed_prop") is not None:
+                        top_observed_prop = float(top_change.get("observed_prop"))
+                    if top_change.get("stabilized_prop") is not None:
+                        top_stabilized_prop = float(top_change.get("stabilized_prop"))
+            
+            stats_by_fips[fips_str] = {
+                "mean_value": float(row["mean_value"]) if row["mean_value"] is not None else 0.0,
+                "max_value": float(row["max_value"]) if row["max_value"] is not None else 0.0,
+                "total_exposure": int(row["total_exposure"]) if row["total_exposure"] is not None else 0,
+                "mean_shrinkage_weight": float(row["mean_shrinkage_weight"]) if row["mean_shrinkage_weight"] is not None else 0.0,
+                "top_color": top_color,
+                "top_movement": top_movement,
+                "top_observed_prop": top_observed_prop,
+                "top_stabilized_prop": top_stabilized_prop,
+            }
+        except Exception as e:
+            # Skip rows that cause errors, log and continue
+            print(f"Error processing row: {e}")
+            continue
+    
+    # Build GeoJSON features by merging with existing GeoJSON
+    features = []
+    for feature in ca_counties_geojson["features"]:
+        props = feature.get("properties", {})
+        fips_str = props.get("fips") or props.get("FIPS")
+        
+        # Try to match by name if FIPS not found
+        if not fips_str:
+            county_name = props.get("name") or props.get("county_name", "")
+            fips_str = COUNTY_NAME_TO_FIPS.get(county_name)
+        
+        if fips_str and fips_str in stats_by_fips:
+            stats = stats_by_fips[fips_str]
+            new_props = {
+                **props,
+                "fips": fips_str,
+                "county_name": FIPS_TO_COUNTY_NAME.get(fips_str, props.get("name", fips_str)),
+                "mean_value": stats["mean_value"],
+                "max_value": stats["max_value"],
+                "total_exposure": stats["total_exposure"],
+                "mean_shrinkage_weight": stats["mean_shrinkage_weight"],
+                "metric": req.metric
+            }
+            
+            if stats["top_color"]:
+                new_props["top_color"] = stats["top_color"]
+                if stats["top_movement"] is not None:
+                    new_props["top_movement"] = stats["top_movement"]
+                if stats["top_observed_prop"] is not None:
+                    new_props["top_observed_prop"] = stats["top_observed_prop"]
+                if stats["top_stabilized_prop"] is not None:
+                    new_props["top_stabilized_prop"] = stats["top_stabilized_prop"]
+            
+            features.append({
+                "type": "Feature",
+                "properties": new_props,
+                "geometry": feature["geometry"]
+            })
+    
+    try:
+        mean_val = sum(f["properties"]["mean_value"] for f in features) / len(features) if features else 0.0
+        max_val = max((f["properties"]["max_value"] for f in features), default=0.0)
+        
+        return {
+            "type": "FeatureCollection",
+            "features": features,
+            "metric": req.metric,
+            "lc_type": req.lc_type,
+            "stats": {
+                "total_counties": len(features),
+                "mean_value": mean_val,
+                "max_value": max_val
+            }
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Error building GeoJSON response: {str(e)}")
+
+
+@router.get("/bayesian/county/{fips}")
+def get_bayesian_county_detail(fips: str, lc_type: str | None = None):
+    """Get detailed Bayesian shrinkage data for a specific county."""
+    fips_int = int(fips.lstrip("0")) if fips.startswith("0") else int(fips)
+    
+    county_data = bayesian_stabilized_df.filter(pl.col("fips") == fips_int)
+    
+    if lc_type:
+        county_data = county_data.filter(pl.col("lc_type") == lc_type)
+    
+    # Get baseline for comparison
+    lc_types_in_county = county_data["lc_type"].unique().to_list()
+    baseline_data = bayesian_baseline_df.filter(pl.col("lc_type").is_in(lc_types_in_county))
+    
+    county_name = FIPS_TO_COUNTY_NAME.get(fips, fips)
+    
+    # Aggregate by landcover type
+    by_landcover = []
+    for lc in lc_types_in_county:
+        lc_data = county_data.filter(pl.col("lc_type") == lc)
+        lc_baseline = baseline_data.filter(pl.col("lc_type") == lc)
+        
+        total_exposure = lc_data["exposure"].first()
+        mean_shrinkage = lc_data["shrinkage_weight"].mean()
+        max_movement = lc_data["abs_movement"].max()
+        
+        by_landcover.append({
+            "lc_type": lc,
+            "total_exposure": total_exposure,
+            "mean_shrinkage_weight": mean_shrinkage,
+            "max_abs_movement": max_movement,
+            "num_categories": len(lc_data),
+            "distributions": lc_data.select([
+                "clr", "count", "exposure", "observed_prop", 
+                "baseline_prop", "stabilized_prop", "movement", 
+                "abs_movement", "shrinkage_weight"
+            ]).to_dicts(),
+            "baseline": lc_baseline.select(["clr", "baseline_prop"]).to_dicts()
+        })
+    
+    return {
+        "fips": fips,
+        "county_name": county_name,
+        "by_landcover": by_landcover,
+        "total_landcover_types": len(by_landcover)
     }

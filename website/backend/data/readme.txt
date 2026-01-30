@@ -1,1 +1,0 @@
-dont forget to also put in the Capstone2025_nsi_lvl9_with_landcover_and_color.csv in here too

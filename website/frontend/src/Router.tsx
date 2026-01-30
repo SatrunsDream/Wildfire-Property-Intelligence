@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import App from './App.tsx'
+import { EmpiricalBayesPooling } from './EmpiricalBayesPooling.tsx'
 import { NeighborDivergence } from './NeighborDivergence.tsx'
 import { C2STMap } from './C2STMap.tsx'
 
-type Page = 'conditional-probability' | 'neighbor-divergence' | 'c2st'
+type Page = 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st'
 
 export function Router() {
     const [page, setPage] = useState<Page>('conditional-probability')
@@ -16,6 +17,12 @@ export function Router() {
                     onClick={() => setPage('conditional-probability')}
                 >
                     M01: Conditional Probability
+                </button>
+                <button
+                    className={`nav-btn ${page === 'empirical-bayes' ? 'active' : ''}`}
+                    onClick={() => setPage('empirical-bayes')}
+                >
+                    M02: Empirical Bayes Pooling
                 </button>
                 <button
                     className={`nav-btn ${page === 'neighbor-divergence' ? 'active' : ''}`}
@@ -31,6 +38,7 @@ export function Router() {
                 </button>
             </nav>
             {page === 'conditional-probability' && <App />}
+            {page === 'empirical-bayes' && <EmpiricalBayesPooling />}
             {page === 'neighbor-divergence' && <NeighborDivergence />}
             {page === 'c2st' && <C2STMap />}
         </>
