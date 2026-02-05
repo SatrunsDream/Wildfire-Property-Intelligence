@@ -3,6 +3,7 @@ import { ConditionalProbability } from './ConditionalProbability'
 import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
 import { NeighborDivergence } from './NeighborDivergence'
 import { C2STMap } from './C2STMap'
+import { MoransIMap } from './MoransIMap'
 import { AppSidebar, type Page } from './components/app-sidebar'
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
@@ -38,14 +39,17 @@ export function Router() {
                         <div className={page === 'conditional-probability' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <ConditionalProbability />
                         </div>
-                        <div className={page === 'empirical-bayes' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6' : 'hidden'}>
+                        <div className={page === 'empirical-bayes' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <EmpiricalBayesPooling />
                         </div>
                         <div className={page === 'neighbor-divergence' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <NeighborDivergence />
                         </div>
-                        <div className={page === 'c2st' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6' : 'hidden'}>
+                        <div className={page === 'c2st' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <C2STMap />
+                        </div>
+                        <div className={page === 'morans-i' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
+                            <MoransIMap />
                         </div>
                     </div>
                 </div>

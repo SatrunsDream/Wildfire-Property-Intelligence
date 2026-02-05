@@ -6,6 +6,7 @@ import {
     IconGraph,
     IconHome,
     IconMathFunction,
+    IconMap,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -18,7 +19,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st'
+export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st' | 'morans-i'
 
 const navItems = [
     {
@@ -45,6 +46,11 @@ const navItems = [
         title: "C2ST",
         id: "c2st" as Page,
         icon: IconBrain,
+    },
+    {
+        title: "Moran's I",
+        id: "morans-i" as Page,
+        icon: IconMap,
     },
 ]
 

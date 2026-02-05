@@ -410,6 +410,7 @@ export function NeighborDivergence() {
                     county_b: props.county_b
                 }
                 setSelectedPair(pair)
+                setShowComparisonPanel(true) // Auto-expand panel when pair is selected
 
                 mapInstance.setFilter('selected-edge', [
                     'all',

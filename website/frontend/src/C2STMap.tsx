@@ -360,94 +360,131 @@ export function C2STMap() {
         return '#fde725'
     }
 
+    const [showComparisonPanel, setShowComparisonPanel] = useState(false)
+
     return (
-        <div className="py-6">
-            <h1 className="text-2xl font-medium mb-4">C2ST: Classifier Two-Sample Test</h1>
-
-            <div className="flex flex-wrap items-end gap-4 mb-4">
-                <div className="flex flex-col gap-1">
-                    <select
-                        value={selectedLc}
-                        onChange={e => setSelectedLc(e.target.value)}
-                        className="px-3 py-2 border border-border rounded bg-white text-sm"
-                    >
-                        <option value="">All (weighted average)</option>
-                        {lcTypes.map(lc => (
-                            <option key={lc} value={lc}>{lc}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            {data && (
-                <div className="flex gap-6 text-sm mb-6">
-                    <span>County Pairs: <strong>{data.stats.total_pairs}</strong></span>
-                    <span>Mean Accuracy: <strong>{(data.stats.mean_accuracy * 100).toFixed(1)}%</strong></span>
-                    <span>Range: <strong>{(data.stats.min_accuracy * 100).toFixed(1)}% - {(data.stats.max_accuracy * 100).toFixed(1)}%</strong></span>
-                </div>
-            )}
-
-            <div className={cn(
-                'relative border border-border rounded overflow-hidden',
-                isFullscreen && 'fixed inset-0 z-50 rounded-none'
-            )}>
-                <div className="absolute top-2 right-12 z-10 flex gap-2">
-                    <button
-                        className="px-3 py-1.5 text-xs font-medium rounded border border-border bg-white/95 text-foreground shadow-card cursor-pointer hover:bg-muted transition-colors"
-                        onClick={toggleFullscreen}
-                    >
-                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                    </button>
-                </div>
-
+        <div className={cn(
+            'relative flex-1 min-h-0',
+            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white'
+        )}>
+            {/* Map Container - Full bleed */}
+            <div className="absolute inset-0">
+                <div ref={mapContainer} className="w-full h-full" />
+                
+                {/* Loading/Error overlays */}
                 {loading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
                         Loading C2ST data...
                     </div>
                 )}
                 {error && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20 text-red-600">
+                    <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">
                         {error}
                     </div>
                 )}
 
-                <div ref={mapContainer} className={cn('w-full', isFullscreen ? 'h-screen' : 'h-[500px]')} />
+                {/* Map Controls - Top Left (Statistics and Display) */}
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10">
+                    {/* Statistics Summary */}
+                    {data && (
+                        <div className="pb-2 mb-1 border-b border-border">
+                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                <span className="text-muted-foreground">Pairs:</span>
+                                <span className="font-semibold text-foreground">{data.stats.total_pairs}</span>
+                                <span className="text-muted-foreground">Mean Accuracy:</span>
+                                <span className="font-semibold text-foreground">{(data.stats.mean_accuracy * 100).toFixed(1)}%</span>
+                                <span className="text-muted-foreground">Range:</span>
+                                <span className="font-semibold text-foreground">{(data.stats.min_accuracy * 100).toFixed(1)}% - {(data.stats.max_accuracy * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Display Section */}
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Display</span>
+                        <select
+                            value={selectedLc}
+                            onChange={e => setSelectedLc(e.target.value)}
+                            className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
+                        >
+                            <option value="">All (weighted average)</option>
+                            {lcTypes.map(lc => (
+                                <option key={lc} value={lc}>{lc}</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        onClick={toggleFullscreen}
+                    >
+                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                    </button>
+                </div>
 
-                <div className="absolute bottom-4 left-4 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
-                    <div className="font-medium mb-1">C2ST Accuracy</div>
+                {/* Legend - Bottom Right */}
+                <div className="absolute bottom-4 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="font-semibold mb-2 text-foreground">C2ST Accuracy</div>
                     <div
-                        className="h-3 w-40 rounded"
+                        className="h-2.5 w-44 rounded-sm"
                         style={{ background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)' }}
                     />
-                    <div className="flex justify-between mt-1 text-muted-foreground">
+                    <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
                         <span>50%</span>
                         <span>100%</span>
                     </div>
-                    <div className="flex justify-between text-muted-foreground">
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
                         <span>Similar</span>
                         <span>Different</span>
                     </div>
                 </div>
-
-                {isFullscreen && (
-                    <div className="absolute bottom-4 right-4 bg-white/95 px-2 py-1 rounded text-xs text-muted-foreground z-10">
-                        <span>Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Esc</kbd> to exit fullscreen</span>
-                    </div>
-                )}
             </div>
 
-            <div ref={comparisonRef} className="mt-8">
-                {selectedPair ? (
-                    <>
-                        <h2 className="text-xl font-medium mb-4">
-                            {selectedPair.county_a} vs {selectedPair.county_b}
-                        </h2>
+            {/* Comparison Panel - Bottom Sheet */}
+            {selectedPair && (
+                <div
+                    ref={comparisonRef}
+                    className={cn(
+                        'absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300',
+                        showComparisonPanel ? 'h-[65%]' : 'h-auto'
+                    )}
+                >
+                    {/* Panel Header - Always visible */}
+                    <div
+                        className="px-5 py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setShowComparisonPanel(!showComparisonPanel)}
+                    >
+                        <div className="flex items-center gap-6">
+                            <h3 className="font-semibold text-base">
+                                {selectedPair.county_a} vs {selectedPair.county_b}
+                            </h3>
+                            {comparisonLoading && <span className="text-sm text-muted-foreground">Loading...</span>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                                onClick={(e) => { e.stopPropagation(); setShowComparisonPanel(!showComparisonPanel) }}
+                            >
+                                {showComparisonPanel ? 'Collapse' : 'Expand'}
+                            </button>
+                            <button
+                                className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded text-xl leading-none"
+                                onClick={(e) => { e.stopPropagation(); setSelectedPair(null); setShowComparisonPanel(false) }}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    </div>
 
-                        {comparisonLoading && (
-                            <div className="text-muted-foreground">Loading comparison...</div>
-                        )}
+                    {/* Panel Content - Expandable */}
+                    {showComparisonPanel && (
+                        <div className="h-[calc(100%-65px)] overflow-y-auto p-6">
+                            {comparisonLoading && (
+                                <div className="text-muted-foreground">Loading comparison...</div>
+                            )}
 
-                        {pairComparison && (
+                            {pairComparison && (
                             <div className="space-y-6">
                                 <div>
                                     <h3 className="font-medium mb-2">Accuracy by Land Cover Type</h3>
@@ -649,12 +686,11 @@ export function C2STMap() {
                                     </div>
                                 </div>
                             </div>
-                        )}
-                    </>
-                ) : (
-                    <div />
-                )}
-            </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     )
 }

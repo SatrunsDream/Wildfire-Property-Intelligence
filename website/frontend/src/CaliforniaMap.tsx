@@ -16,6 +16,7 @@ interface MapProps {
     minSupport: number
     autoLoad?: boolean
     className?: string
+    onCountyClick?: (fips: string) => void
 }
 
 export interface CaliforniaMapRef {
@@ -69,7 +70,7 @@ const H3_LEVELS: H3Level[] = [
     { res: 9, minZoom: 12, maxZoom: 20 },
 ]
 
-export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCols, target, minSupport, autoLoad = false, className }, ref) => {
+export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCols, target, minSupport, autoLoad = false, className, onCountyClick }, ref) => {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
     const [viewMode, setViewMode] = useState<ViewMode>('counties')
@@ -283,6 +284,19 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                 map.current!.getCanvas().style.cursor = ''
                 popup.remove()
             })
+            
+            // Add click handler for county detail
+            if (onCountyClick) {
+                map.current.on('click', fillId, (e) => {
+                    if (e.features && e.features[0]) {
+                        const props = e.features[0].properties
+                        const fips = props.fips
+                        if (fips) {
+                            onCountyClick(fips)
+                        }
+                    }
+                })
+            }
         }
 
         if (map.current.loaded()) {

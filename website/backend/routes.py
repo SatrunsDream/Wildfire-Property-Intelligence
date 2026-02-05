@@ -18,7 +18,7 @@ from utils import (
 )
 from data import (
     df, neighbors_df, c2st_df, ca_counties_geojson,
-    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df
+    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df, morans_i_df
 )
 
 router = APIRouter()
@@ -179,6 +179,119 @@ def get_county_map(req: MapRequest):
         "features": features,
         "alpha": alpha
     }
+
+
+@router.post("/conditional-probability/county/{fips}")
+def get_county_surprisal_detail(fips: str, req: MapRequest):
+    """Get detailed surprisal data for a specific county, organized by landcover type."""
+    fips_int = int(fips.lstrip("0")) if fips.startswith("0") else int(fips)
+    
+    context_cols = req.context_cols
+    target = req.target
+    min_support = req.min_support
+    
+    if "fips" not in context_cols:
+        context_cols = ["fips"] + context_cols
+    
+    valid_cols = set(COLUMN_META.keys())
+    for col in context_cols + [target]:
+        if col not in valid_cols:
+            raise HTTPException(400, f"Column '{col}' not valid")
+    
+    county_df = df.filter(pl.col("fips") == fips_int)
+    
+    if len(county_df) == 0:
+        raise HTTPException(404, f"No data found for county {fips}")
+    
+    counts = county_df.group_by(context_cols + [target]).agg(pl.len().alias("count"))
+    context_totals = county_df.group_by(context_cols).agg(pl.len().alias("context_total"))
+    global_prior = df.group_by(target).agg(pl.len().alias("global_count"))
+    global_prior = global_prior.with_columns(
+        (pl.col("global_count") / pl.col("global_count").sum()).alias("p_global")
+    )
+    
+    alpha = estimate_alpha_eb(counts, context_totals, global_prior, context_cols, target)
+    
+    prob_table = (
+        counts
+        .join(context_totals, on=context_cols)
+        .join(global_prior.select(target, "p_global"), on=target)
+        .with_columns(
+            ((pl.col("count") + alpha * pl.col("p_global")) / (pl.col("context_total") + alpha)).alias("prob")
+        )
+        .with_columns(
+            (-pl.col("prob").log()).alias("surprisal"),
+            (pl.col("context_total") >= min_support).alias("reliable")
+        )
+    )
+    
+    county_name = FIPS_TO_COUNTY_NAME.get(fips, fips)
+    
+    if "lc_type" in context_cols:
+        lc_types = prob_table["lc_type"].unique().to_list()
+        by_landcover = []
+        
+        for lc in lc_types:
+            lc_data = prob_table.filter(pl.col("lc_type") == lc).filter(pl.col("reliable"))
+            
+            if len(lc_data) == 0:
+                continue
+            
+            color_distributions = []
+            for row in lc_data.iter_rows(named=True):
+                color_distributions.append({
+                    "clr": row[target],
+                    "surprisal": float(row["surprisal"]) if row["surprisal"] is not None else 0.0,
+                    "prob": float(row["prob"]) if row["prob"] is not None else 0.0,
+                    "count": int(row["count"]) if row["count"] is not None else 0,
+                    "context_total": int(row["context_total"]) if row["context_total"] is not None else 0
+                })
+            
+            color_distributions.sort(key=lambda x: x["surprisal"], reverse=True)
+            
+            by_landcover.append({
+                "lc_type": lc,
+                "total_rows": int(lc_data["context_total"].first()) if len(lc_data) > 0 else 0,
+                "max_surprisal": float(lc_data["surprisal"].max()) if len(lc_data) > 0 else 0.0,
+                "mean_surprisal": float(lc_data["surprisal"].mean()) if len(lc_data) > 0 else 0.0,
+                "distributions": color_distributions
+            })
+        
+        return {
+            "fips": fips,
+            "county_name": county_name,
+            "alpha": alpha,
+            "by_landcover": by_landcover,
+            "total_landcover_types": len(by_landcover)
+        }
+    else:
+        county_data = prob_table.filter(pl.col("reliable"))
+        
+        color_distributions = []
+        for row in county_data.iter_rows(named=True):
+            color_distributions.append({
+                "clr": row[target],
+                "surprisal": float(row["surprisal"]) if row["surprisal"] is not None else 0.0,
+                "prob": float(row["prob"]) if row["prob"] is not None else 0.0,
+                "count": int(row["count"]) if row["count"] is not None else 0,
+                "context_total": int(row["context_total"]) if row["context_total"] is not None else 0
+            })
+        
+        color_distributions.sort(key=lambda x: x["surprisal"], reverse=True)
+        
+        return {
+            "fips": fips,
+            "county_name": county_name,
+            "alpha": alpha,
+            "by_landcover": [{
+                "lc_type": "all",
+                "total_rows": int(county_data["context_total"].sum()) if len(county_data) > 0 else 0,
+                "max_surprisal": float(county_data["surprisal"].max()) if len(county_data) > 0 else 0.0,
+                "mean_surprisal": float(county_data["surprisal"].mean()) if len(county_data) > 0 else 0.0,
+                "distributions": color_distributions
+            }],
+            "total_landcover_types": 1
+        }
 
 
 @router.post("/map/hexes")
@@ -695,9 +808,6 @@ def get_c2st_pair(fips_a: str, fips_b: str):
     }
 
 
-# ============================================================================
-# M02: Empirical Bayes Pooling Endpoints
-# ============================================================================
 
 @router.get("/bayesian/baseline-distributions")
 def get_baseline_distributions(lc_type: str | None = None):
@@ -768,7 +878,9 @@ def get_bayesian_county_map(req: BayesianMapRequest):
             raise HTTPException(500, "Bayesian stabilized data is empty")
         
         if req.lc_type:
-            data = data.filter(pl.col("lc_type") == req.lc_type)
+            # Handle potential space/plus sign mismatch (URL decoding converts + to space)
+            lc_type_clean = req.lc_type.replace(" ", "+")
+            data = data.filter(pl.col("lc_type") == lc_type_clean)
         
         if req.color_category:
             data = data.filter(pl.col("clr") == req.color_category)
@@ -786,17 +898,8 @@ def get_bayesian_county_map(req: BayesianMapRequest):
                 }
             }
         
-        # Aggregate by county
-        if req.metric == "movement":
-            agg_col = "movement"
-        elif req.metric == "abs_movement":
-            agg_col = "abs_movement"
-        elif req.metric == "shrinkage_weight":
-            agg_col = "shrinkage_weight"
-        else:
-            agg_col = "movement"
+        agg_col = req.metric if req.metric in ["movement", "abs_movement", "shrinkage_weight"] else "movement"
         
-        # Check if column exists
         if agg_col not in data.columns:
             raise HTTPException(400, f"Metric column '{agg_col}' not found in data")
         
@@ -817,28 +920,25 @@ def get_bayesian_county_map(req: BayesianMapRequest):
     except Exception as e:
         raise HTTPException(500, f"Error processing data: {str(e)}")
     
-    # Create a mapping of FIPS to stats
     stats_by_fips = {}
     for row in county_stats.to_dicts():
         try:
             fips_str = str(row["fips"]).zfill(5)
             top_change = row.get("top_change")
             
-            # Handle top_change - it might be a dict or None
             top_color = None
             top_movement = None
             top_observed_prop = None
             top_stabilized_prop = None
             
-            if top_change:
-                if isinstance(top_change, dict):
-                    top_color = top_change.get("clr")
-                    if top_change.get("movement") is not None:
-                        top_movement = float(top_change.get("movement"))
-                    if top_change.get("observed_prop") is not None:
-                        top_observed_prop = float(top_change.get("observed_prop"))
-                    if top_change.get("stabilized_prop") is not None:
-                        top_stabilized_prop = float(top_change.get("stabilized_prop"))
+            if top_change and isinstance(top_change, dict):
+                top_color = top_change.get("clr")
+                if top_change.get("movement") is not None:
+                    top_movement = float(top_change.get("movement"))
+                if top_change.get("observed_prop") is not None:
+                    top_observed_prop = float(top_change.get("observed_prop"))
+                if top_change.get("stabilized_prop") is not None:
+                    top_stabilized_prop = float(top_change.get("stabilized_prop"))
             
             stats_by_fips[fips_str] = {
                 "mean_value": float(row["mean_value"]) if row["mean_value"] is not None else 0.0,
@@ -851,17 +951,13 @@ def get_bayesian_county_map(req: BayesianMapRequest):
                 "top_stabilized_prop": top_stabilized_prop,
             }
         except Exception as e:
-            # Skip rows that cause errors, log and continue
-            print(f"Error processing row: {e}")
             continue
     
-    # Build GeoJSON features by merging with existing GeoJSON
     features = []
     for feature in ca_counties_geojson["features"]:
         props = feature.get("properties", {})
         fips_str = props.get("fips") or props.get("FIPS")
         
-        # Try to match by name if FIPS not found
         if not fips_str:
             county_name = props.get("name") or props.get("county_name", "")
             fips_str = COUNTY_NAME_TO_FIPS.get(county_name)
@@ -921,15 +1017,14 @@ def get_bayesian_county_detail(fips: str, lc_type: str | None = None):
     county_data = bayesian_stabilized_df.filter(pl.col("fips") == fips_int)
     
     if lc_type:
-        county_data = county_data.filter(pl.col("lc_type") == lc_type)
+        lc_type_clean = lc_type.replace(" ", "+")
+        county_data = county_data.filter(pl.col("lc_type") == lc_type_clean)
     
-    # Get baseline for comparison
     lc_types_in_county = county_data["lc_type"].unique().to_list()
     baseline_data = bayesian_baseline_df.filter(pl.col("lc_type").is_in(lc_types_in_county))
     
     county_name = FIPS_TO_COUNTY_NAME.get(fips, fips)
     
-    # Aggregate by landcover type
     by_landcover = []
     for lc in lc_types_in_county:
         lc_data = county_data.filter(pl.col("lc_type") == lc)
@@ -1093,4 +1188,111 @@ def get_neighbor_divergence_merged(req: ColorGroupedDivergenceRequest):
             "min_jsd": min(r["weighted_jsd"] for r in results) if results else 0
         },
         "color_groups_applied": len(req.color_groups)
+    }
+
+
+@router.get("/morans-i/test")
+def test_morans_i_data():
+    """Test endpoint to debug Moran's I data loading."""
+    if morans_i_df is None:
+        return {"error": "Moran's I data not loaded", "loaded": False}
+    
+    sample_data = morans_i_df.head(10).to_dicts()
+    fips_values = morans_i_df["fips"].unique().to_list()
+    
+    # Check GeoJSON FIPS format
+    geo_fips_samples = []
+    if ca_counties_geojson:
+        for i, feature in enumerate(ca_counties_geojson.get("features", [])[:10]):
+            props = feature.get("properties", {})
+            geo_fips_samples.append({
+                "index": i,
+                "fips": props.get("fips"),
+                "FIPS": props.get("FIPS"),
+                "name": props.get("name"),
+                "county_name": props.get("county_name"),
+                "all_props_keys": list(props.keys())
+            })
+    
+    return {
+        "loaded": True,
+        "total_rows": len(morans_i_df),
+        "columns": morans_i_df.columns,
+        "fips_dtype": str(morans_i_df["fips"].dtype),
+        "local_dtype": str(morans_i_df["local"].dtype),
+        "sample_fips": fips_values[:10],
+        "sample_data": sample_data,
+        "geojson_samples": geo_fips_samples,
+        "geojson_total_features": len(ca_counties_geojson.get("features", [])) if ca_counties_geojson else 0
+    }
+
+
+@router.get("/morans-i/map")
+def get_morans_i_map():
+    """Get Moran's I spatial autocorrelation data for counties."""
+    if morans_i_df is None:
+        raise HTTPException(500, "Moran's I data not loaded")
+    
+    if ca_counties_geojson is None:
+        raise HTTPException(500, "County geometries not loaded")
+    
+    # Create a lookup dictionary for Moran's I scores by FIPS (as string "06001" format)
+    # This matches the pattern used by other working maps
+    morans_lookup = {}
+    for row in morans_i_df.iter_rows(named=True):
+        fips_val = row.get("fips")
+        local_val = row.get("local")
+        if fips_val is not None and local_val is not None:
+            try:
+                # Convert to int then to string format "06001"
+                fips_int = int(fips_val) if not isinstance(fips_val, int) else fips_val
+                fips_str = str(fips_int).zfill(5)  # Convert 6001 -> "06001"
+                morans_lookup[fips_str] = float(local_val)
+            except (ValueError, TypeError):
+                continue
+    
+    if not morans_lookup:
+        raise HTTPException(500, f"No valid Moran's I data found. Loaded {len(morans_i_df)} rows but none had valid fips/local values")
+    
+    # Merge Moran's I scores with county geometries (same pattern as Bayesian map)
+    features = []
+    for feature in ca_counties_geojson.get("features", []):
+        props = feature.get("properties", {})
+        fips_str = props.get("fips") or props.get("FIPS")
+        
+        # Try to match by county name if FIPS not found (same as other maps)
+        if not fips_str:
+            county_name = props.get("name") or props.get("county_name", "")
+            fips_str = COUNTY_NAME_TO_FIPS.get(county_name)
+        
+        if fips_str and fips_str in morans_lookup:
+            local_score = morans_lookup[fips_str]
+            new_props = {
+                **props,
+                "fips": fips_str,
+                "county_name": FIPS_TO_COUNTY_NAME.get(fips_str, props.get("name", fips_str)),
+                "local": local_score
+            }
+            features.append({
+                "type": "Feature",
+                "properties": new_props,
+                "geometry": feature["geometry"]
+            })
+    
+    # Calculate statistics
+    local_scores = [f["properties"]["local"] for f in features if f["properties"]["local"] is not None]
+    
+    if not local_scores:
+        raise HTTPException(500, f"No matching counties found. Moran's I has {len(morans_lookup)} counties, GeoJSON has {len(ca_counties_geojson.get('features', []))} counties, matched {len(features)}")
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "stats": {
+            "total_counties": len(features),
+            "mean_local": float(np.mean(local_scores)),
+            "max_local": float(np.max(local_scores)),
+            "min_local": float(np.min(local_scores)),
+            "std_local": float(np.std(local_scores))
+        }
     }
