@@ -409,7 +409,7 @@ export function EmpiricalBayesPooling() {
                     <select
                         value={selectedLandcover}
                         onChange={(e) => setSelectedLandcover(e.target.value)}
-                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
+                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground text-base cursor-pointer focus:outline-none focus:border-sage-400"
                     >
                         <option value="">All Landcover Types</option>
                         {landcoverTypes.map(lc => (
@@ -423,7 +423,7 @@ export function EmpiricalBayesPooling() {
                     <select
                         value={metric}
                         onChange={(e) => setMetric(e.target.value as any)}
-                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
+                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground text-base cursor-pointer focus:outline-none focus:border-sage-400"
                     >
                         <option value="abs_movement">Absolute Movement</option>
                         <option value="movement">Movement (signed)</option>
@@ -436,7 +436,7 @@ export function EmpiricalBayesPooling() {
                     disabled={loading}
                     className={cn(
                         'px-7 py-2.5 bg-sage-500 border border-sage-600 rounded-sm text-white',
-                        'font-mono text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
+                        'text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
                         'hover:bg-sage-600',
                         'disabled:opacity-40 disabled:cursor-not-allowed'
                     )}
@@ -687,7 +687,7 @@ function MapLegend({
     }
 
     return (
-        <div className="absolute top-2.5 right-2.5 bg-white/95 border border-border rounded p-4 shadow-elevated z-10 min-w-[200px] font-mono">
+        <div className="absolute top-2.5 right-2.5 bg-white/95 border border-border rounded p-4 shadow-elevated z-10 min-w-[200px]">
             <div className="font-semibold text-sm mb-2 text-foreground uppercase tracking-wide">
                 {metricInfo.label}
             </div>

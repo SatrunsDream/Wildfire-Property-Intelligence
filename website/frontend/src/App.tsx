@@ -371,7 +371,7 @@ function App() {
                                 <button
                                     key={col}
                                     className={cn(
-                                        'px-5 py-2.5 rounded-sm border font-mono text-base transition-all duration-150',
+                                        'px-5 py-2.5 rounded-sm border text-base transition-all duration-150',
                                         contextCols.includes(col)
                                             ? 'bg-sage-100 border-sage-500 text-foreground'
                                             : 'bg-transparent border-border text-muted-foreground hover:border-sage-400 hover:text-foreground',
@@ -392,7 +392,7 @@ function App() {
                             <select
                                 value={target}
                                 onChange={e => selectTarget(e.target.value)}
-                                className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
+                                className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground text-base cursor-pointer focus:outline-none focus:border-sage-400"
                             >
                                 {columns.map(col => (
                                     <option key={col} value={col}>
@@ -421,7 +421,7 @@ function App() {
                         <button
                             className={cn(
                                 'px-7 py-2.5 bg-sage-500 border border-sage-600 rounded-sm text-white',
-                                'font-mono text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
+                                'text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
                                 'hover:bg-sage-600',
                                 'disabled:opacity-40 disabled:cursor-not-allowed'
                             )}
@@ -569,14 +569,14 @@ function App() {
                             <button
                                 onClick={() => table.firstPage()}
                                 disabled={!table.getCanPreviousPage()}
-                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 {'<<'}
                             </button>
                             <button
                                 onClick={() => table.previousPage()}
                                 disabled={!table.getCanPreviousPage()}
-                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 {'<'}
                             </button>
@@ -586,21 +586,21 @@ function App() {
                             <button
                                 onClick={() => table.nextPage()}
                                 disabled={!table.getCanNextPage()}
-                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 {'>'}
                             </button>
                             <button
                                 onClick={() => table.lastPage()}
                                 disabled={!table.getCanNextPage()}
-                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 {'>>'}
                             </button>
                             <select
                                 value={table.getState().pagination.pageSize}
                                 onChange={e => table.setPageSize(Number(e.target.value))}
-                                className="ml-4 px-5 py-2 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer"
+                                className="ml-4 px-5 py-2 rounded-sm border border-border bg-muted text-foreground text-base cursor-pointer"
                             >
                                 {[25, 50, 100, 200].map(size => (
                                     <option key={size} value={size}>{size} rows</option>

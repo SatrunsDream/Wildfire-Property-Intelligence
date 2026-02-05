@@ -519,7 +519,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                     <div className="flex rounded-sm overflow-hidden border border-border">
                         <button
                             className={cn(
-                                'px-3 py-1.5 border-none bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150 font-mono',
+                                'px-3 py-1.5 border-none bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150',
                                 'hover:bg-sage-100 hover:text-foreground',
                                 viewMode === 'counties' && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
                             )}
@@ -529,7 +529,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                         </button>
                         <button
                             className={cn(
-                                'px-3 py-1.5 border-none border-l border-border bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150 font-mono',
+                                'px-3 py-1.5 border-none border-l border-border bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150',
                                 'hover:bg-sage-100 hover:text-foreground',
                                 viewMode === 'hexes' && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
                             )}
@@ -540,7 +540,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                     </div>
                 </div>
                 <button
-                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleRefresh}
                     disabled={loading}
                 >
@@ -548,14 +548,14 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                 </button>
                 {viewMode === 'hexes' && (
                     <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
                         onClick={toggleHexVisibility}
                     >
                         {hexesVisible ? 'Hide Hexes' : 'Show Hexes'}
                     </button>
                 )}
                 <button
-                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
                     onClick={toggleFullscreen}
                 >
                     {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
@@ -598,12 +598,12 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
             <div className="absolute bottom-2.5 left-2.5 flex flex-col gap-1 z-10">
                 {isFullscreen && (
                     <span className="bg-white/90 px-2.5 py-1.5 rounded text-xs text-muted-foreground">
-                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-mono font-semibold text-foreground">Esc</kbd> to exit fullscreen
+                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-semibold text-foreground">Esc</kbd> to exit fullscreen
                     </span>
                 )}
                 {viewMode === 'hexes' && (
                     <span className="bg-white/90 px-2.5 py-1.5 rounded text-xs text-muted-foreground">
-                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-mono font-semibold text-foreground">H</kbd> to {hexesVisible ? 'hide' : 'show'} hexes
+                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-semibold text-foreground">H</kbd> to {hexesVisible ? 'hide' : 'show'} hexes
                     </span>
                 )}
             </div>

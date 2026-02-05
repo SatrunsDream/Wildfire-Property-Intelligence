@@ -3,69 +3,45 @@ import App from './App.tsx'
 import { EmpiricalBayesPooling } from './EmpiricalBayesPooling.tsx'
 import { NeighborDivergence } from './NeighborDivergence.tsx'
 import { C2STMap } from './C2STMap.tsx'
-import { cn } from './lib/utils'
+import { AppSidebar, type Page } from './components/app-sidebar'
+import { SiteHeader } from './components/site-header'
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
 
-type Page = 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st'
+const pageTitles: Record<Page, string> = {
+    'home': 'Home',
+    'conditional-probability': 'Conditional Probability',
+    'empirical-bayes': 'Empirical Bayes Pooling',
+    'neighbor-divergence': 'Neighbor Divergence',
+    'c2st': 'C2ST',
+}
 
 export function Router() {
-    const [page, setPage] = useState<Page>('conditional-probability')
+    const [page, setPage] = useState<Page>('home')
 
     return (
-        <>
-            <nav className="flex justify-center gap-0 pt-4 pb-0 mb-0 border-b border-border">
-                <button
-                    className={cn(
-                        'px-8 py-3 border border-border border-b-0 bg-muted text-muted-foreground',
-                        'font-mono text-sm font-medium uppercase tracking-widest',
-                        'cursor-pointer transition-all duration-150 -mb-px rounded-t',
-                        'hover:bg-sage-100 hover:text-foreground',
-                        page === 'conditional-probability' && 'bg-background text-foreground border-b-background'
-                    )}
-                    onClick={() => setPage('conditional-probability')}
-                >
-                    M01: Conditional Probability
-                </button>
-                <button
-                    className={cn(
-                        'px-8 py-3 border border-border border-b-0 border-l-0 bg-muted text-muted-foreground',
-                        'font-mono text-sm font-medium uppercase tracking-widest',
-                        'cursor-pointer transition-all duration-150 -mb-px rounded-t',
-                        'hover:bg-sage-100 hover:text-foreground',
-                        page === 'empirical-bayes' && 'bg-background text-foreground border-b-background'
-                    )}
-                    onClick={() => setPage('empirical-bayes')}
-                >
-                    M02: Empirical Bayes Pooling
-                </button>
-                <button
-                    className={cn(
-                        'px-8 py-3 border border-border border-b-0 border-l-0 bg-muted text-muted-foreground',
-                        'font-mono text-sm font-medium uppercase tracking-widest',
-                        'cursor-pointer transition-all duration-150 -mb-px rounded-t',
-                        'hover:bg-sage-100 hover:text-foreground',
-                        page === 'neighbor-divergence' && 'bg-background text-foreground border-b-background'
-                    )}
-                    onClick={() => setPage('neighbor-divergence')}
-                >
-                    M03: Neighbor Divergence
-                </button>
-                <button
-                    className={cn(
-                        'px-8 py-3 border border-border border-b-0 border-l-0 bg-muted text-muted-foreground',
-                        'font-mono text-sm font-medium uppercase tracking-widest',
-                        'cursor-pointer transition-all duration-150 -mb-px rounded-t',
-                        'hover:bg-sage-100 hover:text-foreground',
-                        page === 'c2st' && 'bg-background text-foreground border-b-background'
-                    )}
-                    onClick={() => setPage('c2st')}
-                >
-                    M04: C2ST
-                </button>
-            </nav>
-            {page === 'conditional-probability' && <App />}
-            {page === 'empirical-bayes' && <EmpiricalBayesPooling />}
-            {page === 'neighbor-divergence' && <NeighborDivergence />}
-            {page === 'c2st' && <C2STMap />}
-        </>
+        <SidebarProvider
+            style={
+                {
+                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+            }
+        >
+            <AppSidebar variant="inset" currentPage={page} onPageChange={setPage} />
+            <SidebarInset>
+                <SiteHeader title={pageTitles[page]} />
+                <div className="flex flex-1 flex-col">
+                    <div className="@container/main flex flex-1 flex-col gap-2">
+                        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                            {page === 'home' && null}
+                            {page === 'conditional-probability' && <App />}
+                            {page === 'empirical-bayes' && <EmpiricalBayesPooling />}
+                            {page === 'neighbor-divergence' && <NeighborDivergence />}
+                            {page === 'c2st' && <C2STMap />}
+                        </div>
+                    </div>
+                </div>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }

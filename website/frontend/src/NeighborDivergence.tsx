@@ -740,7 +740,7 @@ export function NeighborDivergence() {
                                 <div className="space-y-2">
                                     {colorGroups.map(group => (
                                         <div key={group.name} className="flex items-center gap-2 p-2 bg-muted rounded">
-                                            <span className="text-sm font-mono">[{group.name}]</span>
+                                            <span className="text-sm">[{group.name}]</span>
                                             <span className="flex items-center gap-1">
                                                 {group.colors.map(c => (
                                                     <span
