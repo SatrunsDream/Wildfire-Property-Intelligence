@@ -28,3 +28,19 @@ class BayesianMapRequest(BaseModel):
     lc_type: str | None = None
     metric: str = "movement"  # "movement", "shrinkage_weight", "abs_movement"
     color_category: str | None = None  # Filter by specific color category
+
+
+class ColorGroupMapping(BaseModel):
+    name: str
+    colors: list[str]
+
+
+class ColorGroupedCompareRequest(BaseModel):
+    fips_a: str
+    fips_b: str
+    conditions: list[ConditionFilter] | None = None
+    color_groups: list[ColorGroupMapping] | None = None
+
+
+class ColorGroupedDivergenceRequest(BaseModel):
+    color_groups: list[ColorGroupMapping]

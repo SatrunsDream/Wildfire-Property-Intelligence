@@ -149,3 +149,63 @@ def get_feature_distribution(df_a, df_b, col_name, total_a, total_b):
     distribution_b = sorted(distribution_b, key=lambda x: totals[x["value"]], reverse=True)
 
     return distribution_a, distribution_b, len(vocab_a), len(vocab_b)
+
+
+def apply_color_mapping(color_counts: dict, color_groups: list) -> dict:
+    color_to_group = {}
+    for group in color_groups:
+        for color in group["colors"]:
+            color_to_group[color] = group["name"]
+
+    merged = {}
+    for color, count in color_counts.items():
+        key = color_to_group.get(color, color)
+        merged[key] = merged.get(key, 0) + count
+
+    return merged
+
+
+def get_merged_feature_distribution(df_a, df_b, col_name, total_a, total_b, color_groups: list):
+
+    counts_a = df_a.group_by(col_name).len().rename({"len": "count"})
+    counts_b = df_b.group_by(col_name).len().rename({"len": "count"})
+
+    dist_a = {row[col_name]: row["count"] for row in counts_a.iter_rows(named=True)}
+    dist_b = {row[col_name]: row["count"] for row in counts_b.iter_rows(named=True)}
+
+    merged_a = apply_color_mapping(dist_a, color_groups)
+    merged_b = apply_color_mapping(dist_b, color_groups)
+
+    all_values = sorted(set(merged_a.keys()) | set(merged_b.keys()))
+    vocab_a = set(merged_a.keys())
+    vocab_b = set(merged_b.keys())
+    unique_to_a = vocab_a - vocab_b
+    unique_to_b = vocab_b - vocab_a
+
+    group_names = {g["name"] for g in color_groups}
+
+    distribution_a = []
+    distribution_b = []
+    for v in all_values:
+        count_a = merged_a.get(v, 0)
+        count_b = merged_b.get(v, 0)
+        distribution_a.append({
+            "value": v,
+            "count": count_a,
+            "proportion": count_a / total_a if total_a > 0 else 0,
+            "unique": v in unique_to_a,
+            "is_group": v in group_names
+        })
+        distribution_b.append({
+            "value": v,
+            "count": count_b,
+            "proportion": count_b / total_b if total_b > 0 else 0,
+            "unique": v in unique_to_b,
+            "is_group": v in group_names
+        })
+
+    totals = {v: merged_a.get(v, 0) + merged_b.get(v, 0) for v in all_values}
+    distribution_a = sorted(distribution_a, key=lambda x: totals[x["value"]], reverse=True)
+    distribution_b = sorted(distribution_b, key=lambda x: totals[x["value"]], reverse=True)
+
+    return distribution_a, distribution_b, len(vocab_a), len(vocab_b)

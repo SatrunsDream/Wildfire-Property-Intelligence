@@ -7,10 +7,14 @@ from constants import (
     COUNTY_NAME_TO_FIPS, FIPS_TO_COUNTY_NAME, COUNTY_CENTROIDS,
     COLUMN_META, H3_LEVELS
 )
-from models import ConditionalProbRequest, MapRequest, CountyCompareRequest, BayesianMapRequest
+from models import (
+    ConditionalProbRequest, MapRequest, CountyCompareRequest, BayesianMapRequest,
+    ColorGroupedCompareRequest, ColorGroupedDivergenceRequest
+)
 from utils import (
     estimate_alpha_eb, aggregate_hexes_to_resolution,
-    build_hex_geojson, get_feature_distribution
+    build_hex_geojson, get_feature_distribution, apply_color_mapping,
+    get_merged_feature_distribution
 )
 from data import (
     df, neighbors_df, c2st_df, ca_counties_geojson,
@@ -434,8 +438,25 @@ def get_conditioning_options():
     }
 
 
+def compute_jsd_from_distributions(dist_a: list, dist_b: list) -> float:
+    """Compute JSD from distribution lists (with Laplace smoothing)."""
+    LAPLACE = 1
+    all_values = set(d["value"] for d in dist_a) | set(d["value"] for d in dist_b)
+
+    counts_a = {d["value"]: d["count"] for d in dist_a}
+    counts_b = {d["value"]: d["count"] for d in dist_b}
+
+    vec_a = np.array([counts_a.get(v, 0) + LAPLACE for v in sorted(all_values)], dtype=float)
+    vec_b = np.array([counts_b.get(v, 0) + LAPLACE for v in sorted(all_values)], dtype=float)
+
+    vec_a /= vec_a.sum()
+    vec_b /= vec_b.sum()
+
+    return float(jensenshannon(vec_a, vec_b))
+
+
 @router.post("/compare/counties")
-def compare_counties(req: CountyCompareRequest):
+def compare_counties(req: ColorGroupedCompareRequest):
     fips_a = int(req.fips_a.lstrip("0")) if req.fips_a.startswith("0") else int(req.fips_a)
     fips_b = int(req.fips_b.lstrip("0")) if req.fips_b.startswith("0") else int(req.fips_b)
 
@@ -464,10 +485,25 @@ def compare_counties(req: CountyCompareRequest):
     bldg_a, bldg_b, bldg_vocab_a, bldg_vocab_b = get_feature_distribution(df_a, df_b, "bldgtype", total_a, total_b)
     occ_a, occ_b, occ_vocab_a, occ_vocab_b = get_feature_distribution(df_a, df_b, "st_damcat", total_a, total_b)
 
+    original_jsd = compute_jsd_from_distributions(clr_a, clr_b)
+
+    merged_clr_a = None
+    merged_clr_b = None
+    merged_vocab_a = None
+    merged_vocab_b = None
+    merged_jsd = None
+
+    if req.color_groups and len(req.color_groups) > 0:
+        color_groups_dicts = [{"name": g.name, "colors": g.colors} for g in req.color_groups]
+        merged_clr_a, merged_clr_b, merged_vocab_a, merged_vocab_b = get_merged_feature_distribution(
+            df_a, df_b, "clr", total_a, total_b, color_groups_dicts
+        )
+        merged_jsd = compute_jsd_from_distributions(merged_clr_a, merged_clr_b)
+
     county_a_name = FIPS_TO_COUNTY_NAME.get(req.fips_a, req.fips_a)
     county_b_name = FIPS_TO_COUNTY_NAME.get(req.fips_b, req.fips_b)
 
-    return {
+    result = {
         "county_a": {
             "fips": req.fips_a,
             "name": county_a_name,
@@ -487,8 +523,20 @@ def compare_counties(req: CountyCompareRequest):
         "conditioning": {
             "conditions": applied_conditions,
             "total_conditions": len(applied_conditions)
+        },
+        "jsd": {
+            "original": original_jsd
         }
     }
+
+    if merged_jsd is not None:
+        result["jsd"]["merged"] = merged_jsd
+        result["jsd"]["reduction"] = original_jsd - merged_jsd
+        result["jsd"]["reduction_pct"] = ((original_jsd - merged_jsd) / original_jsd * 100) if original_jsd > 0 else 0
+        result["county_a"]["clr_merged"] = {"distribution": merged_clr_a, "vocab_size": merged_vocab_a}
+        result["county_b"]["clr_merged"] = {"distribution": merged_clr_b, "vocab_size": merged_vocab_b}
+
+    return result
 
 
 @router.get("/neighbors/{fips}")
@@ -910,4 +958,139 @@ def get_bayesian_county_detail(fips: str, lc_type: str | None = None):
         "county_name": county_name,
         "by_landcover": by_landcover,
         "total_landcover_types": len(by_landcover)
+    }
+
+
+@router.post("/map/neighbor-divergence-merged")
+def get_neighbor_divergence_merged(req: ColorGroupedDivergenceRequest):
+    """
+    Recalculate neighbor divergence with merged color groups.
+    Returns GeoJSON with updated JSD values.
+    """
+    from data import ca_counties_geojson
+
+    LAPLACE_PSEUDOCOUNT = 1
+    MIN_SUPPORT = 30
+
+    color_groups = [{"name": g.name, "colors": g.colors} for g in req.color_groups]
+
+    neighbors = neighbors_df.rename({"county_fips": "fips_a", "neighbor_fips": "fips_b"})
+    neighbors = neighbors.filter(pl.col("fips_a") < pl.col("fips_b"))
+    adjacency_list = [(row["fips_a"], row["fips_b"]) for row in neighbors.iter_rows(named=True)]
+
+    all_colors_raw = df["clr"].unique().sort().to_list()
+    merged_colors = set()
+    for c in all_colors_raw:
+        mapped = c
+        for g in color_groups:
+            if c in g["colors"]:
+                mapped = g["name"]
+                break
+        merged_colors.add(mapped)
+    all_colors = sorted(merged_colors)
+
+    all_lc_types = df["lc_type"].unique().sort().to_list()
+
+    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).len().rename({"len": "count"})
+    county_lc_support = county_lc_clr_counts.group_by(["fips", "lc_type"]).agg(pl.col("count").sum().alias("support"))
+    support_dict = {(row["fips"], row["lc_type"]): row["support"] for row in county_lc_support.iter_rows(named=True)}
+
+    def get_merged_color_distribution(fips_val, lc_type_val):
+        subset = county_lc_clr_counts.filter((pl.col("fips") == fips_val) & (pl.col("lc_type") == lc_type_val))
+        raw_counts = dict(zip(subset["clr"].to_list(), subset["count"].to_list()))
+
+        # Merge counts based on color groups
+        merged_counts = apply_color_mapping(raw_counts, color_groups)
+
+        smoothed = np.array([merged_counts.get(c, 0) + LAPLACE_PSEUDOCOUNT for c in all_colors], dtype=float)
+        return smoothed / smoothed.sum()
+
+    results = []
+    for fips_a, fips_b in adjacency_list:
+        pair_jsds = []
+        pair_supports = []
+        for lc in all_lc_types:
+            support_a = support_dict.get((fips_a, lc), 0)
+            support_b = support_dict.get((fips_b, lc), 0)
+            if support_a < MIN_SUPPORT or support_b < MIN_SUPPORT:
+                continue
+            dist_a = get_merged_color_distribution(fips_a, lc)
+            dist_b = get_merged_color_distribution(fips_b, lc)
+            jsd = jensenshannon(dist_a, dist_b)
+            pair_jsds.append(jsd)
+            pair_supports.append(min(support_a, support_b))
+
+        if pair_jsds:
+            weighted_jsd = sum(j * s for j, s in zip(pair_jsds, pair_supports)) / sum(pair_supports)
+            results.append({
+                "fips_a": fips_a,
+                "fips_b": fips_b,
+                "weighted_jsd": weighted_jsd,
+                "mean_jsd": sum(pair_jsds) / len(pair_jsds),
+                "n_shared_lc": len(pair_jsds),
+                "total_support": sum(pair_supports)
+            })
+
+    county_max_jsd = {}
+    for r in results:
+        fips_a_str = str(r["fips_a"]).zfill(5)
+        fips_b_str = str(r["fips_b"]).zfill(5)
+        jsd = r["weighted_jsd"]
+        county_max_jsd[fips_a_str] = max(county_max_jsd.get(fips_a_str, 0), jsd)
+        county_max_jsd[fips_b_str] = max(county_max_jsd.get(fips_b_str, 0), jsd)
+
+    county_features = []
+    for feature in ca_counties_geojson["features"]:
+        props = dict(feature["properties"])
+        county_name = props.get("name", "")
+        fips_str = COUNTY_NAME_TO_FIPS.get(county_name)
+        if fips_str:
+            props["fips"] = fips_str
+            props["max_divergence"] = county_max_jsd.get(fips_str, 0)
+        else:
+            props["max_divergence"] = None
+        county_features.append({
+            "type": "Feature",
+            "properties": props,
+            "geometry": feature["geometry"]
+        })
+
+    edge_features = []
+    for r in results:
+        fips_a_str = str(r["fips_a"]).zfill(5)
+        fips_b_str = str(r["fips_b"]).zfill(5)
+        coord_a = COUNTY_CENTROIDS.get(fips_a_str)
+        coord_b = COUNTY_CENTROIDS.get(fips_b_str)
+        if coord_a and coord_b:
+            county_a_name = FIPS_TO_COUNTY_NAME.get(fips_a_str, fips_a_str)
+            county_b_name = FIPS_TO_COUNTY_NAME.get(fips_b_str, fips_b_str)
+            edge_features.append({
+                "type": "Feature",
+                "properties": {
+                    "fips_a": fips_a_str,
+                    "fips_b": fips_b_str,
+                    "county_a": county_a_name,
+                    "county_b": county_b_name,
+                    "weighted_jsd": r["weighted_jsd"],
+                    "mean_jsd": r["mean_jsd"],
+                    "n_shared_lc": r["n_shared_lc"],
+                    "total_support": r["total_support"]
+                },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [coord_a, coord_b]
+                }
+            })
+
+    return {
+        "counties": {"type": "FeatureCollection", "features": county_features},
+        "edges": {"type": "FeatureCollection", "features": edge_features},
+        "stats": {
+            "total_pairs": len(results),
+            "total_counties": len(county_max_jsd),
+            "mean_jsd": sum(r["weighted_jsd"] for r in results) / len(results) if results else 0,
+            "max_jsd": max(r["weighted_jsd"] for r in results) if results else 0,
+            "min_jsd": min(r["weighted_jsd"] for r in results) if results else 0
+        },
+        "color_groups_applied": len(req.color_groups)
     }
