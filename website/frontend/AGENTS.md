@@ -8,6 +8,7 @@ This is a React + TypeScript frontend for visualizing California county-level ge
 
 - **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite 7
+- **Styling**: Tailwind CSS v4 (via @tailwindcss/vite plugin)
 - **Mapping**: MapLibre GL for interactive maps
 - **Visualization**: D3.js for charts and histograms
 - **Geospatial**: H3-js for hexagonal indexing
@@ -25,8 +26,10 @@ src/
 ├── NeighborDivergence.tsx      # M03: County neighbor divergence analysis
 ├── C2STMap.tsx                 # M04: C2ST classifier results visualization
 ├── CaliforniaMap.tsx           # Reusable California map component
-├── App.css                     # Main styles
-└── index.css                   # Base styles
+├── index.css                   # Tailwind imports, theme config, base styles
+└── lib/
+    ├── utils.ts                # cn() helper for conditional Tailwind classes
+    └── chart-colors.ts         # Color tokens for D3 charts
 ```
 
 ## Key Components
@@ -55,6 +58,7 @@ The frontend connects to a FastAPI backend at `http://localhost:8000`. Key endpo
 - `GET /bayesian/stabilized-distributions` - Stabilized distributions
 - `POST /bayesian/map/counties` - Bayesian shrinkage map data
 - `GET /bayesian/county/{fips}` - Detailed county shrinkage data
+- `POST /map/neighbor-divergence-merged` - Recalculate all pair JSDs with merged colors
 
 ## Development Commands
 
@@ -74,6 +78,38 @@ npm run preview  # Preview production build
 - Map interactions use refs for imperative control
 - D3 renders into SVG refs
 
+### Styling (Tailwind CSS - REQUIRED)
+
+**You MUST use Tailwind CSS for all styling.** Do not create CSS files or use inline style objects except for:
+- Dynamic values (e.g., `style={{ width: `${percentage}%` }}`)
+- Color swatches with dynamic hex values
+- D3.js chart elements (inline styles are the D3 pattern)
+- MapLibre popup HTML (injected into map, not React)
+
+**Key patterns:**
+```typescript
+// Use cn() helper for conditional classes
+import { cn } from './lib/utils'
+
+<button className={cn(
+    'px-3 py-2 text-sm rounded border',
+    isActive ? 'bg-sage-500 text-white' : 'bg-white hover:bg-muted'
+)}>
+
+// Design system colors (defined in index.css @theme)
+// Primary accent: sage-500 (#8b9a6b)
+// Background: white, Muted: #f5f5f5
+// Text: foreground (#141414), muted-foreground (#666666)
+// Border: border (#e5e5e5)
+```
+
+**Common component patterns:**
+- Buttons: `px-3 py-2 text-sm rounded border border-border hover:bg-muted`
+- Primary button: `bg-sage-500 text-white hover:bg-sage-600`
+- Cards/sections: `border border-border rounded p-4`
+- Chips (selected): `border-sage-500 bg-sage-100 text-foreground`
+- Chips (unselected): `border-border text-muted-foreground hover:border-sage-400`
+
 ## Common Patterns
 
 ### API Calls
@@ -92,14 +128,12 @@ const mapRef = useRef<CaliforniaMapRef>(null)
 // Later: mapRef.current?.flyTo(coords)
 ```
 
-## M02: Empirical Bayes Pooling (Added)
+## M02: Empirical Bayes Pooling
 
-**What was done:**
-- Created new component `EmpiricalBayesPooling.tsx` for visualizing Bayesian shrinkage results
-- Added M02 route to `Router.tsx` between M01 and M03
-- Component structure follows same pattern as other methods (separate file, self-contained)
+**Purpose:**
+`EmpiricalBayesPooling.tsx` visualizes Bayesian shrinkage results. Component structure follows same pattern as other methods (separate file, self-contained).
 
-**Component features:**
+**Features:**
 - Interactive California map showing shrinkage metrics by county
 - Filter by landcover type (dropdown with 11 options: barren, crop, forest, grass, other, shrub, urban, urban+barren, urban+crop, urban+forest)
 - Select metric to visualize:
@@ -139,6 +173,52 @@ const mapRef = useRef<CaliforniaMapRef>(null)
 - `GET /bayesian/baseline-distributions` - Load landcover types dropdown
 - `POST /bayesian/map/counties` - Load county-level map data
 - `GET /bayesian/county/{fips}` - Load detailed county breakdown
+
+## M03: Interactive Color Pooling for Neighbor Divergence
+
+**Purpose:**
+Interactive color grouping feature in `NeighborDivergence.tsx` that lets users pool similar colors (e.g., "brown", "sienna", "cocoa" into one group) and recalculate JSD. Tests hypothesis that similar color names inflate divergence scores between counties.
+
+**Features:**
+- **Color Grouping Panel** (collapsible):
+  - Preset buttons: "All Browns", "All Reds", "All Greens", "Blues/Purples", "Grays", "Add All", "Reset"
+  - List of created groups with color chips
+  - Ungrouped colors section (click to select, then add to existing/new group)
+  - Custom group creation with name input
+
+- **Dual Map Comparison View**:
+  - Side-by-side "Original" vs "Merged Colors" maps
+  - Same Viridis color scale for fair comparison
+  - Mean JSD badge on each map with % change indicator
+
+- **"Recalculate All Pairs" button**:
+  - Sends color groups to backend
+  - Updates merged map view
+  - Shows loading state during calculation
+
+- **JSD Comparison Display** (in county pair comparison):
+  - Original JSD → Merged JSD with % reduction
+  - Shows both original and merged distributions
+
+**Preset color groups:**
+```typescript
+const PRESETS = {
+  browns: ["brown", "sienna", "cocoa", "coffee", "tan", "terracotta", "auburn"],
+  reds: ["red", "scarlet", "crimson", "maroon"],
+  greens: ["green", "sage", "verde", "emerald"],
+  blues_purples: ["blue", "indigo", "navy", "purple", "lavender", "lilac"],
+  grays: ["gray", "grey"]  // NOTE: foo/bar are unknown values - kept ungrouped
+};
+```
+
+**Key state:**
+```typescript
+const [colorGroups, setColorGroups] = useState<ColorGroup[]>([])
+const [showColorPanel, setShowColorPanel] = useState(false)
+const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set())
+const [showMergedMap, setShowMergedMap] = useState(false)
+const [mergedData, setMergedData] = useState<DivergenceData | null>(null)
+```
 
 ## Notes
 

@@ -56,7 +56,7 @@ Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df
 | GET | `/map/neighbor-divergence` | JSD between adjacent counties |
 | GET | `/counties` | List all CA counties |
 | GET | `/conditioning-options` | Filter options for UI |
-| POST | `/compare/counties` | Compare two counties |
+| POST | `/compare/counties` | Compare two counties (accepts optional `color_groups` for merged JSD) |
 | GET | `/neighbors/{fips}` | Get county neighbors |
 | GET | `/c2st/results` | C2ST classifier results |
 | GET | `/c2st/pair/{fips_a}/{fips_b}` | C2ST detail for county pair |
@@ -64,21 +64,18 @@ Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df
 | GET | `/bayesian/stabilized-distributions` | Stabilized distributions (filterable) |
 | POST | `/bayesian/map/counties` | County-level map data for Bayesian shrinkage |
 | GET | `/bayesian/county/{fips}` | Detailed county shrinkage data with baseline comparison |
+| GET | `/bayesian/test-data` | Test endpoint to verify data loading |
+| POST | `/map/neighbor-divergence-merged` | Recalculate all pair JSDs with merged colors |
 
-## M02: Empirical Bayes Pooling (Added)
+## M02: Empirical Bayes Pooling
 
-**What was done:**
-- Added three new data files for Bayesian shrinkage analysis (all in `backend/data/`):
-  - `bayesian_baseline_df`: Landcover-specific baseline distributions (421 rows)
-  - `bayesian_stabilized_df`: County-level stabilized distributions with shrinkage metrics (4,493 rows)
-  - `bayesian_counts_df`: Aggregated counts by county × landcover × category
+**Purpose:**
+Backend support for Bayesian shrinkage analysis visualization.
 
-**New endpoints:**
-- `GET /bayesian/baseline-distributions`: Returns baseline proportions by landcover type
-- `GET /bayesian/stabilized-distributions`: Returns stabilized distributions, filterable by county and landcover
-- `POST /bayesian/map/counties`: Returns GeoJSON for county-level visualization with shrinkage metrics
-- `GET /bayesian/county/{fips}`: Returns detailed county data with baseline vs stabilized comparison
-- `GET /bayesian/test-data`: Test endpoint to verify data loading
+**Data files (in `backend/data/`):**
+- `bayesian_baseline_df`: Landcover-specific baseline distributions (421 rows)
+- `bayesian_stabilized_df`: County-level stabilized distributions with shrinkage metrics (4,493 rows)
+- `bayesian_counts_df`: Aggregated counts by county × landcover × category
 
 **Request model:**
 - `BayesianMapRequest`: Model for map requests with optional `lc_type`, `metric`, and `color_category` filters
@@ -131,3 +128,40 @@ python main.py  # runs on port 8000
 - If endpoints return 404: Restart the backend server
 - If data loading fails: Check that all CSV files exist in `backend/data/` folder
 - Test data loading: Visit `http://localhost:8000/bayesian/test-data` to verify data files are loaded
+
+## M03: Interactive Color Pooling for Neighbor Divergence
+
+**Purpose:**
+Backend support for interactive color grouping that lets users pool similar colors and recalculate JSD between counties.
+
+**Models in `models.py`:**
+```python
+class ColorGroupMapping(BaseModel):
+    name: str
+    colors: list[str]
+
+class ColorGroupedCompareRequest(BaseModel):
+    fips_a: str
+    fips_b: str
+    conditions: list[ConditionFilter] | None = None
+    color_groups: list[ColorGroupMapping] | None = None
+
+class ColorGroupedDivergenceRequest(BaseModel):
+    color_groups: list[ColorGroupMapping]
+```
+
+**Utility in `utils.py`:**
+```python
+def apply_color_mapping(color_counts: dict, color_groups: list) -> dict:
+    """Merge color counts according to groupings."""
+```
+
+**Response additions for `/compare/counties`:**
+- `jsd.original`: Original JSD value
+- `jsd.merged`: JSD after merging colors (if `color_groups` provided)
+- `jsd.reduction`: Absolute reduction in JSD
+- `jsd.reduction_pct`: Percentage reduction
+- `county_a.clr_merged` / `county_b.clr_merged`: Merged color distributions
+
+**`/map/neighbor-divergence-merged` response:**
+Same structure as `/map/neighbor-divergence` but with JSD values recalculated using merged color groups.
