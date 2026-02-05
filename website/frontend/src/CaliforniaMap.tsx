@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 're
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { cellToLatLng } from 'h3-js'
+import { cn } from './lib/utils'
 
 const API_URL = 'http://localhost:8000'
 
@@ -271,7 +272,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                         <div>Max Surprisal: <strong>${maxSurp}</strong></div>
                         <div>Mean Surprisal: ${meanSurp}</div>
                         <div>Rows: ${rows}</div>
-                        ${props.top_anomaly_value ? `<div style="margin-top: 4px; color: #fbbf24;">Top: ${props.top_anomaly_value} (${props.top_anomaly_surprisal?.toFixed(2)})</div>` : ''}
+                        ${props.top_anomaly_value ? `<div style="margin-top: 4px; color: #d97706;">Top: ${props.top_anomaly_value} (${props.top_anomaly_surprisal?.toFixed(2)})</div>` : ''}
                     </div>
                 `
                 popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
@@ -404,14 +405,14 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                                 ? `Compared to other ${anomalyContext} areas in county ${fips}`
                                 : `Compared to similar areas in county ${fips}`
                             anomalySection = `
-                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #555;">
-                                    <div style="color: #fbbf24; font-weight: bold;">Why anomalous?</div>
+                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e5e5;">
+                                    <div style="color: #d97706; font-weight: bold;">Why anomalous?</div>
                                     <div style="margin-top: 4px;">
-                                        Observed: <span style="color: #ef4444; font-weight: bold;">${anomalyValue}</span>
+                                        Observed: <span style="color: #dc2626; font-weight: bold;">${anomalyValue}</span>
                                         ${anomalyProb ? `<span style="color: #888;"> (${anomalyProb}% prob)</span>` : ''}
                                     </div>
                                     <div style="color: #888; font-size: 11px;">${contextDesc}</div>
-                                    ${expected ? `<div style="margin-top: 4px; color: #22c55e; font-size: 11px;">Expected: ${expected}</div>` : ''}
+                                    ${expected ? `<div style="margin-top: 4px; color: #16a34a; font-size: 11px;">Expected: ${expected}</div>` : ''}
                                 </div>
                             `
                         }
@@ -421,7 +422,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                                 <div style="font-weight: bold; margin-bottom: 4px; font-family: monospace;">${h3Id.slice(0, 12)}...</div>
                                 <div>Land Cover: ${lcType}</div>
                                 <div>FIPS: ${fips}</div>
-                                <div>Max Surprisal: <strong style="color: ${parseFloat(maxSurp) > 6 ? '#ef4444' : parseFloat(maxSurp) > 4 ? '#fbbf24' : '#22c55e'}">${maxSurp} nats</strong></div>
+                                <div>Max Surprisal: <strong style="color: ${parseFloat(maxSurp) > 6 ? '#dc2626' : parseFloat(maxSurp) > 4 ? '#d97706' : '#16a34a'}">${maxSurp} nats</strong></div>
                                 ${anomalySection}
                             </div>
                         `
@@ -507,65 +508,104 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
     }, [isFullscreen])
 
     return (
-        <div className={`map-container ${isFullscreen ? 'fullscreen' : ''}`}>
-            <div className="map-controls">
-                <div className="control-group">
-                    <span className="control-label">View</span>
-                    <div className="toggle-group">
+        <div className={cn(
+            'relative border border-border rounded overflow-hidden mb-8',
+            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] border-none rounded-none m-0'
+        )}>
+            {/* Map Controls */}
+            <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10">
+                <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">View</span>
+                    <div className="flex rounded-sm overflow-hidden border border-border">
                         <button
-                            className={`toggle-btn ${viewMode === 'counties' ? 'active' : ''}`}
+                            className={cn(
+                                'px-3 py-1.5 border-none bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150 font-mono',
+                                'hover:bg-sage-100 hover:text-foreground',
+                                viewMode === 'counties' && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
+                            )}
                             onClick={() => handleViewChange('counties')}
                         >
                             Counties
                         </button>
                         <button
-                            className={`toggle-btn ${viewMode === 'hexes' ? 'active' : ''}`}
+                            className={cn(
+                                'px-3 py-1.5 border-none border-l border-border bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150 font-mono',
+                                'hover:bg-sage-100 hover:text-foreground',
+                                viewMode === 'hexes' && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
+                            )}
                             onClick={() => handleViewChange('hexes')}
                         >
                             H3 Hexes
                         </button>
                     </div>
                 </div>
-                <button className="refresh-btn" onClick={handleRefresh} disabled={loading}>
+                <button
+                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleRefresh}
+                    disabled={loading}
+                >
                     {loading ? 'Loading...' : 'Refresh Map'}
                 </button>
                 {viewMode === 'hexes' && (
-                    <button className="toggle-hex-btn" onClick={toggleHexVisibility}>
+                    <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        onClick={toggleHexVisibility}
+                    >
                         {hexesVisible ? 'Hide Hexes' : 'Show Hexes'}
                     </button>
                 )}
-                <button className="fullscreen-btn" onClick={toggleFullscreen}>
+                <button
+                    className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer font-mono uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                    onClick={toggleFullscreen}
+                >
                     {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                 </button>
             </div>
 
-            {error && <div className="map-error">{error}</div>}
+            {error && (
+                <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">
+                    {error}
+                </div>
+            )}
 
-            <div ref={mapContainer} className="map" />
+            <div ref={mapContainer} className={cn('w-full h-[700px]', isFullscreen && 'h-screen')} />
 
-            <div className="map-legend">
-                <div className="legend-title">Max Surprisal (nats)</div>
-                <div className="legend-bar" />
-                <div className="legend-labels">
+            {/* Legend */}
+            <div className="absolute bottom-7 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                <div className="font-semibold mb-2 text-foreground">Max Surprisal (nats)</div>
+                <div
+                    className="w-44 h-2.5 rounded-sm"
+                    style={{ background: 'linear-gradient(to right, #2166ac 0%, #67a9cf 20%, #d1e5f0 30%, #f7f7f7 40%, #fddbc7 50%, #ef8a62 60%, #b2182b 80%, #67001f 100%)' }}
+                />
+                <div className="flex justify-between mt-1 text-muted-foreground">
                     <span>2</span>
                     <span>5</span>
                     <span>9+</span>
                 </div>
-                <div className="legend-desc">
+                <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
                     <span>Expected</span>
                     <span>Unusual</span>
                     <span>Anomalous</span>
                 </div>
                 {hexData && viewMode === 'hexes' && (
-                    <div className="legend-note">
+                    <div className="mt-1.5 text-[9px] text-muted-foreground italic">
                         {hexData.total_hexes.toLocaleString()} hexes (zoom for detail)
                     </div>
                 )}
             </div>
 
-            <div className="keybind-hints">
-                {isFullscreen && <span>Press <kbd>Esc</kbd> to exit fullscreen</span>}
-                {viewMode === 'hexes' && <span>Press <kbd>H</kbd> to {hexesVisible ? 'hide' : 'show'} hexes</span>}
+            {/* Keybind Hints */}
+            <div className="absolute bottom-2.5 left-2.5 flex flex-col gap-1 z-10">
+                {isFullscreen && (
+                    <span className="bg-white/90 px-2.5 py-1.5 rounded text-xs text-muted-foreground">
+                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-mono font-semibold text-foreground">Esc</kbd> to exit fullscreen
+                    </span>
+                )}
+                {viewMode === 'hexes' && (
+                    <span className="bg-white/90 px-2.5 py-1.5 rounded text-xs text-muted-foreground">
+                        Press <kbd className="bg-sage-100 border border-sage-300 rounded px-1.5 py-0.5 font-mono font-semibold text-foreground">H</kbd> to {hexesVisible ? 'hide' : 'show'} hexes
+                    </span>
+                )}
             </div>
         </div>
     )

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import './App.css'
+import { cn } from './lib/utils'
 
 const API_URL = 'http://localhost:8000'
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
@@ -561,14 +561,14 @@ export function NeighborDivergence() {
         : 0
 
     return (
-        <div className="app">
-            <h1>Neighbor Divergence</h1>
-            <p className="subtitle">
+        <div className="py-6">
+            <h1 className="text-2xl font-medium mb-2">Neighbor Divergence</h1>
+            <p className="text-muted-foreground mb-6">
                 Jensen-Shannon Divergence between neighboring counties' color distributions.
             </p>
 
             {data && (
-                <div className="stats" style={{ marginBottom: '1.5rem' }}>
+                <div className="flex gap-6 text-sm mb-6">
                     <span>County Pairs: <strong>{data.stats.total_pairs}</strong></span>
                     <span>Mean Avg JSD: <strong>{data.stats.mean_jsd.toFixed(3)}</strong></span>
                     <span>Range: <strong>{data.stats.min_jsd.toFixed(3)} - {data.stats.max_jsd.toFixed(3)}</strong></span>
@@ -576,190 +576,287 @@ export function NeighborDivergence() {
             )}
 
             {/* Map comparison container */}
-            <div className={`map-comparison-container ${showMergedMap ? 'dual' : ''}`}>
-                <div className={`map-container ${isFullscreen ? 'fullscreen' : ''}`}>
-                    {showMergedMap && <div className="map-label">Original</div>}
+            <div className={cn('grid gap-4', showMergedMap ? 'grid-cols-2' : 'grid-cols-1')}>
+                <div className={cn(
+                    'relative border border-border rounded overflow-hidden',
+                    isFullscreen && 'fixed inset-0 z-50 rounded-none'
+                )}>
+                    {showMergedMap && (
+                        <div className="absolute top-2 left-2 z-10 px-3 py-1 bg-white/95 text-xs font-medium uppercase tracking-wide rounded shadow-card">
+                            Original
+                        </div>
+                    )}
                     {data && showMergedMap && (
-                        <div className="map-jsd-badge">
+                        <div className="absolute top-2 left-24 z-10 px-3 py-1 bg-white/95 text-xs rounded shadow-card">
                             Mean JSD: {data.stats.mean_jsd.toFixed(3)}
                         </div>
                     )}
-                    <div className="map-controls">
+                    <div className="absolute top-2 right-12 z-10 flex gap-2">
                         <button
-                            className="toggle-hex-btn"
+                            className={cn(
+                                'px-3 py-1.5 text-xs font-medium rounded border shadow-card cursor-pointer transition-colors',
+                                showEdges
+                                    ? 'bg-sage-500 text-white border-sage-500'
+                                    : 'bg-white/95 text-foreground border-border hover:bg-muted'
+                            )}
                             onClick={() => setShowEdges(!showEdges)}
                         >
                             {showEdges ? 'Hide Edges' : 'Show Edges'}
                         </button>
-                        <button className="fullscreen-btn" onClick={toggleFullscreen}>
+                        <button
+                            className="px-3 py-1.5 text-xs font-medium rounded border border-border bg-white/95 text-foreground shadow-card cursor-pointer hover:bg-muted transition-colors"
+                            onClick={toggleFullscreen}
+                        >
                             {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                         </button>
                     </div>
 
-                    {loading && <div className="map-error">Loading divergence data...</div>}
-                    {error && <div className="map-error">{error}</div>}
+                    {loading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+                            Loading divergence data...
+                        </div>
+                    )}
+                    {error && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20 text-red-600">
+                            {error}
+                        </div>
+                    )}
 
-                    <div ref={mapContainer} className="map" />
+                    <div ref={mapContainer} className={cn('w-full', isFullscreen ? 'h-screen' : 'h-[500px]')} />
 
-                    <div className="map-legend">
-                        <div className="legend-title">Avg JSD (Divergence)</div>
-                        <div className="legend-bar" style={{
-                            background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)'
-                        }} />
-                        <div className="legend-labels">
+                    <div className="absolute bottom-4 left-4 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                        <div className="font-medium mb-1">Avg JSD (Divergence)</div>
+                        <div
+                            className="h-3 w-40 rounded"
+                            style={{ background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)' }}
+                        />
+                        <div className="flex justify-between mt-1 text-muted-foreground">
                             <span>0</span>
                             <span>1</span>
                         </div>
-                        <div className="legend-desc">
+                        <div className="flex justify-between text-muted-foreground">
                             <span>Similar</span>
                             <span>Different</span>
                         </div>
                     </div>
 
-                    <div className="keybind-hints">
-                        {isFullscreen && <span>Press <kbd>Esc</kbd> to exit fullscreen</span>}
-                        <span>Press <kbd>E</kbd> to {showEdges ? 'hide' : 'show'} edges</span>
+                    <div className="absolute bottom-4 right-4 bg-white/95 px-2 py-1 rounded text-xs text-muted-foreground z-10">
+                        {isFullscreen && <span>Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Esc</kbd> to exit fullscreen · </span>}
+                        <span>Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">E</kbd> to {showEdges ? 'hide' : 'show'} edges</span>
                     </div>
                 </div>
 
                 {showMergedMap && (
-                    <div className="map-container merged-map">
-                        <div className="map-label merged">Merged Colors</div>
+                    <div className="relative border border-border rounded overflow-hidden">
+                        <div className="absolute top-2 left-2 z-10 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium uppercase tracking-wide rounded shadow-card">
+                            Merged Colors
+                        </div>
                         {mergedData && (
-                            <div className="map-jsd-badge merged">
+                            <div className="absolute top-2 left-32 z-10 px-3 py-1 bg-white/95 text-xs rounded shadow-card">
                                 Mean JSD: {mergedData.stats.mean_jsd.toFixed(3)}
                                 {data && (
-                                    <span className="jsd-change">
+                                    <span className={cn(
+                                        'ml-2',
+                                        mergedData.stats.mean_jsd < data.stats.mean_jsd ? 'text-green-600' : 'text-red-600'
+                                    )}>
                                         ({((mergedData.stats.mean_jsd - data.stats.mean_jsd) / data.stats.mean_jsd * 100).toFixed(1)}%)
                                     </span>
                                 )}
                             </div>
                         )}
-                        {mergedMapLoading && <div className="map-loading-overlay">Recalculating...</div>}
-                        <div ref={mergedMapContainer} className="map" />
+                        {mergedMapLoading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+                                Recalculating...
+                            </div>
+                        )}
+                        <div ref={mergedMapContainer} className="w-full h-[500px]" />
                     </div>
                 )}
             </div>
 
             {/* Color Grouping Panel */}
-            <div className="color-grouping-panel">
-                <div className="panel-header" onClick={() => setShowColorPanel(!showColorPanel)}>
-                    <h3>Color Grouping</h3>
-                    <button className="toggle-panel-btn">
+            <div className="mt-6 border border-border rounded overflow-hidden">
+                <div
+                    className="flex items-center justify-between px-4 py-3 bg-muted cursor-pointer"
+                    onClick={() => setShowColorPanel(!showColorPanel)}
+                >
+                    <h3 className="font-medium">Color Grouping</h3>
+                    <button className="text-sm text-muted-foreground hover:text-foreground">
                         {showColorPanel ? 'Hide' : 'Show'}
                     </button>
                 </div>
 
                 {showColorPanel && (
-                    <div className="panel-content">
-                        <div className="preset-buttons">
-                            <span className="preset-label">Presets:</span>
-                            <button onClick={() => addPreset('browns')}>All Browns</button>
-                            <button onClick={() => addPreset('reds')}>All Reds</button>
-                            <button onClick={() => addPreset('greens')}>All Greens</button>
-                            <button onClick={() => addPreset('blues_purples')}>Blues/Purples</button>
-                            <button onClick={() => addPreset('grays')}>Grays</button>
-                            <button onClick={addAllPresets} className="add-all-btn">Add All</button>
-                            <button onClick={resetGroups} className="reset-btn">Reset</button>
+                    <div className="p-4 space-y-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Presets:</span>
+                            <button
+                                onClick={() => addPreset('browns')}
+                                className="px-3 py-1 text-xs border border-sage-300 rounded hover:bg-sage-100 transition-colors"
+                            >
+                                All Browns
+                            </button>
+                            <button
+                                onClick={() => addPreset('reds')}
+                                className="px-3 py-1 text-xs border border-sage-300 rounded hover:bg-sage-100 transition-colors"
+                            >
+                                All Reds
+                            </button>
+                            <button
+                                onClick={() => addPreset('greens')}
+                                className="px-3 py-1 text-xs border border-sage-300 rounded hover:bg-sage-100 transition-colors"
+                            >
+                                All Greens
+                            </button>
+                            <button
+                                onClick={() => addPreset('blues_purples')}
+                                className="px-3 py-1 text-xs border border-sage-300 rounded hover:bg-sage-100 transition-colors"
+                            >
+                                Blues/Purples
+                            </button>
+                            <button
+                                onClick={() => addPreset('grays')}
+                                className="px-3 py-1 text-xs border border-sage-300 rounded hover:bg-sage-100 transition-colors"
+                            >
+                                Grays
+                            </button>
+                            <button
+                                onClick={addAllPresets}
+                                className="px-3 py-1 text-xs bg-sage-500 text-white rounded hover:bg-sage-600 transition-colors"
+                            >
+                                Add All
+                            </button>
+                            <button
+                                onClick={resetGroups}
+                                className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
+                            >
+                                Reset
+                            </button>
                         </div>
 
                         {colorGroups.length > 0 && (
-                            <div className="groups-section">
-                                <h4>Groups ({colorGroups.length})</h4>
-                                <div className="groups-list">
+                            <div>
+                                <h4 className="text-sm font-medium mb-2">Groups ({colorGroups.length})</h4>
+                                <div className="space-y-2">
                                     {colorGroups.map(group => (
-                                        <div key={group.name} className="group-item">
-                                            <span className="group-name">[{group.name}]</span>
-                                            <span className="group-colors">
+                                        <div key={group.name} className="flex items-center gap-2 p-2 bg-muted rounded">
+                                            <span className="text-sm font-mono">[{group.name}]</span>
+                                            <span className="flex items-center gap-1">
                                                 {group.colors.map(c => (
-                                                    <span key={c} className="mini-color-chip" style={{ backgroundColor: COLOR_MAP[c] || '#ccc' }} title={c} />
+                                                    <span
+                                                        key={c}
+                                                        className="w-4 h-4 rounded-full border border-border"
+                                                        style={{ backgroundColor: COLOR_MAP[c] || '#ccc' }}
+                                                        title={c}
+                                                    />
                                                 ))}
-                                                <span className="color-count">({group.colors.length})</span>
+                                                <span className="text-xs text-muted-foreground ml-1">({group.colors.length})</span>
                                             </span>
-                                            <button className="delete-group-btn" onClick={() => removeGroup(group.name)}>×</button>
+                                            <button
+                                                className="ml-auto text-red-500 hover:text-red-700 text-lg leading-none"
+                                                onClick={() => removeGroup(group.name)}
+                                            >
+                                                ×
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        <div className="ungrouped-section">
-                            <h4>Ungrouped Colors (click to select)</h4>
-                            <div className="ungrouped-colors">
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Ungrouped Colors (click to select)</h4>
+                            <div className="flex flex-wrap gap-2">
                                 {ungroupedColors.map(color => (
                                     <button
                                         key={color}
-                                        className={`color-chip-btn ${selectedColors.has(color) ? 'selected' : ''}`}
+                                        className={cn(
+                                            'inline-flex items-center gap-1.5 px-2 py-1 text-xs border rounded cursor-pointer transition-colors',
+                                            selectedColors.has(color)
+                                                ? 'border-sage-500 bg-sage-100 text-foreground'
+                                                : 'border-border text-muted-foreground hover:border-sage-400'
+                                        )}
                                         onClick={() => toggleColorSelection(color)}
-                                        style={{
-                                            '--chip-color': COLOR_MAP[color] || '#ccc'
-                                        } as React.CSSProperties}
                                     >
-                                        <span className="chip-swatch" style={{ backgroundColor: COLOR_MAP[color] || '#ccc' }} />
+                                        <span
+                                            className="w-3 h-3 rounded-full border border-border"
+                                            style={{ backgroundColor: COLOR_MAP[color] || '#ccc' }}
+                                        />
                                         {color}
                                     </button>
                                 ))}
                             </div>
 
                             {selectedColors.size > 0 && (
-                                <div className="add-to-group">
-                                    <span>{selectedColors.size} selected</span>
-                                    <select onChange={(e) => {
-                                        if (e.target.value) {
-                                            addSelectedToGroup(e.target.value)
-                                            e.target.value = ''
-                                        }
-                                    }}>
+                                <div className="flex items-center gap-2 mt-3">
+                                    <span className="text-sm text-muted-foreground">{selectedColors.size} selected</span>
+                                    <select
+                                        className="px-2 py-1 text-sm border border-border rounded bg-white"
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                addSelectedToGroup(e.target.value)
+                                                e.target.value = ''
+                                            }
+                                        }}
+                                    >
                                         <option value="">Add to group...</option>
                                         {colorGroups.map(g => (
                                             <option key={g.name} value={g.name}>{g.name}</option>
                                         ))}
                                         <option value="__new__">+ New group</option>
                                     </select>
-                                    {newGroupName !== undefined && (
-                                        <input
-                                            type="text"
-                                            placeholder="New group name"
-                                            value={newGroupName}
-                                            onChange={(e) => setNewGroupName(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && newGroupName.trim()) {
-                                                    addSelectedToGroup('__new__')
-                                                }
-                                            }}
-                                        />
-                                    )}
+                                    <input
+                                        type="text"
+                                        placeholder="New group name"
+                                        value={newGroupName}
+                                        onChange={(e) => setNewGroupName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && newGroupName.trim()) {
+                                                addSelectedToGroup('__new__')
+                                            }
+                                        }}
+                                        className="px-2 py-1 text-sm border border-border rounded"
+                                    />
                                 </div>
                             )}
                         </div>
 
-                        <div className="recalculate-section">
+                        <div className="flex items-center gap-3 pt-2">
                             <button
-                                className="recalculate-btn"
+                                className={cn(
+                                    'px-4 py-2 text-sm font-medium rounded transition-colors',
+                                    colorGroups.length === 0 || mergedMapLoading
+                                        ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                        : 'bg-sage-500 text-white hover:bg-sage-600 cursor-pointer'
+                                )}
                                 onClick={recalculateAllPairs}
                                 disabled={colorGroups.length === 0 || mergedMapLoading}
                             >
                                 {mergedMapLoading ? 'Calculating...' : 'Recalculate All Pairs'}
                             </button>
                             {colorGroups.length === 0 && (
-                                <span className="hint">Add color groups to enable recalculation</span>
+                                <span className="text-sm text-muted-foreground">Add color groups to enable recalculation</span>
                             )}
                         </div>
                     </div>
                 )}
             </div>
 
-            <div ref={comparisonRef} className="comparison-section">
+            <div ref={comparisonRef} className="mt-8">
                 {selectedPair ? (
                     <>
-                        <h2 className="comparison-title">
+                        <h2 className="text-xl font-medium mb-4">
                             Comparing: {selectedPair.county_a} vs {selectedPair.county_b}
                         </h2>
 
-                        <div className="conditioning-controls">
-                            <div className="control-group">
-                                <label>Land Cover</label>
-                                <select value={lcType} onChange={e => setLcType(e.target.value)}>
+                        <div className="flex flex-wrap items-end gap-4 mb-6">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Land Cover</label>
+                                <select
+                                    value={lcType}
+                                    onChange={e => setLcType(e.target.value)}
+                                    className="px-3 py-2 border border-border rounded bg-white text-sm"
+                                >
                                     <option value="">All</option>
                                     {(conditionValues['lc_type'] || []).map(v => (
                                         <option key={v} value={v}>{v}</option>
@@ -767,9 +864,13 @@ export function NeighborDivergence() {
                                 </select>
                             </div>
 
-                            <div className="control-group">
-                                <label>Occupancy</label>
-                                <select value={stDamcat} onChange={e => setStDamcat(e.target.value)}>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Occupancy</label>
+                                <select
+                                    value={stDamcat}
+                                    onChange={e => setStDamcat(e.target.value)}
+                                    className="px-3 py-2 border border-border rounded bg-white text-sm"
+                                >
                                     <option value="">All</option>
                                     {(conditionValues['st_damcat'] || []).map(v => (
                                         <option key={v} value={v}>{v}</option>
@@ -777,9 +878,13 @@ export function NeighborDivergence() {
                                 </select>
                             </div>
 
-                            <div className="control-group">
-                                <label>Building Type</label>
-                                <select value={bldgtype} onChange={e => setBldgtype(e.target.value)}>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Building Type</label>
+                                <select
+                                    value={bldgtype}
+                                    onChange={e => setBldgtype(e.target.value)}
+                                    className="px-3 py-2 border border-border rounded bg-white text-sm"
+                                >
                                     <option value="">All</option>
                                     {(conditionValues['bldgtype'] || []).map(v => (
                                         <option key={v} value={v}>{v}</option>
@@ -789,7 +894,7 @@ export function NeighborDivergence() {
 
                             {(lcType || stDamcat || bldgtype) && (
                                 <button
-                                    className="clear-filters-btn"
+                                    className="px-3 py-2 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
                                     onClick={() => {
                                         setLcType('')
                                         setStDamcat('')
@@ -801,41 +906,47 @@ export function NeighborDivergence() {
                             )}
                         </div>
 
-                        {comparisonLoading && <div className="loading-message">Loading comparison...</div>}
+                        {comparisonLoading && (
+                            <div className="text-muted-foreground">Loading comparison...</div>
+                        )}
 
                         {comparisonResult && !comparisonResult.error && (
-                            <div className="comparison-results">
-                                <div className="jsd-summary">
+                            <div className="space-y-6">
+                                <div className="flex flex-wrap items-center gap-4">
                                     {comparisonResult.jsd && (
-                                        <div className="jsd-comparison">
-                                            <div className="jsd-box original">
-                                                <div className="jsd-label">Original JSD</div>
-                                                <div className="jsd-value">{comparisonResult.jsd.original.toFixed(4)}</div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="px-4 py-3 bg-muted rounded text-center">
+                                                <div className="text-xs text-muted-foreground uppercase">Original JSD</div>
+                                                <div className="text-lg font-medium">{comparisonResult.jsd.original.toFixed(4)}</div>
                                             </div>
                                             {comparisonResult.jsd.merged !== undefined && (
                                                 <>
-                                                    <div className="jsd-arrow">→</div>
-                                                    <div className="jsd-box merged">
-                                                        <div className="jsd-label">Merged JSD</div>
-                                                        <div className="jsd-value">{comparisonResult.jsd.merged.toFixed(4)}</div>
+                                                    <span className="text-muted-foreground">→</span>
+                                                    <div className="px-4 py-3 bg-blue-50 rounded text-center">
+                                                        <div className="text-xs text-muted-foreground uppercase">Merged JSD</div>
+                                                        <div className="text-lg font-medium">{comparisonResult.jsd.merged.toFixed(4)}</div>
                                                     </div>
-                                                    <div className={`jsd-change-box ${comparisonResult.jsd.reduction! > 0 ? 'positive' : 'negative'}`}>
-                                                        <div className="change-value">
-                                                            {comparisonResult.jsd.reduction! > 0 ? '-' : '+'}
-                                                            {Math.abs(comparisonResult.jsd.reduction_pct!).toFixed(1)}%
-                                                        </div>
+                                                    <div className={cn(
+                                                        'px-3 py-2 rounded font-medium',
+                                                        comparisonResult.jsd.reduction! > 0
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-red-100 text-red-700'
+                                                    )}>
+                                                        {comparisonResult.jsd.reduction! > 0 ? '-' : '+'}
+                                                        {Math.abs(comparisonResult.jsd.reduction_pct!).toFixed(1)}%
                                                     </div>
                                                 </>
                                             )}
                                         </div>
                                     )}
-                                    <div className="vocab-overlap">
+                                    <div className="text-sm text-muted-foreground">
                                         Vocabulary Overlap: {(vocabOverlap * 100).toFixed(0)}%
                                         ({sharedColors.length} shared colors)
                                     </div>
                                 </div>
+
                                 {comparisonResult.conditioning.conditions.length > 0 && (
-                                    <div className="conditioning-info">
+                                    <div className="text-sm text-muted-foreground">
                                         Filtered by:{' '}
                                         {comparisonResult.conditioning.conditions.map((c, i) => (
                                             <span key={c.column}>
@@ -845,106 +956,109 @@ export function NeighborDivergence() {
                                         ))}
                                     </div>
                                 )}
+
                                 {(comparisonResult.county_a.total_count < 100 || comparisonResult.county_b.total_count < 100) && (
-                                    <div className="sample-size-warning">
+                                    <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded text-amber-800 text-sm">
                                         Warning: Small sample size. {comparisonResult.county_a.name} has {comparisonResult.county_a.total_count} records, {comparisonResult.county_b.name} has {comparisonResult.county_b.total_count} records. Results may be unreliable.
                                     </div>
                                 )}
-                                <div className="distributions-container">
-                                    <div className="distribution-panel">
-                                        <h3>{comparisonResult.county_a.name}</h3>
-                                        <div className="panel-stats">
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="border border-border rounded p-4">
+                                        <h3 className="font-medium mb-1">{comparisonResult.county_a.name}</h3>
+                                        <div className="text-xs text-muted-foreground mb-3">
                                             {comparisonResult.county_a.total_count.toLocaleString()} records |{' '}
                                             {comparisonResult.county_a.clr.vocab_size} colors
                                         </div>
-                                        <div className="distribution-bars">
+                                        <div className="space-y-1">
                                             {comparisonResult.county_a.clr.distribution.slice(0, 20).map((d: FeatureDist) => (
-                                                <div key={d.value} className={`bar-row ${d.unique ? 'unique' : ''}`}>
-                                                    <span className="bar-label">
+                                                <div key={d.value} className={cn('flex items-center gap-2 text-xs', d.unique && 'bg-blue-50 -mx-2 px-2 py-0.5 rounded')}>
+                                                    <span className="w-24 flex items-center gap-1.5 truncate">
                                                         {d.value === 'foo' || d.value === 'bar' ? (
-                                                            <span className="color-swatch" style={{ backgroundColor: '#f0f0f0', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>?</span>
+                                                            <span className="w-3 h-3 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-500">?</span>
                                                         ) : (
-                                                            <span className="color-swatch" style={{ backgroundColor: COLOR_MAP[d.value] || '#ccc' }} />
+                                                            <span className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: COLOR_MAP[d.value] || '#ccc' }} />
                                                         )}
                                                         {d.value}
                                                     </span>
-                                                    <div className="bar-container">
+                                                    <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
                                                         <div
-                                                            className="bar"
+                                                            className="h-full rounded"
                                                             style={{
                                                                 width: `${(d.proportion / maxProportion) * 100}%`,
                                                                 backgroundColor: d.unique ? '#0077BB' : '#6b7280'
                                                             }}
                                                         />
                                                     </div>
-                                                    <span className="bar-value">{(d.proportion * 100).toFixed(1)}%</span>
+                                                    <span className="w-12 text-right text-muted-foreground">{(d.proportion * 100).toFixed(1)}%</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="distribution-panel">
-                                        <h3>{comparisonResult.county_b.name}</h3>
-                                        <div className="panel-stats">
+                                    <div className="border border-border rounded p-4">
+                                        <h3 className="font-medium mb-1">{comparisonResult.county_b.name}</h3>
+                                        <div className="text-xs text-muted-foreground mb-3">
                                             {comparisonResult.county_b.total_count.toLocaleString()} records |{' '}
                                             {comparisonResult.county_b.clr.vocab_size} colors
                                         </div>
-                                        <div className="distribution-bars">
+                                        <div className="space-y-1">
                                             {comparisonResult.county_b.clr.distribution.slice(0, 20).map((d: FeatureDist) => (
-                                                <div key={d.value} className={`bar-row ${d.unique ? 'unique' : ''}`}>
-                                                    <span className="bar-label">
+                                                <div key={d.value} className={cn('flex items-center gap-2 text-xs', d.unique && 'bg-orange-50 -mx-2 px-2 py-0.5 rounded')}>
+                                                    <span className="w-24 flex items-center gap-1.5 truncate">
                                                         {d.value === 'foo' || d.value === 'bar' ? (
-                                                            <span className="color-swatch" style={{ backgroundColor: '#f0f0f0', color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>?</span>
+                                                            <span className="w-3 h-3 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-500">?</span>
                                                         ) : (
-                                                            <span className="color-swatch" style={{ backgroundColor: COLOR_MAP[d.value] || '#ccc' }} />
+                                                            <span className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: COLOR_MAP[d.value] || '#ccc' }} />
                                                         )}
                                                         {d.value}
                                                     </span>
-                                                    <div className="bar-container">
+                                                    <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
                                                         <div
-                                                            className="bar"
+                                                            className="h-full rounded"
                                                             style={{
                                                                 width: `${(d.proportion / maxProportion) * 100}%`,
                                                                 backgroundColor: d.unique ? '#EE7733' : '#6b7280'
                                                             }}
                                                         />
                                                     </div>
-                                                    <span className="bar-value">{(d.proportion * 100).toFixed(1)}%</span>
+                                                    <span className="w-12 text-right text-muted-foreground">{(d.proportion * 100).toFixed(1)}%</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="vocabulary-breakdown">
-                                    <div className="vocab-section">
-                                        <h4>Unique to {comparisonResult.county_a.name} ({uniqueToA.length})</h4>
-                                        <div className="color-chips">
+
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="border border-border rounded p-4">
+                                        <h4 className="text-sm font-medium mb-2">Unique to {comparisonResult.county_a.name} ({uniqueToA.length})</h4>
+                                        <div className="flex flex-wrap gap-1">
                                             {uniqueToA.length > 0
                                                 ? uniqueToA.map((c: string) => (
-                                                    <span key={c} className="color-chip unique-a">{c}</span>
+                                                    <span key={c} className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">{c}</span>
                                                 ))
-                                                : <span className="no-unique">None</span>
+                                                : <span className="text-xs text-muted-foreground">None</span>
                                             }
                                         </div>
                                     </div>
 
-                                    <div className="vocab-section">
-                                        <h4>Unique to {comparisonResult.county_b.name} ({uniqueToB.length})</h4>
-                                        <div className="color-chips">
+                                    <div className="border border-border rounded p-4">
+                                        <h4 className="text-sm font-medium mb-2">Unique to {comparisonResult.county_b.name} ({uniqueToB.length})</h4>
+                                        <div className="flex flex-wrap gap-1">
                                             {uniqueToB.length > 0
                                                 ? uniqueToB.map((c: string) => (
-                                                    <span key={c} className="color-chip unique-b">{c}</span>
+                                                    <span key={c} className="px-2 py-0.5 text-xs bg-orange-100 text-orange-800 rounded">{c}</span>
                                                 ))
-                                                : <span className="no-unique">None</span>
+                                                : <span className="text-xs text-muted-foreground">None</span>
                                             }
                                         </div>
                                     </div>
 
-                                    <div className="vocab-section shared">
-                                        <h4>Shared Colors ({sharedColors.length})</h4>
-                                        <div className="color-chips">
+                                    <div className="border border-border rounded p-4">
+                                        <h4 className="text-sm font-medium mb-2">Shared Colors ({sharedColors.length})</h4>
+                                        <div className="flex flex-wrap gap-1">
                                             {sharedColors.map((c: string) => (
-                                                <span key={c} className="color-chip shared">{c}</span>
+                                                <span key={c} className="px-2 py-0.5 text-xs bg-muted text-foreground rounded">{c}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -953,12 +1067,13 @@ export function NeighborDivergence() {
                         )}
 
                         {comparisonResult?.error && (
-                            <div className="error-message">{comparisonResult.error}</div>
+                            <div className="px-4 py-3 bg-red-50 border border-red-200 rounded text-red-800">
+                                {comparisonResult.error}
+                            </div>
                         )}
                     </>
                 ) : (
-                    <div>
-                    </div>
+                    <div />
                 )}
             </div>
         </div>

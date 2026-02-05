@@ -9,7 +9,8 @@ import {
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import * as d3 from 'd3'
 import { CaliforniaMap, type CaliforniaMapRef } from './CaliforniaMap'
-import './App.css'
+import { cn } from './lib/utils'
+import { chartColors } from './lib/chart-colors'
 
 const API_URL = 'http://localhost:8000'
 
@@ -71,22 +72,22 @@ function SurprisalHistogram({ data }: { data: ProbRow[] }) {
             .attr('width', d => Math.max(0, x(d.x1 || 0) - x(d.x0 || 0) - 2))
             .attr('y', d => y(d.length))
             .attr('height', d => height - y(d.length))
-            .attr('fill', '#a805fb')
+            .attr('fill', chartColors.primary)
 
         svg.append('g')
             .attr('transform', `translate(0,${height})`)
             .call(d3.axisBottom(x).ticks(10))
-            .attr('color', '#888')
+            .attr('color', chartColors.axis)
 
         svg.append('g')
             .call(d3.axisLeft(y).ticks(5))
-            .attr('color', '#888')
+            .attr('color', chartColors.axis)
 
         svg.append('text')
             .attr('x', width / 2)
             .attr('y', height + 50)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#888')
+            .attr('fill', chartColors.text.muted)
             .style('font-size', '1rem')
             .text('Surprisal')
 
@@ -95,7 +96,7 @@ function SurprisalHistogram({ data }: { data: ProbRow[] }) {
             .attr('x', -height / 2)
             .attr('y', -50)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#888')
+            .attr('fill', chartColors.text.muted)
             .style('font-size', '1rem')
             .text('Count')
 
@@ -140,7 +141,8 @@ function TopAnomaliesChart({ data, contextCols, target }: { data: ProbRow[], con
             .domain([0, d3.max(topData, d => d.surprisal as number) || 10])
             .range([height, 0])
 
-        const colors = ['#ffcd2e', '#ff8e65', '#ff6e80', '#dd37d2', '#a805fb']
+        // Sage-based color gradient for anomalies
+        const colors = [chartColors.primary, chartColors.primaryLight, '#d4a574', '#c17f59', '#a85d3b']
         const colorScale = d3.scaleQuantize<string>()
             .domain([d3.min(topData, d => d.surprisal as number) || 0, d3.max(topData, d => d.surprisal as number) || 10])
             .range(colors)
@@ -162,14 +164,14 @@ function TopAnomaliesChart({ data, contextCols, target }: { data: ProbRow[], con
             .attr('x', (_, i) => (x(i.toString()) || 0) + x.bandwidth() / 2)
             .attr('y', d => y(d.surprisal as number) - 8)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#ccc')
+            .attr('fill', chartColors.text.secondary)
             .style('font-size', '0.9rem')
             .text(d => (d.surprisal as number).toFixed(2))
 
         svg.append('g')
             .attr('transform', `translate(0,${height})`)
             .call(d3.axisBottom(x).tickFormat((_, i) => getLabel(topData[i])))
-            .attr('color', '#888')
+            .attr('color', chartColors.axis)
             .selectAll('text')
             .attr('transform', 'rotate(-45)')
             .attr('text-anchor', 'end')
@@ -179,14 +181,14 @@ function TopAnomaliesChart({ data, contextCols, target }: { data: ProbRow[], con
 
         svg.append('g')
             .call(d3.axisLeft(y).ticks(5))
-            .attr('color', '#888')
+            .attr('color', chartColors.axis)
 
         svg.append('text')
             .attr('transform', 'rotate(-90)')
             .attr('x', -height / 2)
             .attr('y', -50)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#888')
+            .attr('fill', chartColors.text.muted)
             .style('font-size', '1rem')
             .text('Surprisal')
 
@@ -310,7 +312,11 @@ function App() {
 
     const getTargetBadge = (col: string) => {
         const rating = columnMeta[col]?.as_target
-        if (rating === 'no') return <span className="badge no">not recommended</span>
+        if (rating === 'no') return (
+            <span className="text-xs px-2 py-1 rounded bg-red-50 border border-red-200 text-red-700 ml-3 uppercase tracking-wide">
+                not recommended
+            </span>
+        )
         return null
     }
 
@@ -344,22 +350,33 @@ function App() {
     }
 
     return (
-        <div className="app">
-            <h1>Conditional Probability</h1>
-            <p className="subtitle">
+        <div className="text-left">
+            <h1 className="text-2xl font-medium uppercase tracking-[0.2em] text-center mb-2">
+                Conditional Probability
+            </h1>
+            <p className="text-center text-muted-foreground text-lg mb-12">
                 Score how surprising each value is given its context. High surprisal = potential anomaly.
             </p>
 
-            <div className="section">
-                <span className="section-title">Configuration</span>
-                <div className="controls">
-                    <div className="control-group">
-                        <label>Context Columns</label>
-                        <div className="chips">
+            {/* Configuration Section */}
+            <div className="relative border border-border rounded p-6 mb-8">
+                <span className="absolute -top-3 left-4 bg-background px-2 text-sm uppercase tracking-[0.15em] text-muted-foreground">
+                    Configuration
+                </span>
+                <div className="flex flex-wrap gap-8 items-start">
+                    <div className="flex flex-col gap-3">
+                        <label className="text-sm uppercase tracking-wide text-muted-foreground">Context Columns</label>
+                        <div className="flex gap-2 flex-wrap">
                             {availableForContext.map(col => (
                                 <button
                                     key={col}
-                                    className={`chip ${contextCols.includes(col) ? 'selected' : ''} ${getContextBadge(col)}`}
+                                    className={cn(
+                                        'px-5 py-2.5 rounded-sm border font-mono text-base transition-all duration-150',
+                                        contextCols.includes(col)
+                                            ? 'bg-sage-100 border-sage-500 text-foreground'
+                                            : 'bg-transparent border-border text-muted-foreground hover:border-sage-400 hover:text-foreground',
+                                        getContextBadge(col) === 'warn' && !contextCols.includes(col) && 'border-red-200 text-red-400'
+                                    )}
                                     onClick={() => toggleContext(col)}
                                     title={columnMeta[col]?.reason}
                                 >
@@ -369,10 +386,14 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="control-group">
-                        <label>Target Column</label>
+                    <div className="flex flex-col gap-3">
+                        <label className="text-sm uppercase tracking-wide text-muted-foreground">Target Column</label>
                         <div>
-                            <select value={target} onChange={e => selectTarget(e.target.value)}>
+                            <select
+                                value={target}
+                                onChange={e => selectTarget(e.target.value)}
+                                className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
+                            >
                                 {columns.map(col => (
                                     <option key={col} value={col}>
                                         {columnMeta[col]?.label || col}
@@ -383,20 +404,30 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="control-group">
-                        <label>Min Support: {minSupport}</label>
+                    <div className="flex flex-col gap-3">
+                        <label className="text-sm uppercase tracking-wide text-muted-foreground">Min Support: {minSupport}</label>
                         <input
                             type="range"
                             min="1"
                             max="100"
                             value={minSupport}
                             onChange={e => setMinSupport(Number(e.target.value))}
+                            className="w-36 accent-sage-500"
                         />
                     </div>
 
-                    <div className="control-group">
-                        <label>&nbsp;</label>
-                        <button className="run-btn" onClick={runAnalysis} disabled={loading || contextCols.length === 0}>
+                    <div className="flex flex-col gap-3">
+                        <label className="text-sm uppercase tracking-wide text-muted-foreground">&nbsp;</label>
+                        <button
+                            className={cn(
+                                'px-7 py-2.5 bg-sage-500 border border-sage-600 rounded-sm text-white',
+                                'font-mono text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
+                                'hover:bg-sage-600',
+                                'disabled:opacity-40 disabled:cursor-not-allowed'
+                            )}
+                            onClick={runAnalysis}
+                            disabled={loading || contextCols.length === 0}
+                        >
                             {loading ? 'Running...' : 'Run'}
                         </button>
                     </div>
@@ -404,17 +435,28 @@ function App() {
             </div>
 
             {warnings.length > 0 && (
-                <div className="warnings">
-                    {warnings.map((w, i) => <div key={i} className="warning">{w}</div>)}
+                <div className="mb-6">
+                    {warnings.map((w, i) => (
+                        <div key={i} className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-sm mb-2 text-amber-700 text-base">
+                            {w}
+                        </div>
+                    ))}
                 </div>
             )}
 
-            {error && <div className="error">{error}</div>}
+            {error && (
+                <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-sm mb-6 text-red-600 text-base">
+                    {error}
+                </div>
+            )}
 
             {result && (
                 <>
-                    <div className="section">
-                        <span className="section-title">California Map</span>
+                    {/* California Map Section */}
+                    <div className="relative border border-border rounded p-6 mb-8">
+                        <span className="absolute -top-3 left-4 bg-background px-2 text-sm uppercase tracking-[0.15em] text-muted-foreground">
+                            California Map
+                        </span>
                         <CaliforniaMap
                             ref={mapRef}
                             contextCols={contextCols}
@@ -424,23 +466,30 @@ function App() {
                         />
                     </div>
 
-                    <div className="section">
-                        <span className="section-title">Top Anomalies</span>
-                        <p className="section-hint">Click a card to fly to that location on the map</p>
-                        <div className="anomaly-cards">
+                    {/* Top Anomalies Section */}
+                    <div className="relative border border-border rounded p-6 mb-8">
+                        <span className="absolute -top-3 left-4 bg-background px-2 text-sm uppercase tracking-[0.15em] text-muted-foreground">
+                            Top Anomalies
+                        </span>
+                        <p className="text-sm text-muted-foreground mb-4 italic">Click a card to fly to that location on the map</p>
+                        <div className="grid grid-cols-5 gap-4">
                             {topAnomalies.map((row, i) => (
-                                <div key={i} className="anomaly-card clickable" onClick={() => handleAnomalyClick(row)}>
-                                    <div className="anomaly-rank">#{i + 1}</div>
-                                    <div className="anomaly-content">
-                                        <div className="anomaly-target">
-                                            <span className="anomaly-label">{columnMeta[target]?.label || target}:</span>
-                                            <span className="anomaly-value">{row[target] as string}</span>
+                                <div
+                                    key={i}
+                                    className="flex flex-col gap-1.5 p-3 bg-muted border border-border rounded cursor-pointer transition-all duration-150 hover:bg-sage-100 hover:border-sage-300 hover:-translate-y-0.5"
+                                    onClick={() => handleAnomalyClick(row)}
+                                >
+                                    <div className="text-xs font-semibold text-sage-600">#{i + 1}</div>
+                                    <div className="flex-1">
+                                        <div className="mb-1">
+                                            <span className="text-muted-foreground text-xs">{columnMeta[target]?.label || target}:</span>
+                                            <span className="text-base font-medium text-foreground block">{row[target] as string}</span>
                                         </div>
-                                        <div className="anomaly-context">{formatContext(row)}</div>
-                                        <div className="anomaly-stats">
-                                            <span>Count: <strong>{row.count as number}</strong></span>
+                                        <div className="text-[0.7rem] text-muted-foreground mb-2 leading-tight">{formatContext(row)}</div>
+                                        <div className="flex flex-wrap gap-2 text-[0.7rem] text-muted-foreground">
+                                            <span>Count: <strong className="text-foreground">{row.count as number}</strong></span>
                                             <span>of {row.context_total as number}</span>
-                                            <span className="anomaly-surprisal">Surprisal: <strong>{(row.surprisal as number).toFixed(2)}</strong></span>
+                                            <span className="text-amber-600">Surprisal: <strong>{(row.surprisal as number).toFixed(2)}</strong></span>
                                         </div>
                                     </div>
                                 </div>
@@ -448,27 +497,35 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="charts">
-                        <div className="chart">
-                            <h3>Surprisal Distribution</h3>
+                    {/* Charts */}
+                    <div className="flex flex-col items-center gap-12 my-12">
+                        <div className="text-center">
+                            <h3 className="mb-6 text-base font-medium text-muted-foreground uppercase tracking-wide">
+                                Surprisal Distribution
+                            </h3>
                             <SurprisalHistogram data={result.data} />
                         </div>
-                        <div className="chart">
-                            <h3>Top 10 Anomalies</h3>
+                        <div className="text-center">
+                            <h3 className="mb-6 text-base font-medium text-muted-foreground uppercase tracking-wide">
+                                Top 10 Anomalies
+                            </h3>
                             <TopAnomaliesChart data={result.data} contextCols={contextCols} target={target} />
                         </div>
                     </div>
 
-                    <div className="section">
-                        <span className="section-title">Full Results</span>
+                    {/* Full Results Section */}
+                    <div className="relative border border-border rounded p-6 mb-8">
+                        <span className="absolute -top-3 left-4 bg-background px-2 text-sm uppercase tracking-[0.15em] text-muted-foreground">
+                            Full Results
+                        </span>
 
-                        <div className="stats">
-                            <span>Alpha (EB): <strong>{result.alpha.toFixed(3)}</strong></span>
-                            <span>Combinations: <strong>{result.total_rows.toLocaleString()}</strong></span>
+                        <div className="flex gap-12 mb-6 text-base">
+                            <span className="text-muted-foreground">Alpha (EB): <strong className="text-foreground font-medium">{result.alpha.toFixed(3)}</strong></span>
+                            <span className="text-muted-foreground">Combinations: <strong className="text-foreground font-medium">{result.total_rows.toLocaleString()}</strong></span>
                         </div>
 
-                        <div className="table-container">
-                            <table>
+                        <div className="overflow-x-auto border border-border rounded-sm">
+                            <table className="w-full border-collapse text-base">
                                 <thead>
                                     {table.getHeaderGroups().map(headerGroup => (
                                         <tr key={headerGroup.id}>
@@ -476,6 +533,7 @@ function App() {
                                                 <th
                                                     key={header.id}
                                                     onClick={header.column.getToggleSortingHandler()}
+                                                    className="px-5 py-3.5 text-left bg-muted font-medium text-sm uppercase tracking-wide text-muted-foreground sticky top-0 select-none cursor-pointer hover:text-foreground border-b border-border"
                                                 >
                                                     {flexRender(header.column.columnDef.header, header.getContext())}
                                                     {{
@@ -489,9 +547,15 @@ function App() {
                                 </thead>
                                 <tbody>
                                     {table.getRowModel().rows.map(row => (
-                                        <tr key={row.id} className={row.original.reliable ? '' : 'unreliable'}>
+                                        <tr
+                                            key={row.id}
+                                            className={cn(
+                                                'transition-colors duration-100 hover:bg-muted/50',
+                                                !row.original.reliable && 'opacity-40'
+                                            )}
+                                        >
                                             {row.getVisibleCells().map(cell => (
-                                                <td key={cell.id}>
+                                                <td key={cell.id} className="px-5 py-3.5 text-left border-b border-border/50">
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </td>
                                             ))}
@@ -501,15 +565,42 @@ function App() {
                             </table>
                         </div>
 
-                        <div className="pagination">
-                            <button onClick={() => table.firstPage()} disabled={!table.getCanPreviousPage()}>{'<<'}</button>
-                            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>{'<'}</button>
-                            <span>Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}</span>
-                            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>{'>'}</button>
-                            <button onClick={() => table.lastPage()} disabled={!table.getCanNextPage()}>{'>>'}</button>
+                        <div className="flex items-center gap-2 mt-6 justify-center">
+                            <button
+                                onClick={() => table.firstPage()}
+                                disabled={!table.getCanPreviousPage()}
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                {'<<'}
+                            </button>
+                            <button
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                {'<'}
+                            </button>
+                            <span className="mx-4 text-muted-foreground text-base">
+                                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                            </span>
+                            <button
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                {'>'}
+                            </button>
+                            <button
+                                onClick={() => table.lastPage()}
+                                disabled={!table.getCanNextPage()}
+                                className="px-3.5 py-2 border border-border bg-transparent text-muted-foreground rounded-sm cursor-pointer font-mono text-base transition-all duration-150 hover:bg-muted hover:text-foreground hover:border-sage-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                {'>>'}
+                            </button>
                             <select
                                 value={table.getState().pagination.pageSize}
                                 onChange={e => table.setPageSize(Number(e.target.value))}
+                                className="ml-4 px-5 py-2 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer"
                             >
                                 {[25, 50, 100, 200].map(size => (
                                     <option key={size} value={size}>{size} rows</option>

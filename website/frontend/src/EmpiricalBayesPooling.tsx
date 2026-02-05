@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import * as d3 from 'd3'
-import './App.css'
+import { cn } from './lib/utils'
+import { chartColors } from './lib/chart-colors'
 
 const API_URL = 'http://localhost:8000'
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
@@ -63,7 +64,7 @@ export function EmpiricalBayesPooling() {
     const [selectedLandcover, setSelectedLandcover] = useState<string>('')
     const [metric, setMetric] = useState<'movement' | 'abs_movement' | 'shrinkage_weight'>('abs_movement')
     const [mapData, setMapData] = useState<CountyMapData | null>(null)
-    const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
+    const [_selectedCounty, setSelectedCounty] = useState<string | null>(null)
     const [countyDetail, setCountyDetail] = useState<CountyDetail | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -168,7 +169,7 @@ export function EmpiricalBayesPooling() {
                     metric: metric
                 })
             })
-            
+
             if (!response.ok) {
                 const errorText = await response.text()
                 let errorMessage = `HTTP ${response.status}: ${response.statusText}`
@@ -180,13 +181,13 @@ export function EmpiricalBayesPooling() {
                 }
                 throw new Error(errorMessage)
             }
-            
+
             const data = await response.json()
-            
+
             if (!data.features || !Array.isArray(data.features)) {
                 throw new Error('Invalid response format: missing features array')
             }
-            
+
             if (data.features.length === 0) {
                 setError('No data found for the selected filters. Try selecting a different landcover type or check if data is loaded.')
                 setLegendRange(null)
@@ -245,7 +246,7 @@ export function EmpiricalBayesPooling() {
                 const val = f.properties?.mean_value
                 return typeof val === 'number' ? val : 0
             }).filter(v => !isNaN(v) && isFinite(v))
-            
+
             if (values.length === 0) {
                 console.warn('No valid values for color scale')
                 return
@@ -253,7 +254,7 @@ export function EmpiricalBayesPooling() {
 
             const minVal = Math.min(...values)
             const maxVal = Math.max(...values)
-            
+
             // Store range for legend (only if values are different)
             if (minVal !== maxVal) {
                 setLegendRange({ min: minVal, max: maxVal })
@@ -268,7 +269,7 @@ export function EmpiricalBayesPooling() {
                     type: 'fill',
                     source: 'counties',
                     paint: {
-                        'fill-color': '#4CAF50',
+                        'fill-color': chartColors.primary,
                         'fill-opacity': 0.7
                     }
                 })
@@ -308,7 +309,9 @@ export function EmpiricalBayesPooling() {
             const currentMetric = metric // Capture current metric value
 
             // Remove existing event listeners if any
+            // @ts-expect-error MapLibre types don't include layer-specific off() overloads
             map.current.off('mousemove', 'counties')
+            // @ts-expect-error MapLibre types don't include layer-specific off() overloads
             map.current.off('mouseleave', 'counties')
 
             map.current.on('mousemove', 'counties', (e) => {
@@ -316,7 +319,7 @@ export function EmpiricalBayesPooling() {
                 if (map.current) {
                     map.current.getCanvas().style.cursor = 'pointer'
                 }
-                
+
                 const props = e.features[0].properties as any
                 const countyName = props.county_name || props.name || 'Unknown'
                 const meanValue = props.mean_value?.toFixed(4) || 'N/A'
@@ -325,7 +328,7 @@ export function EmpiricalBayesPooling() {
                 const shrinkageWeight = props.mean_shrinkage_weight?.toFixed(3) || 'N/A'
                 const topColor = props.top_color || null
                 const topMovement = props.top_movement?.toFixed(4) || null
-                
+
                 // Get metric label
                 const metricLabels: Record<string, string> = {
                     'abs_movement': 'Absolute Movement',
@@ -333,7 +336,7 @@ export function EmpiricalBayesPooling() {
                     'shrinkage_weight': 'Shrinkage Weight'
                 }
                 const metricLabel = metricLabels[currentMetric] || currentMetric
-                
+
                 let html = `
                     <div style="font-size: 12px; line-height: 1.5;">
                         <div style="font-weight: bold; margin-bottom: 6px; font-size: 13px;">${countyName} County</div>
@@ -342,22 +345,22 @@ export function EmpiricalBayesPooling() {
                         <div style="margin-bottom: 4px;">Max ${metricLabel}: ${maxValue}</div>
                         <div style="margin-bottom: 4px;">Mean Shrinkage Weight: ${shrinkageWeight}</div>
                 `
-                
+
                 if (topColor) {
                     html += `
                         <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee;">
                             <div style="font-size: 11px; color: #666; margin-bottom: 2px;">Top Color Change:</div>
-                            <div style="color: #fbbf24; font-weight: 500;">${topColor}</div>
+                            <div style="color: #d97706; font-weight: 500;">${topColor}</div>
                             ${topMovement ? `<div style="font-size: 11px; color: #888;">Movement: ${topMovement}</div>` : ''}
                         </div>
                     `
                 }
-                
+
                 html += `
                         <div style="margin-top: 6px; font-size: 10px; color: #666; font-style: italic;">Click for details</div>
                     </div>
                 `
-                
+
                 popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
             })
 
@@ -379,31 +382,34 @@ export function EmpiricalBayesPooling() {
             updateMapLayer(mapData)
         }
     }, [mapData])
-    
+
     // Clear legend when metric changes
     useEffect(() => {
         setLegendRange(null)
     }, [metric])
 
     return (
-        <div className="app">
-            <h1>M02: Empirical Bayes Pooling</h1>
-            <p className="subtitle">
+        <div className="text-left">
+            <h1 className="text-2xl font-medium uppercase tracking-[0.2em] text-center mb-2">
+                M02: Empirical Bayes Pooling
+            </h1>
+            <p className="text-center text-muted-foreground text-lg mb-12">
                 Visualize Bayesian shrinkage results: baseline vs stabilized distributions by county
             </p>
 
             {error && (
-                <div className="error" style={{ padding: '1rem', margin: '1rem 0', background: '#fee', border: '1px solid #fcc', borderRadius: '4px' }}>
+                <div className="px-4 py-3 bg-red-50 border border-red-200 rounded mb-6 text-red-600">
                     <strong>Error:</strong> {error}
                 </div>
             )}
 
-            <div className="controls">
-                <div className="control-group">
-                    <label>Landcover Type:</label>
+            <div className="flex flex-wrap gap-8 items-end mb-8">
+                <div className="flex flex-col gap-3">
+                    <label className="text-sm uppercase tracking-wide text-muted-foreground">Landcover Type:</label>
                     <select
                         value={selectedLandcover}
                         onChange={(e) => setSelectedLandcover(e.target.value)}
+                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
                     >
                         <option value="">All Landcover Types</option>
                         {landcoverTypes.map(lc => (
@@ -412,11 +418,12 @@ export function EmpiricalBayesPooling() {
                     </select>
                 </div>
 
-                <div className="control-group">
-                    <label>Metric:</label>
+                <div className="flex flex-col gap-3">
+                    <label className="text-sm uppercase tracking-wide text-muted-foreground">Metric:</label>
                     <select
                         value={metric}
                         onChange={(e) => setMetric(e.target.value as any)}
+                        className="px-5 py-2.5 rounded-sm border border-border bg-muted text-foreground font-mono text-base cursor-pointer focus:outline-none focus:border-sage-400"
                     >
                         <option value="abs_movement">Absolute Movement</option>
                         <option value="movement">Movement (signed)</option>
@@ -424,25 +431,34 @@ export function EmpiricalBayesPooling() {
                     </select>
                 </div>
 
-                <button onClick={loadMapData} disabled={loading}>
+                <button
+                    onClick={loadMapData}
+                    disabled={loading}
+                    className={cn(
+                        'px-7 py-2.5 bg-sage-500 border border-sage-600 rounded-sm text-white',
+                        'font-mono text-base uppercase tracking-wide cursor-pointer transition-all duration-150',
+                        'hover:bg-sage-600',
+                        'disabled:opacity-40 disabled:cursor-not-allowed'
+                    )}
+                >
                     {loading ? 'Loading...' : 'Load Map'}
                 </button>
             </div>
 
             {mapData && (
-                <div className="map-stats">
+                <div className="px-4 py-3 bg-muted border border-border rounded mb-4 text-sm text-muted-foreground">
                     <p>
-                        Showing {mapData.stats.total_counties} counties | 
-                        Mean {metric}: {mapData.stats.mean_value.toFixed(4)} | 
+                        Showing {mapData.stats.total_counties} counties |
+                        Mean {metric}: {mapData.stats.mean_value.toFixed(4)} |
                         Max {metric}: {mapData.stats.max_value.toFixed(4)}
                     </p>
                 </div>
             )}
 
-            <div className="map-container" style={{ position: 'relative' }}>
-                <div ref={mapContainer} className="map" />
+            <div className="relative border border-border rounded overflow-hidden mb-8">
+                <div ref={mapContainer} className="w-full h-[700px]" />
                 {mapData && legendRange && (
-                    <MapLegend 
+                    <MapLegend
                         metric={metric}
                         minValue={legendRange.min}
                         maxValue={legendRange.max}
@@ -451,19 +467,19 @@ export function EmpiricalBayesPooling() {
             </div>
 
             {countyDetail && (
-                <div className="county-detail">
-                    <h2>{countyDetail.county_name} (FIPS: {countyDetail.fips})</h2>
+                <div className="mt-8 p-6 bg-sage-50 border border-border rounded">
+                    <h2 className="mt-0 mb-4 text-2xl text-foreground">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h2>
                     {countyDetail.by_landcover.map(lc => (
-                        <div key={lc.lc_type} className="landcover-section">
-                            <h3>{lc.lc_type}</h3>
-                            <p>
-                                Exposure: {lc.total_exposure.toLocaleString()} | 
-                                Mean Shrinkage Weight: {lc.mean_shrinkage_weight.toFixed(3)} | 
+                        <div key={lc.lc_type} className="mb-8 p-4 bg-background border border-border rounded">
+                            <h3 className="mt-0 mb-2 text-xl text-foreground">{lc.lc_type}</h3>
+                            <p className="text-muted-foreground mb-4">
+                                Exposure: {lc.total_exposure.toLocaleString()} |
+                                Mean Shrinkage Weight: {lc.mean_shrinkage_weight.toFixed(3)} |
                                 Max Movement: {lc.max_abs_movement.toFixed(4)}
                             </p>
-                            
-                            <div className="comparison-chart">
-                                <h4>Baseline vs Stabilized Distributions</h4>
+
+                            <div className="mt-4">
+                                <h4 className="mt-4 mb-2 text-base text-muted-foreground">Baseline vs Stabilized Distributions</h4>
                                 <ComparisonChart
                                     baseline={lc.baseline}
                                     stabilized={lc.distributions}
@@ -477,10 +493,10 @@ export function EmpiricalBayesPooling() {
     )
 }
 
-function ComparisonChart({ 
-    baseline, 
-    stabilized 
-}: { 
+function ComparisonChart({
+    baseline,
+    stabilized
+}: {
     baseline: BaselineDistribution[]
     stabilized: StabilizedDistribution[]
 }) {
@@ -522,7 +538,7 @@ function ComparisonChart({
             .domain([0, d3.max(combined, d => Math.max(d.baseline, d.stabilized, d.observed)) || 0.5])
             .range([height, 0])
 
-        // Bars for baseline
+        // Bars for baseline (sage green)
         svg.selectAll('.bar-baseline')
             .data(combined)
             .join('rect')
@@ -531,10 +547,10 @@ function ComparisonChart({
             .attr('width', x.bandwidth() / 3)
             .attr('y', d => y(d.baseline))
             .attr('height', d => height - y(d.baseline))
-            .attr('fill', '#4CAF50')
+            .attr('fill', chartColors.primary)
             .attr('opacity', 0.7)
 
-        // Bars for observed
+        // Bars for observed (blue)
         svg.selectAll('.bar-observed')
             .data(combined)
             .join('rect')
@@ -543,10 +559,10 @@ function ComparisonChart({
             .attr('width', x.bandwidth() / 3)
             .attr('y', d => y(d.observed))
             .attr('height', d => height - y(d.observed))
-            .attr('fill', '#2196F3')
+            .attr('fill', '#2166ac')
             .attr('opacity', 0.7)
 
-        // Bars for stabilized
+        // Bars for stabilized (warm tan)
         svg.selectAll('.bar-stabilized')
             .data(combined)
             .join('rect')
@@ -555,13 +571,14 @@ function ComparisonChart({
             .attr('width', x.bandwidth() / 3)
             .attr('y', d => y(d.stabilized))
             .attr('height', d => height - y(d.stabilized))
-            .attr('fill', '#FF9800')
+            .attr('fill', '#d4a574')
             .attr('opacity', 0.7)
 
         // X axis
         svg.append('g')
             .attr('transform', `translate(0,${height})`)
             .call(d3.axisBottom(x))
+            .attr('color', chartColors.axis)
             .selectAll('text')
             .attr('transform', 'rotate(-45)')
             .attr('text-anchor', 'end')
@@ -572,13 +589,14 @@ function ComparisonChart({
         // Y axis
         svg.append('g')
             .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2%')))
+            .attr('color', chartColors.axis)
 
         // Labels
         svg.append('text')
             .attr('x', width / 2)
             .attr('y', height + 50)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#888')
+            .attr('fill', chartColors.text.muted)
             .style('font-size', '1rem')
             .text('Color Category')
 
@@ -587,7 +605,7 @@ function ComparisonChart({
             .attr('x', -height / 2)
             .attr('y', -50)
             .attr('text-anchor', 'middle')
-            .attr('fill', '#888')
+            .attr('fill', chartColors.text.muted)
             .style('font-size', '1rem')
             .text('Proportion')
 
@@ -596,9 +614,9 @@ function ComparisonChart({
             .attr('transform', `translate(${width - 150}, 20)`)
 
         const legendData = [
-            { label: 'Baseline', color: '#4CAF50' },
-            { label: 'Observed', color: '#2196F3' },
-            { label: 'Stabilized', color: '#FF9800' }
+            { label: 'Baseline', color: chartColors.primary },
+            { label: 'Observed', color: '#2166ac' },
+            { label: 'Stabilized', color: '#d4a574' }
         ]
 
         legend.selectAll('.legend-item')
@@ -616,7 +634,7 @@ function ComparisonChart({
                 g.append('text')
                     .attr('x', 20)
                     .attr('y', 12)
-                    .attr('fill', '#333')
+                    .attr('fill', chartColors.text.primary)
                     .style('font-size', '0.9rem')
                     .text(d.label)
             })
@@ -626,11 +644,11 @@ function ComparisonChart({
     return <svg ref={svgRef}></svg>
 }
 
-function MapLegend({ 
-    metric, 
-    minValue, 
-    maxValue 
-}: { 
+function MapLegend({
+    metric,
+    minValue,
+    maxValue
+}: {
     metric: 'movement' | 'abs_movement' | 'shrinkage_weight'
     minValue: number
     maxValue: number
@@ -657,7 +675,7 @@ function MapLegend({
     }
 
     const metricInfo = metricLabels[metric] || metricLabels['abs_movement']
-    
+
     // Create color gradient stops
     const gradientStops = []
     const numStops = 10
@@ -669,49 +687,17 @@ function MapLegend({
     }
 
     return (
-        <div style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            padding: '12px 16px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-            zIndex: 10,
-            minWidth: '200px',
-            fontFamily: '"Geist Mono", monospace'
-        }}>
-            <div style={{ 
-                fontWeight: 600, 
-                fontSize: '0.9rem', 
-                marginBottom: '8px',
-                color: '#333',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-            }}>
+        <div className="absolute top-2.5 right-2.5 bg-white/95 border border-border rounded p-4 shadow-elevated z-10 min-w-[200px] font-mono">
+            <div className="font-semibold text-sm mb-2 text-foreground uppercase tracking-wide">
                 {metricInfo.label}
             </div>
-            
-            <div style={{ 
-                fontSize: '0.75rem', 
-                color: '#666', 
-                marginBottom: '10px',
-                lineHeight: '1.4'
-            }}>
+
+            <div className="text-xs text-muted-foreground mb-2.5 leading-relaxed">
                 {metricInfo.description}
             </div>
 
             {/* Color gradient */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '8px',
-                height: '20px',
-                borderRadius: '2px',
-                overflow: 'hidden',
-                border: '1px solid #ddd'
-            }}>
+            <div className="flex items-center mb-2 h-5 rounded-sm overflow-hidden border border-border">
                 {gradientStops.map((stop, i) => (
                     <div
                         key={i}
@@ -725,34 +711,20 @@ function MapLegend({
             </div>
 
             {/* Value labels */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.75rem',
-                color: '#666',
-                marginBottom: '8px'
-            }}>
+            <div className="flex justify-between text-xs text-muted-foreground mb-2">
                 <span>{minValue.toFixed(4)}</span>
                 <span>{maxValue.toFixed(4)}</span>
             </div>
 
             {/* Meaning labels */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '0.7rem',
-                color: '#888',
-                borderTop: '1px solid #eee',
-                paddingTop: '8px',
-                gap: '8px'
-            }}>
-                <div style={{ flex: 1 }}>
-                    <div style={{ color: '#440154', fontWeight: 500 }}>Purple</div>
-                    <div style={{ fontSize: '0.65rem', marginTop: '2px' }}>{metricInfo.low}</div>
+            <div className="flex justify-between text-[0.7rem] text-muted-foreground border-t border-border pt-2 gap-2">
+                <div className="flex-1">
+                    <div className="font-medium" style={{ color: '#440154' }}>Purple</div>
+                    <div className="text-[0.65rem] mt-0.5">{metricInfo.low}</div>
                 </div>
-                <div style={{ flex: 1, textAlign: 'right' }}>
-                    <div style={{ color: '#fde725', fontWeight: 500 }}>Yellow</div>
-                    <div style={{ fontSize: '0.65rem', marginTop: '2px' }}>{metricInfo.high}</div>
+                <div className="flex-1 text-right">
+                    <div className="font-medium" style={{ color: '#fde725' }}>Yellow</div>
+                    <div className="text-[0.65rem] mt-0.5">{metricInfo.high}</div>
                 </div>
             </div>
         </div>
