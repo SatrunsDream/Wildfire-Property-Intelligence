@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './App.css'
@@ -47,6 +47,19 @@ const COLOR_MAP: Record<string, string> = {
     alabaster: '#F2F0E6',
 }
 
+const PRESETS = {
+    browns: { name: "browns", colors: ["brown", "sienna", "cocoa", "coffee", "tan", "terracotta", "auburn"] },
+    reds: { name: "reds", colors: ["red", "scarlet", "crimson", "maroon"] },
+    greens: { name: "greens", colors: ["green", "sage", "verde", "emerald"] },
+    blues_purples: { name: "blues_purples", colors: ["blue", "indigo", "navy", "purple", "lavender", "lilac"] },
+    grays: { name: "grays", colors: ["gray", "grey"] },
+}
+
+interface ColorGroup {
+    name: string
+    colors: string[]
+}
+
 interface DivergenceData {
     counties: GeoJSON.FeatureCollection
     edges: GeoJSON.FeatureCollection
@@ -71,6 +84,7 @@ interface FeatureDist {
     count: number
     proportion: number
     unique: boolean
+    is_group?: boolean
 }
 
 interface FeatureData {
@@ -83,12 +97,20 @@ interface AppliedCondition {
     value: string
 }
 
+interface JsdData {
+    original: number
+    merged?: number
+    reduction?: number
+    reduction_pct?: number
+}
+
 interface ComparisonResult {
     county_a: {
         fips: string
         name: string
         total_count: number
         clr: FeatureData
+        clr_merged?: FeatureData
         bldgtype: FeatureData
         st_damcat: FeatureData
     }
@@ -97,6 +119,7 @@ interface ComparisonResult {
         name: string
         total_count: number
         clr: FeatureData
+        clr_merged?: FeatureData
         bldgtype: FeatureData
         st_damcat: FeatureData
     }
@@ -104,14 +127,18 @@ interface ComparisonResult {
         conditions: AppliedCondition[]
         total_conditions: number
     }
+    jsd?: JsdData
     error?: string
 }
 
 export function NeighborDivergence() {
     const mapContainer = useRef<HTMLDivElement>(null)
+    const mergedMapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
+    const mergedMap = useRef<maplibregl.Map | null>(null)
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState<DivergenceData | null>(null)
+    const [mergedData, setMergedData] = useState<DivergenceData | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [showEdges, setShowEdges] = useState(true)
@@ -121,14 +148,26 @@ export function NeighborDivergence() {
 
     // Comparison state
     const [conditionValues, setConditionValues] = useState<Record<string, string[]>>({})
-    // Multi-condition state: one value per condition type
     const [lcType, setLcType] = useState<string>('')
     const [stDamcat, setStDamcat] = useState<string>('')
     const [bldgtype, setBldgtype] = useState<string>('')
     const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null)
     const [comparisonLoading, setComparisonLoading] = useState(false)
 
+    const [colorGroups, setColorGroups] = useState<ColorGroup[]>([])
+    const [showColorPanel, setShowColorPanel] = useState(false)
+    const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set())
+    const [newGroupName, setNewGroupName] = useState('')
+    const [allColors, setAllColors] = useState<string[]>([])
+
+    // Map comparison state
+    const [showMergedMap, setShowMergedMap] = useState(false)
+    const [mergedMapLoading, setMergedMapLoading] = useState(false)
+
     const comparisonRef = useRef<HTMLDivElement>(null)
+
+    const groupedColors = new Set(colorGroups.flatMap(g => g.colors))
+    const ungroupedColors = allColors.filter(c => !groupedColors.has(c))
 
     useEffect(() => {
         async function fetchData() {
@@ -142,6 +181,8 @@ export function NeighborDivergence() {
                 const conditions = await conditionsRes.json()
                 setData(result)
                 setConditionValues(conditions.values)
+
+                setAllColors(Object.keys(COLOR_MAP).filter(c => c !== 'foo' && c !== 'bar').sort())
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error')
             } finally {
@@ -169,114 +210,142 @@ export function NeighborDivergence() {
         }
     }, [])
 
+    const [mergedMapReady, setMergedMapReady] = useState(false)
+
     useEffect(() => {
-        if (!map.current || !data) return
+        if (!mergedMapContainer.current || !showMergedMap || mergedMap.current) return
 
-        const addLayers = () => {
-            if (!map.current) return
+        const newMap = new maplibregl.Map({
+            container: mergedMapContainer.current,
+            style: MAP_STYLE,
+            center: [-119.5, 37.5],
+            zoom: 5.5,
+        })
 
-            if (map.current.getLayer('counties-fill')) map.current.removeLayer('counties-fill')
-            if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
-            if (map.current.getLayer('edges-line')) map.current.removeLayer('edges-line')
-            if (map.current.getLayer('selected-edge')) map.current.removeLayer('selected-edge')
-            if (map.current.getSource('counties')) map.current.removeSource('counties')
-            if (map.current.getSource('edges')) map.current.removeSource('edges')
+        newMap.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-            map.current.addSource('counties', {
-                type: 'geojson',
-                data: data.counties
-            })
+        newMap.on('load', () => {
+            setMergedMapReady(true)
+        })
 
-            map.current.addSource('edges', {
-                type: 'geojson',
-                data: data.edges
-            })
+        mergedMap.current = newMap
 
-            map.current.addLayer({
-                id: 'counties-fill',
-                type: 'fill',
-                source: 'counties',
-                paint: {
-                    'fill-color': '#f5f5f5',
-                    'fill-opacity': 0.3,
-                },
-            })
+        return () => {
+            mergedMap.current?.remove()
+            mergedMap.current = null
+            setMergedMapReady(false)
+        }
+    }, [showMergedMap])
 
-            map.current.addLayer({
-                id: 'counties-outline',
-                type: 'line',
-                source: 'counties',
-                paint: {
-                    'line-color': '#999',
-                    'line-width': 0.5,
-                },
-            })
+    const addLayersToMap = useCallback((mapInstance: maplibregl.Map, mapData: DivergenceData, isOriginal: boolean) => {
+        const sourceId = isOriginal ? 'counties' : 'merged-counties'
+        const edgeSourceId = isOriginal ? 'edges' : 'merged-edges'
 
-            const edgeColorExpr: maplibregl.ExpressionSpecification = [
-                'interpolate',
-                ['linear'],
-                ['to-number', ['get', 'weighted_jsd'], 0],
-                0.0, '#440154',
-                0.25, '#414487',
-                0.5, '#2a788e',
-                0.75, '#22a884',
-                1.0, '#fde725',
-            ]
+        if (mapInstance.getLayer(`${sourceId}-fill`)) mapInstance.removeLayer(`${sourceId}-fill`)
+        if (mapInstance.getLayer(`${sourceId}-outline`)) mapInstance.removeLayer(`${sourceId}-outline`)
+        if (mapInstance.getLayer(`${edgeSourceId}-line`)) mapInstance.removeLayer(`${edgeSourceId}-line`)
+        if (mapInstance.getLayer('selected-edge')) mapInstance.removeLayer('selected-edge')
+        if (mapInstance.getSource(sourceId)) mapInstance.removeSource(sourceId)
+        if (mapInstance.getSource(edgeSourceId)) mapInstance.removeSource(edgeSourceId)
 
-            map.current.addLayer({
-                id: 'edges-line',
-                type: 'line',
-                source: 'edges',
-                paint: {
-                    'line-color': edgeColorExpr,
-                    'line-width': 4,
-                    'line-opacity': 0.9,
-                },
-            })
+        mapInstance.addSource(sourceId, {
+            type: 'geojson',
+            data: mapData.counties
+        })
 
-            // Selected edge highlight layer
-            map.current.addLayer({
+        mapInstance.addSource(edgeSourceId, {
+            type: 'geojson',
+            data: mapData.edges
+        })
+
+        mapInstance.addLayer({
+            id: `${sourceId}-fill`,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+                'fill-color': '#f5f5f5',
+                'fill-opacity': 0.3,
+            },
+        })
+
+        mapInstance.addLayer({
+            id: `${sourceId}-outline`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+                'line-color': '#999',
+                'line-width': 0.5,
+            },
+        })
+
+        const edgeColorExpr: maplibregl.ExpressionSpecification = [
+            'interpolate',
+            ['linear'],
+            ['to-number', ['get', 'weighted_jsd'], 0],
+            0.0, '#440154',
+            0.25, '#414487',
+            0.5, '#2a788e',
+            0.75, '#22a884',
+            1.0, '#fde725',
+        ]
+
+        mapInstance.addLayer({
+            id: `${edgeSourceId}-line`,
+            type: 'line',
+            source: edgeSourceId,
+            paint: {
+                'line-color': edgeColorExpr,
+                'line-width': 4,
+                'line-opacity': 0.9,
+            },
+        })
+
+        const edgePopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
+        const layerId = `${edgeSourceId}-line`
+
+        mapInstance.on('mousemove', layerId, (e) => {
+            if (!e.features || e.features.length === 0) return
+            mapInstance.getCanvas().style.cursor = 'pointer'
+            const props = e.features[0].properties
+            const countyA = props.county_a || 'Unknown'
+            const countyB = props.county_b || 'Unknown'
+            const jsd = props.weighted_jsd?.toFixed(3) || 'N/A'
+            const nLc = props.n_shared_lc || 0
+            const support = props.total_support?.toLocaleString() || '0'
+            const clickHint = isOriginal ? '<div style="margin-top: 6px; font-size: 10px; color: #666;">Click to compare</div>' : ''
+            const mapLabel = isOriginal ? '' : '<div style="font-size: 10px; color: #2166ac; margin-bottom: 4px;">MERGED COLORS</div>'
+            const html = `
+                <div style="font-size: 12px; line-height: 1.4;">
+                    ${mapLabel}
+                    <div style="font-weight: bold; margin-bottom: 4px;">${countyA} - ${countyB}</div>
+                    <div>Avg JSD: <strong>${jsd}</strong></div>
+                    <div>Shared Land Cover Types: ${nLc}</div>
+                    <div>Total Support: ${support}</div>
+                    ${clickHint}
+                </div>
+            `
+            edgePopup.setLngLat(e.lngLat).setHTML(html).addTo(mapInstance)
+        })
+
+        mapInstance.on('mouseleave', layerId, () => {
+            mapInstance.getCanvas().style.cursor = ''
+            edgePopup.remove()
+        })
+
+        if (isOriginal) {
+            mapInstance.addLayer({
                 id: 'selected-edge',
                 type: 'line',
-                source: 'edges',
+                source: edgeSourceId,
                 paint: {
                     'line-color': '#8839ef',
                     'line-width': 4,
                     'line-opacity': 1,
                 },
-                filter: ['==', ['get', 'fips_a'], '']  // Initially show nothing
+                filter: ['==', ['get', 'fips_a'], '']
             })
 
-            const edgePopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
-
-            map.current.on('mousemove', 'edges-line', (e) => {
-                if (!e.features || e.features.length === 0) return
-                map.current!.getCanvas().style.cursor = 'pointer'
-                const props = e.features[0].properties
-                const countyA = props.county_a || 'Unknown'
-                const countyB = props.county_b || 'Unknown'
-                const jsd = props.weighted_jsd?.toFixed(3) || 'N/A'
-                const nLc = props.n_shared_lc || 0
-                const support = props.total_support?.toLocaleString() || '0'
-                const html = `
-                    <div style="font-size: 12px; line-height: 1.4;">
-                        <div style="font-weight: bold; margin-bottom: 4px;">${countyA} - ${countyB}</div>
-                        <div>Avg JSD: <strong>${jsd}</strong></div>
-                        <div>Shared Land Cover Types: ${nLc}</div>
-                        <div>Total Support: ${support}</div>
-                        <div style="margin-top: 6px; font-size: 10px; color: #666;">Click to compare</div>
-                    </div>
-                `
-                edgePopup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
-            })
-
-            map.current.on('mouseleave', 'edges-line', () => {
-                map.current!.getCanvas().style.cursor = ''
-                edgePopup.remove()
-            })
-
-            // Click handler for edges
-            map.current.on('click', 'edges-line', (e) => {
+            mapInstance.on('click', layerId, (e) => {
                 if (!e.features || e.features.length === 0) return
                 const props = e.features[0].properties
                 const pair: SelectedPair = {
@@ -287,20 +356,25 @@ export function NeighborDivergence() {
                 }
                 setSelectedPair(pair)
 
-                // Update the selected edge highlight
-                if (map.current) {
-                    map.current.setFilter('selected-edge', [
-                        'all',
-                        ['==', ['get', 'fips_a'], props.fips_a],
-                        ['==', ['get', 'fips_b'], props.fips_b]
-                    ])
-                }
+                mapInstance.setFilter('selected-edge', [
+                    'all',
+                    ['==', ['get', 'fips_a'], props.fips_a],
+                    ['==', ['get', 'fips_b'], props.fips_b]
+                ])
 
-                // Scroll to comparison section
                 setTimeout(() => {
                     comparisonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }, 100)
             })
+        }
+    }, [])
+
+    useEffect(() => {
+        if (!map.current || !data) return
+
+        const addLayers = () => {
+            if (!map.current) return
+            addLayersToMap(map.current, data, true)
         }
 
         if (map.current.loaded()) {
@@ -308,15 +382,19 @@ export function NeighborDivergence() {
         } else {
             map.current.on('load', addLayers)
         }
-    }, [data])
+    }, [data, addLayersToMap])
+
+    useEffect(() => {
+        if (!mergedMap.current || !mergedData || !mergedMapReady) return
+        addLayersToMap(mergedMap.current, mergedData, false)
+    }, [mergedData, mergedMapReady, addLayersToMap])
 
     // Fetch comparison when pair or conditioning changes
     useEffect(() => {
         if (!selectedPair) return
 
-        const pair = selectedPair  // Capture for async closure
+        const pair = selectedPair
 
-        // Build conditions array from all non-empty selections
         const conditions: { column: string; value: string }[] = []
         if (lcType) conditions.push({ column: 'lc_type', value: lcType })
         if (stDamcat) conditions.push({ column: 'st_damcat', value: stDamcat })
@@ -331,7 +409,8 @@ export function NeighborDivergence() {
                     body: JSON.stringify({
                         fips_a: pair.fips_a,
                         fips_b: pair.fips_b,
-                        conditions: conditions.length > 0 ? conditions : null
+                        conditions: conditions.length > 0 ? conditions : null,
+                        color_groups: colorGroups.length > 0 ? colorGroups : null
                     })
                 })
                 const data = await res.json()
@@ -343,7 +422,7 @@ export function NeighborDivergence() {
             }
         }
         fetchComparison()
-    }, [selectedPair, lcType, stDamcat, bldgtype])
+    }, [selectedPair, lcType, stDamcat, bldgtype, colorGroups])
 
     useEffect(() => {
         if (!map.current) return
@@ -380,8 +459,86 @@ export function NeighborDivergence() {
     useEffect(() => {
         setTimeout(() => {
             map.current?.resize()
+            mergedMap.current?.resize()
         }, 100)
-    }, [isFullscreen])
+    }, [isFullscreen, showMergedMap])
+
+    const addPreset = (presetKey: keyof typeof PRESETS) => {
+        const preset = PRESETS[presetKey]
+        if (colorGroups.some(g => g.name === preset.name)) return
+        setColorGroups([...colorGroups, { ...preset }])
+    }
+
+    const addAllPresets = () => {
+        const newGroups: ColorGroup[] = []
+        for (const preset of Object.values(PRESETS)) {
+            if (!colorGroups.some(g => g.name === preset.name)) {
+                newGroups.push({ ...preset })
+            }
+        }
+        setColorGroups([...colorGroups, ...newGroups])
+    }
+
+    const removeGroup = (name: string) => {
+        setColorGroups(colorGroups.filter(g => g.name !== name))
+    }
+
+    const resetGroups = () => {
+        setColorGroups([])
+        setSelectedColors(new Set())
+    }
+
+    const toggleColorSelection = (color: string) => {
+        const newSelected = new Set(selectedColors)
+        if (newSelected.has(color)) {
+            newSelected.delete(color)
+        } else {
+            newSelected.add(color)
+        }
+        setSelectedColors(newSelected)
+    }
+
+    const addSelectedToGroup = (groupName: string) => {
+        if (selectedColors.size === 0) return
+
+        if (groupName === '__new__') {
+            if (!newGroupName.trim()) return
+            const newGroup: ColorGroup = {
+                name: newGroupName.trim().toLowerCase().replace(/\s+/g, '_'),
+                colors: Array.from(selectedColors)
+            }
+            setColorGroups([...colorGroups, newGroup])
+            setNewGroupName('')
+        } else {
+            setColorGroups(colorGroups.map(g =>
+                g.name === groupName
+                    ? { ...g, colors: [...new Set([...g.colors, ...selectedColors])] }
+                    : g
+            ))
+        }
+        setSelectedColors(new Set())
+    }
+
+    const recalculateAllPairs = async () => {
+        if (colorGroups.length === 0) return
+
+        setMergedMapLoading(true)
+        setShowMergedMap(true)
+
+        try {
+            const res = await fetch(`${API_URL}/map/neighbor-divergence-merged`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ color_groups: colorGroups })
+            })
+            const result = await res.json()
+            setMergedData(result)
+        } catch (err) {
+            console.error('Failed to recalculate:', err)
+        } finally {
+            setMergedMapLoading(false)
+        }
+    }
 
     const maxProportion = comparisonResult && !comparisonResult.error
         ? Math.max(
@@ -418,44 +575,180 @@ export function NeighborDivergence() {
                 </div>
             )}
 
-            <div className={`map-container ${isFullscreen ? 'fullscreen' : ''}`}>
-                <div className="map-controls">
-                    <button
-                        className="toggle-hex-btn"
-                        onClick={() => setShowEdges(!showEdges)}
-                    >
-                        {showEdges ? 'Hide Edges' : 'Show Edges'}
-                    </button>
-                    <button className="fullscreen-btn" onClick={toggleFullscreen}>
-                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-                    </button>
-                </div>
-
-                {loading && <div className="map-error">Loading divergence data...</div>}
-                {error && <div className="map-error">{error}</div>}
-
-                <div ref={mapContainer} className="map" />
-
-                <div className="map-legend">
-                    <div className="legend-title">Avg JSD (Divergence)</div>
-                    <div className="legend-bar" style={{
-                        background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)'
-                    }} />
-                    <div className="legend-labels">
-                        <span>0</span>
-                        <span>1</span>
+            {/* Map comparison container */}
+            <div className={`map-comparison-container ${showMergedMap ? 'dual' : ''}`}>
+                <div className={`map-container ${isFullscreen ? 'fullscreen' : ''}`}>
+                    {showMergedMap && <div className="map-label">Original</div>}
+                    {data && showMergedMap && (
+                        <div className="map-jsd-badge">
+                            Mean JSD: {data.stats.mean_jsd.toFixed(3)}
+                        </div>
+                    )}
+                    <div className="map-controls">
+                        <button
+                            className="toggle-hex-btn"
+                            onClick={() => setShowEdges(!showEdges)}
+                        >
+                            {showEdges ? 'Hide Edges' : 'Show Edges'}
+                        </button>
+                        <button className="fullscreen-btn" onClick={toggleFullscreen}>
+                            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                        </button>
                     </div>
-                    <div className="legend-desc">
-                        <span>Similar</span>
-                        <span>Different</span>
+
+                    {loading && <div className="map-error">Loading divergence data...</div>}
+                    {error && <div className="map-error">{error}</div>}
+
+                    <div ref={mapContainer} className="map" />
+
+                    <div className="map-legend">
+                        <div className="legend-title">Avg JSD (Divergence)</div>
+                        <div className="legend-bar" style={{
+                            background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)'
+                        }} />
+                        <div className="legend-labels">
+                            <span>0</span>
+                            <span>1</span>
+                        </div>
+                        <div className="legend-desc">
+                            <span>Similar</span>
+                            <span>Different</span>
+                        </div>
+                    </div>
+
+                    <div className="keybind-hints">
+                        {isFullscreen && <span>Press <kbd>Esc</kbd> to exit fullscreen</span>}
+                        <span>Press <kbd>E</kbd> to {showEdges ? 'hide' : 'show'} edges</span>
                     </div>
                 </div>
 
-                <div className="keybind-hints">
-                    {isFullscreen && <span>Press <kbd>Esc</kbd> to exit fullscreen</span>}
-                    <span>Press <kbd>E</kbd> to {showEdges ? 'hide' : 'show'} edges</span>
-                </div>
+                {showMergedMap && (
+                    <div className="map-container merged-map">
+                        <div className="map-label merged">Merged Colors</div>
+                        {mergedData && (
+                            <div className="map-jsd-badge merged">
+                                Mean JSD: {mergedData.stats.mean_jsd.toFixed(3)}
+                                {data && (
+                                    <span className="jsd-change">
+                                        ({((mergedData.stats.mean_jsd - data.stats.mean_jsd) / data.stats.mean_jsd * 100).toFixed(1)}%)
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        {mergedMapLoading && <div className="map-loading-overlay">Recalculating...</div>}
+                        <div ref={mergedMapContainer} className="map" />
+                    </div>
+                )}
             </div>
+
+            {/* Color Grouping Panel */}
+            <div className="color-grouping-panel">
+                <div className="panel-header" onClick={() => setShowColorPanel(!showColorPanel)}>
+                    <h3>Color Grouping</h3>
+                    <button className="toggle-panel-btn">
+                        {showColorPanel ? 'Hide' : 'Show'}
+                    </button>
+                </div>
+
+                {showColorPanel && (
+                    <div className="panel-content">
+                        <div className="preset-buttons">
+                            <span className="preset-label">Presets:</span>
+                            <button onClick={() => addPreset('browns')}>All Browns</button>
+                            <button onClick={() => addPreset('reds')}>All Reds</button>
+                            <button onClick={() => addPreset('greens')}>All Greens</button>
+                            <button onClick={() => addPreset('blues_purples')}>Blues/Purples</button>
+                            <button onClick={() => addPreset('grays')}>Grays</button>
+                            <button onClick={addAllPresets} className="add-all-btn">Add All</button>
+                            <button onClick={resetGroups} className="reset-btn">Reset</button>
+                        </div>
+
+                        {colorGroups.length > 0 && (
+                            <div className="groups-section">
+                                <h4>Groups ({colorGroups.length})</h4>
+                                <div className="groups-list">
+                                    {colorGroups.map(group => (
+                                        <div key={group.name} className="group-item">
+                                            <span className="group-name">[{group.name}]</span>
+                                            <span className="group-colors">
+                                                {group.colors.map(c => (
+                                                    <span key={c} className="mini-color-chip" style={{ backgroundColor: COLOR_MAP[c] || '#ccc' }} title={c} />
+                                                ))}
+                                                <span className="color-count">({group.colors.length})</span>
+                                            </span>
+                                            <button className="delete-group-btn" onClick={() => removeGroup(group.name)}>×</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="ungrouped-section">
+                            <h4>Ungrouped Colors (click to select)</h4>
+                            <div className="ungrouped-colors">
+                                {ungroupedColors.map(color => (
+                                    <button
+                                        key={color}
+                                        className={`color-chip-btn ${selectedColors.has(color) ? 'selected' : ''}`}
+                                        onClick={() => toggleColorSelection(color)}
+                                        style={{
+                                            '--chip-color': COLOR_MAP[color] || '#ccc'
+                                        } as React.CSSProperties}
+                                    >
+                                        <span className="chip-swatch" style={{ backgroundColor: COLOR_MAP[color] || '#ccc' }} />
+                                        {color}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {selectedColors.size > 0 && (
+                                <div className="add-to-group">
+                                    <span>{selectedColors.size} selected</span>
+                                    <select onChange={(e) => {
+                                        if (e.target.value) {
+                                            addSelectedToGroup(e.target.value)
+                                            e.target.value = ''
+                                        }
+                                    }}>
+                                        <option value="">Add to group...</option>
+                                        {colorGroups.map(g => (
+                                            <option key={g.name} value={g.name}>{g.name}</option>
+                                        ))}
+                                        <option value="__new__">+ New group</option>
+                                    </select>
+                                    {newGroupName !== undefined && (
+                                        <input
+                                            type="text"
+                                            placeholder="New group name"
+                                            value={newGroupName}
+                                            onChange={(e) => setNewGroupName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && newGroupName.trim()) {
+                                                    addSelectedToGroup('__new__')
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="recalculate-section">
+                            <button
+                                className="recalculate-btn"
+                                onClick={recalculateAllPairs}
+                                disabled={colorGroups.length === 0 || mergedMapLoading}
+                            >
+                                {mergedMapLoading ? 'Calculating...' : 'Recalculate All Pairs'}
+                            </button>
+                            {colorGroups.length === 0 && (
+                                <span className="hint">Add color groups to enable recalculation</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div ref={comparisonRef} className="comparison-section">
                 {selectedPair ? (
                     <>
@@ -513,6 +806,29 @@ export function NeighborDivergence() {
                         {comparisonResult && !comparisonResult.error && (
                             <div className="comparison-results">
                                 <div className="jsd-summary">
+                                    {comparisonResult.jsd && (
+                                        <div className="jsd-comparison">
+                                            <div className="jsd-box original">
+                                                <div className="jsd-label">Original JSD</div>
+                                                <div className="jsd-value">{comparisonResult.jsd.original.toFixed(4)}</div>
+                                            </div>
+                                            {comparisonResult.jsd.merged !== undefined && (
+                                                <>
+                                                    <div className="jsd-arrow">→</div>
+                                                    <div className="jsd-box merged">
+                                                        <div className="jsd-label">Merged JSD</div>
+                                                        <div className="jsd-value">{comparisonResult.jsd.merged.toFixed(4)}</div>
+                                                    </div>
+                                                    <div className={`jsd-change-box ${comparisonResult.jsd.reduction! > 0 ? 'positive' : 'negative'}`}>
+                                                        <div className="change-value">
+                                                            {comparisonResult.jsd.reduction! > 0 ? '-' : '+'}
+                                                            {Math.abs(comparisonResult.jsd.reduction_pct!).toFixed(1)}%
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                     <div className="vocab-overlap">
                                         Vocabulary Overlap: {(vocabOverlap * 100).toFixed(0)}%
                                         ({sharedColors.length} shared colors)
