@@ -166,6 +166,9 @@ export function NeighborDivergence() {
 
     const [showComparisonPanel, setShowComparisonPanel] = useState(false)
 
+
+    const [draggedColor, setDraggedColor] = useState<{ color: string; fromGroup: string | null } | null>(null)
+
     const [hoveredEdge, setHoveredEdge] = useState<{ fips_a: string; fips_b: string; sourceMap: 'original' | 'merged'; lngLat: [number, number] } | null>(null)
     const originalPopupRef = useRef<maplibregl.Popup | null>(null)
     const mergedPopupRef = useRef<maplibregl.Popup | null>(null)
@@ -604,6 +607,8 @@ export function NeighborDivergence() {
     const resetGroups = () => {
         setColorGroups([])
         setSelectedColors(new Set())
+        setShowMergedMap(false)
+        setMergedData(null)
     }
 
     const toggleColorSelection = (color: string) => {
@@ -635,6 +640,51 @@ export function NeighborDivergence() {
             ))
         }
         setSelectedColors(new Set())
+    }
+
+    const handleDragStart = (color: string, fromGroup: string | null) => {
+        setDraggedColor({ color, fromGroup })
+    }
+
+    const handleDragEnd = () => {
+        setDraggedColor(null)
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = (e: React.DragEvent, targetGroup: string | null) => {
+        e.preventDefault()
+        if (!draggedColor) return
+
+        const { color, fromGroup } = draggedColor
+
+        if (fromGroup === targetGroup) {
+            setDraggedColor(null)
+            return
+        }
+
+        let newGroups = colorGroups.map(g => {
+            if (g.name === fromGroup) {
+                return { ...g, colors: g.colors.filter(c => c !== color) }
+            }
+            return g
+        })
+
+        if (targetGroup !== null) {
+            newGroups = newGroups.map(g => {
+                if (g.name === targetGroup && !g.colors.includes(color)) {
+                    return { ...g, colors: [...g.colors, color] }
+                }
+                return g
+            })
+        }
+
+        newGroups = newGroups.filter(g => g.colors.length > 0)
+
+        setColorGroups(newGroups)
+        setDraggedColor(null)
     }
 
     const recalculateAllPairs = async () => {
@@ -974,23 +1024,31 @@ export function NeighborDivergence() {
 
                         {colorGroups.length > 0 && (
                             <div>
-                                <h4 className="text-xs font-semibold mb-1.5">Groups ({colorGroups.length})</h4>
+                                <h4 className="text-xs font-semibold mb-1.5">Groups ({colorGroups.length}) <span className="font-normal text-muted-foreground">- drag colors to reorder</span></h4>
                                 <div className="space-y-1.5">
                                     {colorGroups.map(group => (
-                                        <div key={group.name} className="flex items-center gap-2 p-2 bg-muted rounded text-xs">
+                                        <div
+                                            key={group.name}
+                                            className="flex items-center gap-2 p-2 rounded text-xs bg-muted"
+                                            onDragOver={handleDragOver}
+                                            onDrop={(e) => handleDrop(e, group.name)}
+                                        >
                                             <span className="font-medium min-w-[70px]">{group.name}</span>
-                                            <span className="flex items-center gap-0.5 flex-1">
-                                                {group.colors.slice(0, 7).map(c => (
+                                            <span className="flex items-center gap-1 flex-1 flex-wrap">
+                                                {group.colors.map(c => (
                                                     <span
                                                         key={c}
-                                                        className="w-4 h-4 rounded-full border border-border"
+                                                        draggable
+                                                        onDragStart={() => handleDragStart(c, group.name)}
+                                                        onDragEnd={handleDragEnd}
+                                                        className={cn(
+                                                            'w-5 h-5 rounded-full border-2 cursor-grab active:cursor-grabbing transition-all hover:scale-110',
+                                                            draggedColor?.color === c ? 'opacity-50 border-sage-500' : 'border-white shadow-sm'
+                                                        )}
                                                         style={{ backgroundColor: COLOR_MAP[c] || '#ccc' }}
-                                                        title={c}
+                                                        title={`${c} - drag to move`}
                                                     />
                                                 ))}
-                                                {group.colors.length > 7 && (
-                                                    <span className="text-[10px] text-muted-foreground ml-1">+{group.colors.length - 7}</span>
-                                                )}
                                             </span>
                                             <button
                                                 className="w-5 h-5 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded leading-none"
@@ -1004,17 +1062,24 @@ export function NeighborDivergence() {
                             </div>
                         )}
 
-                        <div>
+                        <div
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, null)}
+                        >
                             <h4 className="text-xs font-semibold mb-1.5">Ungrouped Colors</h4>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 min-h-[40px]">
                                 {ungroupedColors.map(color => (
                                     <button
                                         key={color}
+                                        draggable
+                                        onDragStart={() => handleDragStart(color, null)}
+                                        onDragEnd={handleDragEnd}
                                         className={cn(
-                                            'inline-flex items-center gap-1 px-2 py-0.5 text-xs border rounded cursor-pointer transition-colors',
+                                            'inline-flex items-center gap-1 px-2 py-0.5 text-xs border rounded cursor-grab active:cursor-grabbing transition-all',
                                             selectedColors.has(color)
                                                 ? 'border-sage-500 bg-sage-100 text-foreground'
-                                                : 'border-border text-muted-foreground hover:border-sage-400'
+                                                : 'border-border text-muted-foreground hover:border-sage-400',
+                                            draggedColor?.color === color && 'opacity-50'
                                         )}
                                         onClick={() => toggleColorSelection(color)}
                                     >
@@ -1025,6 +1090,9 @@ export function NeighborDivergence() {
                                         {color}
                                     </button>
                                 ))}
+                                {ungroupedColors.length === 0 && (
+                                    <span className="text-xs text-muted-foreground italic">All colors are grouped</span>
+                                )}
                             </div>
 
                             {selectedColors.size > 0 && (
