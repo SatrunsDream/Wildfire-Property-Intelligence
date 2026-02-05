@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import App from './App.tsx'
-import { EmpiricalBayesPooling } from './EmpiricalBayesPooling.tsx'
-import { NeighborDivergence } from './NeighborDivergence.tsx'
-import { C2STMap } from './C2STMap.tsx'
+import { ConditionalProbability } from './ConditionalProbability'
+import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
+import { NeighborDivergence } from './NeighborDivergence'
+import { C2STMap } from './C2STMap'
 import { AppSidebar, type Page } from './components/app-sidebar'
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
@@ -32,12 +32,20 @@ export function Router() {
                 <SiteHeader title={pageTitles[page]} />
                 <div className="flex flex-1 flex-col">
                     <div className="@container/main flex flex-1 flex-col gap-2">
-                        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                            {page === 'home' && null}
-                            {page === 'conditional-probability' && <App />}
-                            {page === 'empirical-bayes' && <EmpiricalBayesPooling />}
-                            {page === 'neighbor-divergence' && <NeighborDivergence />}
-                            {page === 'c2st' && <C2STMap />}
+                        <div className={page === 'home' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6' : 'hidden'}>
+                            {/* Home page content */}
+                        </div>
+                        <div className={page === 'conditional-probability' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6' : 'hidden'}>
+                            <ConditionalProbability />
+                        </div>
+                        <div className={page === 'empirical-bayes' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6' : 'hidden'}>
+                            <EmpiricalBayesPooling />
+                        </div>
+                        <div className={page === 'neighbor-divergence' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6' : 'hidden'}>
+                            <NeighborDivergence />
+                        </div>
+                        <div className={page === 'c2st' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6' : 'hidden'}>
+                            <C2STMap />
                         </div>
                     </div>
                 </div>

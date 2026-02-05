@@ -141,7 +141,6 @@ function TopAnomaliesChart({ data, contextCols, target }: { data: ProbRow[], con
             .domain([0, d3.max(topData, d => d.surprisal as number) || 10])
             .range([height, 0])
 
-        // Sage-based color gradient for anomalies
         const colors = [chartColors.primary, chartColors.primaryLight, '#d4a574', '#c17f59', '#a85d3b']
         const colorScale = d3.scaleQuantize<string>()
             .domain([d3.min(topData, d => d.surprisal as number) || 0, d3.max(topData, d => d.surprisal as number) || 10])
@@ -197,7 +196,7 @@ function TopAnomaliesChart({ data, contextCols, target }: { data: ProbRow[], con
     return <svg ref={svgRef}></svg>
 }
 
-function App() {
+export function ConditionalProbability() {
     const [columns, setColumns] = useState<string[]>([])
     const [columnMeta, setColumnMeta] = useState<Record<string, ColumnMeta>>({})
     const [contextCols, setContextCols] = useState<string[]>(['lc_type', 'fips'])
@@ -613,5 +612,3 @@ function App() {
         </div>
     )
 }
-
-export default App
