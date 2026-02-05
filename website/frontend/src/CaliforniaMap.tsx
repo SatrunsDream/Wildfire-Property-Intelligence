@@ -15,6 +15,7 @@ interface MapProps {
     target: string
     minSupport: number
     autoLoad?: boolean
+    className?: string
 }
 
 export interface CaliforniaMapRef {
@@ -68,7 +69,7 @@ const H3_LEVELS: H3Level[] = [
     { res: 9, minZoom: 12, maxZoom: 20 },
 ]
 
-export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCols, target, minSupport, autoLoad = false }, ref) => {
+export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCols, target, minSupport, autoLoad = false, className }, ref) => {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
     const [viewMode, setViewMode] = useState<ViewMode>('counties')
@@ -509,7 +510,8 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
 
     return (
         <div className={cn(
-            'relative border border-border rounded overflow-hidden mb-8',
+            'relative rounded overflow-hidden',
+            className,
             isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] border-none rounded-none m-0'
         )}>
             {/* Map Controls */}
@@ -568,7 +570,7 @@ export const CaliforniaMap = forwardRef<CaliforniaMapRef, MapProps>(({ contextCo
                 </div>
             )}
 
-            <div ref={mapContainer} className={cn('w-full h-[700px]', isFullscreen && 'h-screen')} />
+            <div ref={mapContainer} className={cn('w-full h-full', isFullscreen && 'h-screen')} />
 
             {/* Legend */}
             <div className="absolute bottom-7 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
