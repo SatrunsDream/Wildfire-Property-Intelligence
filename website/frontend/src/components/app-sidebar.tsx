@@ -28,7 +28,7 @@ const navItems = [
         icon: IconHome,
     },
     {
-        title: "Conditional Probability",
+        title: "Conditional Pooling",
         id: "conditional-probability" as Page,
         icon: IconMathFunction,
     },

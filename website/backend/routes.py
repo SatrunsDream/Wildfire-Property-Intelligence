@@ -18,7 +18,8 @@ from utils import (
 )
 from data import (
     df, neighbors_df, c2st_df, ca_counties_geojson,
-    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df, morans_i_df
+    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df, morans_i_df,
+    m01_summary_df, m01_detail_df
 )
 
 router = APIRouter()
@@ -292,6 +293,167 @@ def get_county_surprisal_detail(fips: str, req: MapRequest):
             }],
             "total_landcover_types": 1
         }
+
+
+# M01 Neighbor-Pooled Conditional Probability Endpoints
+
+@router.get("/m01-neighbor-pool/test-data")
+def test_m01_data():
+    """Test endpoint to verify M01 data loading."""
+    result = {
+        "m01_summary_loaded": m01_summary_df is not None,
+        "m01_detail_loaded": m01_detail_df is not None,
+        "geojson_loaded": ca_counties_geojson is not None,
+    }
+    
+    if m01_summary_df is not None:
+        result["summary_rows"] = len(m01_summary_df)
+        result["summary_columns"] = m01_summary_df.columns.to_list()
+        result["summary_sample"] = m01_summary_df.head(3).to_dicts() if len(m01_summary_df) > 0 else []
+    
+    if m01_detail_df is not None:
+        result["detail_rows"] = len(m01_detail_df)
+        result["detail_columns"] = m01_detail_df.columns.to_list()
+    
+    if ca_counties_geojson is not None:
+        result["geojson_features"] = len(ca_counties_geojson.get("features", []))
+    
+    return result
+
+
+@router.get("/conditional-pooling/landcover-types")
+def get_conditional_pooling_landcover_types():
+    if m01_summary_df is None:
+        raise HTTPException(500, "Conditional pooling data not loaded")
+    return {"landcover_types": m01_summary_df["lc_type"].unique().sort().to_list()}
+
+
+@router.post("/conditional-pooling/map/counties")
+def get_conditional_pooling_map_counties(req: BayesianMapRequest):
+    from data import ca_counties_geojson
+    
+    if m01_summary_df is None:
+        raise HTTPException(500, "Conditional pooling data not loaded")
+    if not ca_counties_geojson:
+        raise HTTPException(500, "County GeoJSON not loaded")
+    
+    metric = req.metric if req.metric in ["kl_div", "l1_distance"] else "kl_div"
+    filtered_df = m01_summary_df.filter(pl.col("lc_type") == req.lc_type) if req.lc_type else m01_summary_df
+    
+    if len(filtered_df) == 0:
+        return {
+            "type": "FeatureCollection",
+            "features": [],
+            "metric": metric,
+            "lc_type": req.lc_type,
+            "stats": {"total_counties": 0, "mean_value": 0.0, "max_value": 0.0}
+        }
+    
+    county_agg = filtered_df.group_by("fips").agg([
+        pl.col(metric).mean().alias("mean_value"),
+        pl.col(metric).max().alias("max_value"),
+        pl.col("n_county").sum().alias("total_exposure"),
+        pl.col("num_neighbors").first().alias("num_neighbors")
+    ])
+    
+    features = []
+    values = []
+    
+    for feature in ca_counties_geojson["features"]:
+        props = feature.get("properties", {})
+        fips_str = props.get("fips") or props.get("FIPS") or COUNTY_NAME_TO_FIPS.get(props.get("name") or props.get("county_name", ""))
+        
+        if not fips_str:
+            continue
+        
+        try:
+            fips_int = int(fips_str.lstrip("0")) if fips_str.startswith("0") else int(fips_str)
+        except (ValueError, AttributeError):
+            continue
+        
+        county_data = county_agg.filter(pl.col("fips") == fips_int)
+        if len(county_data) > 0:
+            row = county_data.row(0, named=True)
+            fips_str_padded = str(fips_int).zfill(5)
+            feature["properties"].update({
+                **props,
+                "fips": fips_str_padded,
+                "mean_value": float(row["mean_value"]),
+                "max_value": float(row["max_value"]),
+                "total_exposure": int(row["total_exposure"]),
+                "num_neighbors": int(row["num_neighbors"]),
+                "county_name": FIPS_TO_COUNTY_NAME.get(fips_str_padded, props.get("name", f"County {fips_int}"))
+            })
+            features.append(feature)
+            values.append(float(row["mean_value"]))
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "metric": metric,
+        "lc_type": req.lc_type,
+        "stats": {
+            "total_counties": len(features),
+            "mean_value": float(np.mean(values)) if values else 0.0,
+            "max_value": float(np.max(values)) if values else 0.0
+        }
+    }
+
+
+@router.get("/conditional-pooling/county/{fips}")
+def get_conditional_pooling_county_detail(fips: str, lc_type: str | None = None):
+    if m01_summary_df is None or m01_detail_df is None:
+        raise HTTPException(500, "Conditional pooling data not loaded")
+    
+    fips_int = int(fips.lstrip("0")) if fips.startswith("0") else int(fips)
+    summary_filtered = m01_summary_df.filter(pl.col("fips") == fips_int)
+    if lc_type:
+        summary_filtered = summary_filtered.filter(pl.col("lc_type") == lc_type)
+    
+    if len(summary_filtered) == 0:
+        raise HTTPException(404, f"No data found for county {fips}")
+    
+    detail_filtered = m01_detail_df.filter(pl.col("fips") == fips_int)
+    if lc_type:
+        detail_filtered = detail_filtered.filter(pl.col("lc_type") == lc_type)
+    
+    by_landcover = []
+    for lc in summary_filtered["lc_type"].unique().to_list():
+        lc_summary = summary_filtered.filter(pl.col("lc_type") == lc).row(0, named=True)
+        lc_detail = detail_filtered.filter(pl.col("lc_type") == lc)
+        
+        distributions = [
+            {
+                "clr": row["clr"],
+                "y_county": int(row["y_county"]),
+                "y_pool": int(row["y_pool"]),
+                "p_county": float(row["p_county"]),
+                "p_pool": float(row["p_pool"]),
+                "contrib": float(row["contrib"]),
+                "abs_diff": float(row["abs_diff"])
+            }
+            for row in lc_detail.iter_rows(named=True)
+        ]
+        distributions.sort(key=lambda x: abs(x["contrib"]), reverse=True)
+        
+        by_landcover.append({
+            "lc_type": lc,
+            "n_county": int(lc_summary["n_county"]),
+            "n_pool": int(lc_summary["n_pool"]),
+            "num_neighbors": int(lc_summary["num_neighbors"]),
+            "kl_div": float(lc_summary["kl_div"]),
+            "l1_distance": float(lc_summary["l1_distance"]),
+            "top_color": lc_summary["top_color"],
+            "top_contrib": float(lc_summary["top_contrib"]),
+            "distributions": distributions
+        })
+    
+    return {
+        "fips": fips,
+        "county_name": FIPS_TO_COUNTY_NAME.get(fips_int, f"County {fips_int}"),
+        "by_landcover": by_landcover,
+        "total_landcover_types": len(by_landcover)
+    }
 
 
 @router.post("/map/hexes")

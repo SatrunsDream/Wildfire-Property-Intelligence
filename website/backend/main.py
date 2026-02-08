@@ -8,14 +8,23 @@ from constants import CA_COUNTIES_GEOJSON_URL
 from routes import router
 
 
+def load_county_geojson():
+    import httpx
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.get(CA_COUNTIES_GEOJSON_URL)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception:
+        return None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(CA_COUNTIES_GEOJSON_URL)
-        data.ca_counties_geojson = resp.json()
-    for feature in data.ca_counties_geojson["features"]:
-        name = feature["properties"].get("name", "")
-        feature["properties"]["county_name"] = name
+    data.ca_counties_geojson = load_county_geojson()
+    if data.ca_counties_geojson:
+        for feature in data.ca_counties_geojson["features"]:
+            feature["properties"]["county_name"] = feature["properties"].get("name", "")
     yield
 
 

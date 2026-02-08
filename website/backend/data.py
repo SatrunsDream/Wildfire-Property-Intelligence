@@ -11,6 +11,8 @@ BAYESIAN_BASELINE_PATH = os.environ.get("BAYESIAN_BASELINE_PATH", str(DATA_DIR /
 BAYESIAN_STABILIZED_PATH = os.environ.get("BAYESIAN_STABILIZED_PATH", str(DATA_DIR / "bayesian_shrinkage_stabilized_distributions.csv"))
 BAYESIAN_COUNTS_PATH = os.environ.get("BAYESIAN_COUNTS_PATH", str(DATA_DIR / "bayesian_shrinkage_aggregated_counts.csv"))
 MORANS_I_PATH = os.environ.get("MORANS_I_PATH", str(DATA_DIR / "morans_i_homogeneity.csv"))
+M01_SUMMARY_PATH = os.environ.get("M01_SUMMARY_PATH", str(DATA_DIR / "m01_neighbor_pool_county_lc_summary.csv"))
+M01_DETAIL_PATH = os.environ.get("M01_DETAIL_PATH", str(DATA_DIR / "m01_neighbor_pool_county_lc_color_detail.csv"))
 
 df = pl.read_csv(DATA_PATH)
 neighbors_df = pl.read_csv(NEIGHBORS_PATH)
@@ -30,5 +32,19 @@ try:
 except Exception as e:
     print(f"Warning: Could not load Moran's I data: {e}")
     morans_i_df = None
+
+try:
+    m01_summary_df = pl.read_csv(M01_SUMMARY_PATH)
+    if m01_summary_df["fips"].dtype != pl.Int64:
+        m01_summary_df = m01_summary_df.with_columns(pl.col("fips").cast(pl.Int64))
+except Exception:
+    m01_summary_df = None
+
+try:
+    m01_detail_df = pl.read_csv(M01_DETAIL_PATH)
+    if m01_detail_df["fips"].dtype != pl.Int64:
+        m01_detail_df = m01_detail_df.with_columns(pl.col("fips").cast(pl.Int64))
+except Exception:
+    m01_detail_df = None
 
 ca_counties_geojson: dict | None = None

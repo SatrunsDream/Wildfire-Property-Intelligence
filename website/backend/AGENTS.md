@@ -2,32 +2,60 @@
 
 ## File Structure
 
-| File | Purpose |
-|------|---------|
-| `main.py` | FastAPI app entry point, CORS config, lifespan (loads GeoJSON) |
-| `routes.py` | All API endpoints — **add new endpoints here** |
-| `models.py` | Pydantic request models — **add new request schemas here** |
-| `data.py` | Data loading (Polars DataFrames) — **add new data sources here** |
-| `constants.py` | FIPS mappings, column metadata, H3 levels, URLs |
-| `utils.py` | Helper functions (Bayesian smoothing, H3 aggregation, GeoJSON builders) |
+**Project Root**: `Wildfire-Property-Intelligence/`
+**Backend Root**: `Wildfire-Property-Intelligence/website/backend/`
+
+| File | Full Path | Purpose |
+|------|-----------|---------|
+| `main.py` | `website/backend/main.py` | FastAPI app entry point, CORS config, lifespan (loads GeoJSON), registers router |
+| `routes.py` | `website/backend/routes.py` | All API endpoints — **add new endpoints here** (currently ~1440 lines) |
+| `models.py` | `website/backend/models.py` | Pydantic request models — **add new request schemas here** |
+| `data.py` | `website/backend/data.py` | Data loading (Polars DataFrames) — **add new data sources here** (loads at startup) |
+| `constants.py` | `website/backend/constants.py` | FIPS mappings (`FIPS_TO_COUNTY_NAME`, `COUNTY_NAME_TO_FIPS`), column metadata, H3 levels, URLs |
+| `utils.py` | `website/backend/utils.py` | Helper functions (Bayesian smoothing, H3 aggregation, GeoJSON builders) |
+| `data/` | `website/backend/data/` | **Directory** containing all CSV data files (see Data Files section) |
+
+**Key Imports in `routes.py`:**
+- Line 19-22: Imports all DataFrames from `data.py` including `m01_summary_df`, `m01_detail_df`, `ca_counties_geojson`
+- Line 6-18: Imports from `constants.py`, `models.py`, `utils.py`
+- All endpoints access DataFrames directly (they're module-level variables)
 
 ## Data Files
 
-All data files are located in `backend/data/` folder:
+All data files are located in `website/backend/data/` folder (relative to project root):
 
-| File | Description | Location |
-|------|-------------|----------|
-| `Capstone2025_nsi_lvl9_with_landcover_and_color.csv` | Main dataset (~2.4M rows) | `backend/data/` |
-| `ca_county_neighbors.csv` | County adjacency pairs | `backend/data/` |
-| `c2st_results_all_lc.csv` | Precomputed C2ST results by land cover | `backend/data/` |
-| `bayesian_shrinkage_baseline_distributions.csv` | Landcover-specific baseline distributions (421 rows) | `backend/data/` |
-| `bayesian_shrinkage_stabilized_distributions.csv` | County-level stabilized distributions with shrinkage metrics (4,493 rows) | `backend/data/` |
-| `bayesian_shrinkage_aggregated_counts.csv` | Aggregated counts by county × landcover × category | `backend/data/` |
-| `morans_i_homogeneity.csv` | Moran's I local scores by county (FIPS, local, geometry) | `backend/data/` |
+| File | Description | Full Path | Rows | Loaded As |
+|------|-------------|-----------|------|-----------|
+| `Capstone2025_nsi_lvl9_with_landcover_and_color.csv` | Main dataset (~2.4M rows) | `website/backend/data/Capstone2025_nsi_lvl9_with_landcover_and_color.csv` | ~2.4M | `df` |
+| `ca_county_neighbors.csv` | County adjacency pairs | `website/backend/data/ca_county_neighbors.csv` | Varies | `neighbors_df` |
+| `c2st_results_all_lc.csv` | Precomputed C2ST results by land cover | `website/backend/data/c2st_results_all_lc.csv` | Varies | `c2st_df` |
+| `bayesian_shrinkage_baseline_distributions.csv` | Landcover-specific baseline distributions | `website/backend/data/bayesian_shrinkage_baseline_distributions.csv` | 421 | `bayesian_baseline_df` |
+| `bayesian_shrinkage_stabilized_distributions.csv` | County-level stabilized distributions with shrinkage metrics | `website/backend/data/bayesian_shrinkage_stabilized_distributions.csv` | 4,493 | `bayesian_stabilized_df` |
+| `bayesian_shrinkage_aggregated_counts.csv` | Aggregated counts by county × landcover × category | `website/backend/data/bayesian_shrinkage_aggregated_counts.csv` | Varies | `bayesian_counts_df` |
+| `morans_i_homogeneity.csv` | Moran's I local scores by county (FIPS, local, geometry) | `website/backend/data/morans_i_homogeneity.csv` | 58 | `morans_i_df` |
+| `m01_neighbor_pool_county_lc_summary.csv` | Neighbor-pooled conditional probability summary (county × landcover) | `website/backend/data/m01_neighbor_pool_county_lc_summary.csv` | ~470 | `m01_summary_df` |
+| `m01_neighbor_pool_county_lc_color_detail.csv` | Neighbor-pooled conditional probability detail (county × landcover × color) | `website/backend/data/m01_neighbor_pool_county_lc_color_detail.csv` | ~10K+ | `m01_detail_df` |
 
-Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df`, `c2st_df`, `bayesian_baseline_df`, `bayesian_stabilized_df`, `bayesian_counts_df`, `morans_i_df`.
+**Data Loading Process (`data.py`):**
+- All data files are loaded at **server startup** (when `main.py` runs)
+- Data is loaded as Polars DataFrames in `data.py` (lines 17-50)
+- Loading happens **synchronously** during module import
+- If a file fails to load, the DataFrame is set to `None` and a warning is printed
+- **Server must be restarted** after adding new data files or modifying `data.py`
 
-**Note**: All Bayesian shrinkage data files must be present in `backend/data/` for M02 to work. The backend will fail to start if these files are missing.
+**DataFrame Variables (all in `data.py`):**
+- `df`: Main dataset (always loaded, required)
+- `neighbors_df`: County adjacency pairs (always loaded)
+- `c2st_df`: C2ST results (always loaded)
+- `bayesian_baseline_df`: M02 baseline distributions (loaded with error handling)
+- `bayesian_stabilized_df`: M02 stabilized distributions (loaded with error handling)
+- `bayesian_counts_df`: M02 aggregated counts (loaded with error handling)
+- `morans_i_df`: M05 Moran's I scores (loaded with error handling, only `fips` and `local` columns)
+- `m01_summary_df`: M01 neighbor-pooled summary (loaded with error handling, FIPS cast to Int64)
+- `m01_detail_df`: M01 neighbor-pooled detail (loaded with error handling, FIPS cast to Int64)
+- `ca_counties_geojson`: County geometries (loaded lazily in `main.py` lifespan, can be `None`)
+
+**Note**: All data files must be present in `backend/data/` for their respective methods to work. If a file is missing or fails to load, the corresponding DataFrame will be `None` and endpoints will return 500 errors.
 
 ## Adding New APIs
 
@@ -67,11 +95,18 @@ Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df
 | GET | `/bayesian/county/{fips}` | Detailed county shrinkage data with baseline comparison |
 | GET | `/bayesian/test-data` | Test endpoint to verify data loading |
 | POST | `/map/neighbor-divergence-merged` | Recalculate all pair JSDs with merged colors |
-| POST | `/conditional-probability/county/{fips}` | Detailed county surprisal data organized by landcover and color |
+| POST | `/conditional-probability/county/{fips}` | Detailed county surprisal data organized by landcover and color (legacy county-only method) |
+| GET | `/conditional-pooling/landcover-types` | Get available landcover types from conditional pooling data |
+| POST | `/conditional-pooling/map/counties` | County-level map data for conditional pooling |
+| GET | `/conditional-pooling/county/{fips}` | Detailed conditional pooling data for a county |
 | GET | `/morans-i/map` | Moran's I spatial autocorrelation map data (GeoJSON) |
 | GET | `/morans-i/test` | Debug endpoint to verify Moran's I data loading |
 
 ## M01: Conditional Probability
+
+**Two implementations:**
+
+### Legacy: County-Only Conditional Probability
 
 **Endpoints:**
 - `POST /map/counties`: Returns GeoJSON with surprisal metrics by county
@@ -96,6 +131,154 @@ Data is loaded at startup in `data.py` as Polars DataFrames: `df`, `neighbors_df
 - Uses same alpha estimation and probability calculation logic as `/map/counties`
 - Handles cases where landcover is or isn't in context columns
 - Supports filtering by landcover type via query parameter
+
+### Conditional Pooling (Neighbor-Pooled)
+
+**Purpose:**
+Implements conditional probability analysis with spatial neighbor pooling. Pools data from neighboring counties (K=1: counties that share a border) to stabilize estimates and account for spatial autocorrelation. Compares county-level color distributions to regional (neighbor-pooled) distributions to identify anomalies relative to spatial context.
+
+**Data files (in `website/backend/data/`):**
+- `m01_neighbor_pool_county_lc_summary.csv`: Summary table with one row per county × landcover combination
+  - Columns: `fips`, `lc_type`, `n_county`, `n_pool`, `num_neighbors`, `kl_div`, `l1_distance`, `top_color`, `top_contrib`
+- `m01_neighbor_pool_county_lc_color_detail.csv`: Detail table with one row per county × landcover × color combination
+  - Columns: `fips`, `lc_type`, `clr`, `y_county`, `y_pool`, `p_county`, `p_pool`, `contrib`, `abs_diff`
+
+**Endpoints:**
+- `GET /conditional-pooling/landcover-types`: Returns available landcover types from conditional pooling data
+- `POST /conditional-pooling/map/counties`: Returns GeoJSON with KL divergence or L1 distance metrics by county
+- `GET /conditional-pooling/county/{fips}`: Returns detailed conditional pooling data for a specific county
+
+**Request model:**
+- `BayesianMapRequest`: Model for map requests with optional `lc_type` and `metric` (`kl_div` or `l1_distance`)
+
+**Response structure (`/conditional-pooling/map/counties`):**
+- Returns GeoJSON FeatureCollection with county features
+- Each feature includes:
+  - `mean_value`: Mean KL divergence or L1 distance (aggregated across landcover types if multiple)
+  - `max_value`: Maximum KL divergence or L1 distance
+  - `total_exposure`: Total structures in county
+  - `num_neighbors`: Number of neighboring counties used in pooling
+  - `county_name`: County name
+- Statistics: `total_counties`, `mean_value`, `max_value`
+
+**Response structure (`/conditional-pooling/county/{fips}`):**
+- Returns data organized by landcover type
+- Each landcover includes:
+  - `n_county`: County exposure (total structures)
+  - `n_pool`: Pooled exposure (county + neighbors)
+  - `num_neighbors`: Number of neighbors used
+  - `kl_div`: KL divergence (information-theoretic difference)
+  - `l1_distance`: L1 distance (intuitive absolute difference)
+  - `top_color`: Color contributing most to anomaly
+  - `top_contrib`: Top color's KL contribution value
+  - `distributions`: Array of color distributions with:
+    - `clr`: Color name
+    - `y_county`: County count for this color
+    - `y_pool`: Pooled count for this color
+    - `p_county`: County probability (smoothed)
+    - `p_pool`: Pooled probability (smoothed)
+    - `contrib`: KL contribution term (p_county * log(p_county / p_pool))
+    - `abs_diff`: Absolute difference (|p_county - p_pool|)
+- Colors sorted by absolute contribution (highest first)
+- Supports filtering by landcover type via query parameter (`?lc_type=...`)**
+
+**Data Loading (`data.py` lines 36-50):**
+- `M01_SUMMARY_PATH`: Path to `m01_neighbor_pool_county_lc_summary.csv`
+- `M01_DETAIL_PATH`: Path to `m01_neighbor_pool_county_lc_color_detail.csv`
+- Both loaded with `try/except` blocks
+- FIPS column cast to `Int64` if not already
+- Prints success message with row count on successful load
+- Prints full traceback on error for debugging
+- Sets DataFrame to `None` if loading fails
+
+**Endpoint: `/m01-neighbor-pool/landcover-types` (lines 300-306):**
+- Returns unique landcover types from `m01_summary_df`
+- Sorted alphabetically
+- Returns 500 error if `m01_summary_df` is None
+
+**Endpoint: `/m01-neighbor-pool/map/counties` (lines 309-374):**
+
+**Request:**
+- **Method**: POST
+- **Path**: `/m01-neighbor-pool/map/counties`
+- **Body**: `{ "lc_type": string | null, "metric": "kl_div" | "l1_distance" }`
+- **Model**: `BayesianMapRequest` (defined in `models.py`)
+
+**Response:**
+- **Success (200)**: GeoJSON FeatureCollection with county features
+- **Error (500)**: `{"detail": "M01 data or county geometries not loaded"}` if DataFrames are None
+- **Empty (200)**: Empty FeatureCollection if filters return no data
+
+**Process Flow:**
+1. **Validation** (line 312):
+   - Checks `m01_summary_df is None` → returns 500 error
+   - Checks `ca_counties_geojson is None` → returns 500 error
+2. **Metric Selection** (line 315):
+   - Validates `req.metric` is `"kl_div"` or `"l1_distance"` (defaults to `"kl_div"`)
+3. **Data Filtering** (lines 318-320):
+   - Starts with full `m01_summary_df`
+   - If `lc_filter` provided, filters: `filtered_df.filter(pl.col("lc_type") == lc_filter)`
+   - If no rows match, returns empty FeatureCollection
+4. **County Aggregation** (lines 336-343):
+   - Groups by `fips`: `filtered_df.group_by("fips").agg([...])`
+   - Computes per-county metrics:
+     - `mean_value`: `pl.col(metric).mean()` - average metric across landcover types
+     - `max_value`: `pl.col(metric).max()` - maximum metric value
+     - `total_exposure`: `pl.col("n_county").sum()` - total structures
+     - `num_neighbors`: `pl.col("num_neighbors").first()` - number of neighbors
+5. **GeoJSON Merging** (lines 346-362):
+   - Iterates through `ca_counties_geojson["features"]`
+   - For each feature:
+     - Extracts FIPS: `props.get("fips") or props.get("FIPS")`
+     - Falls back to county name: `COUNTY_NAME_TO_FIPS.get(county_name)`
+     - Converts to integer: `int(fips_str.lstrip("0"))` or `int(fips_str)`
+     - Looks up in `county_agg`: `county_agg.filter(pl.col("fips") == fips_int)`
+     - If match found: Updates feature properties with metrics
+     - Adds to `features` array and `values` array
+6. **Response Building** (lines 364-374):
+   - Returns GeoJSON with updated features
+   - Includes statistics: `total_counties`, `mean_value`, `max_value`
+
+**FIPS Matching Logic** (lines 346-362):
+- Uses `feature.get("properties", {})` for safe access
+- Checks both `props.get("fips")` and `props.get("FIPS")` (case-insensitive)
+- Falls back to `COUNTY_NAME_TO_FIPS` mapping if FIPS missing
+- Converts to integer: `int(fips_str.lstrip("0"))` if zero-padded, else `int(fips_str)`
+- Skips features with invalid/missing FIPS (continues loop)
+- Only includes features that have matching data in `county_agg`
+
+**Error Handling**: 
+- Returns empty FeatureCollection if no data matches filters (line 324-335)
+- Returns 500 error if DataFrames not loaded (line 312-313)
+- Skips features with invalid FIPS (no error, just continues)
+
+**Endpoint: `/m01-neighbor-pool/county/{fips}` (lines 377-441):**
+- **Location**: `routes.py` lines 377-441
+- **Request**: GET with optional `?lc_type=...` query parameter
+- **Process**:
+  1. Checks if `m01_summary_df` and `m01_detail_df` are loaded (returns 500 if not)
+  2. Converts FIPS string to integer (handles zero-padding)
+  3. Filters both DataFrames by FIPS and optional `lc_type`
+  4. Groups data by landcover type
+  5. For each landcover:
+     - Gets summary row (one row per county×landcover)
+     - Gets detail rows (multiple rows per county×landcover×color)
+     - Builds distributions array with all color details
+     - Sorts distributions by absolute contribution (highest first)
+  6. Returns structured response with county name and by_landcover array
+- **Response Structure**: See endpoint documentation above
+
+**Key Implementation Notes:**
+- **Neighbor pooling**: Each county's pool includes itself plus counties that share a border (K=1 neighbors)
+- **Smoothing**: Uses Dirichlet prior with α = 1.0 to avoid infinite surprisal
+- **Metrics**:
+  - KL divergence: Information-theoretic difference between county and pooled distributions
+  - L1 distance: More intuitive measure of absolute difference (0.5 * sum(|p_county - p_pool|))
+- **Map aggregation**: When multiple landcover types exist, aggregates by averaging KL divergence or L1 distance
+- **FIPS handling**: Converts integer FIPS to zero-padded strings for GeoJSON matching
+- **Data loading**: Loads CSVs at startup, casts FIPS to Int64 for consistency
+- **Error handling**: All endpoints check for None DataFrames and return appropriate HTTP errors
+- **Code organization**: Clean, minimal error handling and logging
 
 ## M02: Empirical Bayes Pooling
 
@@ -275,14 +458,85 @@ python main.py  # runs on port 8000
 ## Troubleshooting
 
 **Common issues:**
+
 - **404 errors**: Restart the backend server after adding new routes
-- **Data loading fails**: Check that all CSV files exist in `backend/data/` folder
-- **FIPS matching issues**: Ensure FIPS codes are in correct format (zero-padded strings for GeoJSON matching)
+- **500 errors "M01 data or county geometries not loaded"**:
+  - **Cause**: `m01_summary_df` is `None` or `ca_counties_geojson` is `None`
+  - **Check**: Look at server startup logs for M01 data loading messages
+  - **Solution**: 
+    1. Verify files exist: `website/backend/data/m01_neighbor_pool_county_lc_summary.csv` and `m01_neighbor_pool_county_lc_color_detail.csv`
+    2. Check file permissions (readable)
+    3. Restart backend server (data loads at startup)
+    4. Check for error messages in console during startup (should show traceback if loading fails)
+- **Data loading fails**: 
+  - Check that all CSV files exist in `website/backend/data/` folder
+  - Verify file paths in `data.py` are correct
+  - Check server startup logs for loading errors
+  - Ensure Polars can read the CSV files (check encoding, delimiters)
+- **FIPS matching issues**: 
+  - Ensure FIPS codes are in correct format (zero-padded strings for GeoJSON matching)
+  - Check that `ca_counties_geojson` is loaded (check `main.py` lifespan function)
+  - Verify FIPS conversion logic in endpoints matches GeoJSON format
 - **Landcover names with `+`**: Backend normalizes spaces to `+` for consistent matching
+- **Empty map results**: 
+  - Check if filters are too restrictive (no data matches)
+  - Verify FIPS matching is working (check endpoint logs)
+  - Ensure `m01_summary_df` has data for selected landcover type
 
 **Debug endpoints:**
 - `GET /bayesian/test-data`: Verify Bayesian data loading
 - `GET /morans-i/test`: Verify Moran's I data loading and FIPS matching
+- Check server startup logs for M01 data loading status (should print row counts)
+
+**M01-Specific Troubleshooting:**
+
+**Error: "M01 data or county geometries not loaded" (500 error)**
+- **Location**: `routes.py` line 312 in `get_m01_map_counties()`
+- **Check**: 
+  1. Server startup logs should show: `M01 summary data loaded: 470 rows` and `M01 detail data loaded: [number] rows`
+  2. If you see warnings instead, check the error message and traceback
+  3. Verify files exist: `website/backend/data/m01_neighbor_pool_county_lc_summary.csv` and `m01_neighbor_pool_county_lc_color_detail.csv`
+- **Common causes**:
+  - Server not restarted after adding M01 data loading code
+  - CSV files missing or in wrong location
+  - CSV parsing errors (check file encoding, delimiters)
+  - File permissions (must be readable)
+- **Solution**: 
+  1. Verify files exist and are readable
+  2. Restart backend server (data loads at startup)
+  3. Check console output for loading messages or errors
+  4. If errors persist, check `data.py` lines 36-50 for the exact error message
+
+**Error: Empty map or no features returned**
+- **Location**: `routes.py` line 346-362 (FIPS matching loop)
+- **Check**: 
+  1. Verify `ca_counties_geojson` is loaded (check `main.py` lifespan function)
+  2. Check if FIPS matching is working (features might be skipped if FIPS don't match)
+  3. Verify `m01_summary_df` has data for the selected filters
+- **Common causes**:
+  - FIPS format mismatch between CSV (integer) and GeoJSON (string)
+  - Landcover filter too restrictive (no matching data)
+  - County aggregation returns empty results
+- **Solution**:
+  1. Check FIPS conversion logic (lines 348-349)
+  2. Try without landcover filter first
+  3. Verify data exists in `m01_summary_df` for test counties
+
+**Data File Verification:**
+To verify M01 data files are correct, check:
+- File exists: `website/backend/data/m01_neighbor_pool_county_lc_summary.csv`
+- File exists: `website/backend/data/m01_neighbor_pool_county_lc_color_detail.csv`
+- Summary CSV columns: `fips`, `lc_type`, `n_county`, `n_pool`, `num_neighbors`, `kl_div`, `l1_distance`, `top_color`, `top_contrib`
+- Detail CSV columns: `fips`, `lc_type`, `clr`, `y_county`, `y_pool`, `p_county`, `p_pool`, `contrib`, `abs_diff`
+- FIPS column should be integer (will be cast to Int64 on load)
+
+**Data Loading Verification:**
+When server starts, you should see console output like:
+```
+M01 summary data loaded: 470 rows
+M01 detail data loaded: [number] rows
+```
+If you see warnings or errors, check the traceback for details.
 
 ## Data Loading Patterns
 
@@ -308,3 +562,34 @@ except Exception as e:
 - Main dataset: Integer FIPS (e.g., `6001`)
 - GeoJSON: String FIPS, often zero-padded (e.g., `"06001"`)
 - Conversion pattern: `str(fips).zfill(5)` to match GeoJSON format
+
+**M01 Data Loading Process:**
+
+**Startup Sequence:**
+1. `main.py` starts FastAPI app
+2. `data.py` module is imported (triggers data loading)
+3. `M01_SUMMARY_PATH` and `M01_DETAIL_PATH` are set (lines 14-15)
+4. Try/except blocks attempt to load CSVs (lines 36-50)
+5. If successful: DataFrames are created, FIPS cast to Int64, success message printed
+6. If failed: DataFrame set to `None`, error message and traceback printed
+7. Server continues startup (doesn't fail if M01 data missing)
+8. Endpoints check for `None` and return 500 errors if data not loaded
+
+**Expected Console Output (on successful load):**
+```
+M01 summary data loaded: 470 rows
+M01 detail data loaded: [number] rows
+```
+
+**If Loading Fails:**
+- Console will show: `Error: Could not load M01 summary data from [path]: [error message]`
+- Full traceback will be printed
+- `m01_summary_df` or `m01_detail_df` will be `None`
+- Endpoints will return 500 errors with message "M01 data or county geometries not loaded"
+
+**Verification Steps:**
+1. Check server startup console for M01 loading messages
+2. Verify file paths in `data.py` lines 14-15 match actual file locations
+3. Test CSV reading manually: `python -c "import polars as pl; df = pl.read_csv('website/backend/data/m01_neighbor_pool_county_lc_summary.csv'); print(df.shape)"`
+4. Check file permissions (must be readable)
+5. Verify CSV format (should have expected columns, proper encoding)

@@ -17,21 +17,42 @@ This is a React + TypeScript frontend for visualizing California county-level ge
 
 ## Project Structure
 
+**Project Root**: `Wildfire-Property-Intelligence/`
+**Frontend Root**: `Wildfire-Property-Intelligence/website/frontend/`
+
 ```
-src/
-├── main.tsx                    # App entry point
-├── Router.tsx                  # Page navigation (5 main views)
-├── ConditionalProbability.tsx  # M01: Conditional probability analysis page
-├── EmpiricalBayesPooling.tsx   # M02: Empirical Bayes Pooling visualization
-├── NeighborDivergence.tsx      # M03: County neighbor divergence analysis
-├── C2STMap.tsx                 # M04: C2ST classifier results visualization
-├── MoransIMap.tsx              # M05: Moran's I spatial autocorrelation map
-├── CaliforniaMap.tsx           # Reusable California map component (used by M01)
-├── index.css                   # Tailwind imports, theme config, base styles
-└── lib/
-    ├── utils.ts                # cn() helper for conditional Tailwind classes
-    └── chart-colors.ts         # Color tokens for D3 charts
+website/frontend/
+├── src/
+│   ├── main.tsx                    # App entry point (React 19, Vite)
+│   ├── Router.tsx                  # Page navigation (5 main views: M01-M05)
+│   ├── ConditionalProbability.tsx  # M01: Neighbor-pooled conditional probability (NEW implementation)
+│   ├── EmpiricalBayesPooling.tsx   # M02: Empirical Bayes Pooling visualization
+│   ├── NeighborDivergence.tsx      # M03: County neighbor divergence analysis
+│   ├── C2STMap.tsx                 # M04: C2ST classifier results visualization
+│   ├── MoransIMap.tsx              # M05: Moran's I spatial autocorrelation map
+│   ├── CaliforniaMap.tsx           # Reusable California map component (used by legacy M01)
+│   ├── index.css                   # Tailwind imports, theme config, base styles
+│   └── lib/
+│       ├── utils.ts                # cn() helper for conditional Tailwind classes
+│       └── chart-colors.ts         # Color tokens for D3 charts
+│   └── components/
+│       ├── app-sidebar.tsx         # Navigation sidebar (defines M01-M05 routes)
+│       ├── nav-main.tsx            # Sidebar navigation items
+│       ├── site-header.tsx         # Site header component
+│       └── ui/                     # shadcn/ui components (buttons, cards, etc.)
+├── package.json                    # Dependencies and scripts
+├── vite.config.ts                  # Vite configuration
+└── tsconfig.json                   # TypeScript configuration
 ```
+
+**File Locations:**
+- **M01 Component**: `website/frontend/src/ConditionalProbability.tsx` (~850 lines)
+- **M02 Component**: `website/frontend/src/EmpiricalBayesPooling.tsx` (~830 lines)
+- **M03 Component**: `website/frontend/src/NeighborDivergence.tsx` (~1334 lines)
+- **M04 Component**: `website/frontend/src/C2STMap.tsx` (~696 lines)
+- **M05 Component**: `website/frontend/src/MoransIMap.tsx` (~389 lines)
+- **Router**: `website/frontend/src/Router.tsx` (defines routes for all 5 methods)
+- **Sidebar Config**: `website/frontend/src/components/app-sidebar.tsx` (navigation menu with icons)
 
 ## Consistent UI/UX Pattern
 
@@ -69,8 +90,13 @@ Reusable MapLibre GL component for California county visualization. Exposes a re
 
 The frontend connects to a FastAPI backend at `http://localhost:8000`. Key endpoints:
 
-**M01 (Conditional Probability):**
-- `POST /map/counties` - County-level map data
+**M01 (Conditional Pooling):**
+- `GET /conditional-pooling/landcover-types` - Available landcover types
+- `POST /conditional-pooling/map/counties` - County-level map data with KL divergence/L1 distance
+- `GET /conditional-pooling/county/{fips}` - Detailed county conditional pooling data by color
+
+**M01 (Conditional Probability - Legacy):**
+- `POST /map/counties` - County-level map data (county-only method)
 - `POST /conditional-probability/county/{fips}` - Detailed county surprisal data by color
 - `GET /conditioning-options` - Available filter options
 
@@ -141,50 +167,156 @@ import { cn } from './lib/utils'
 - Chips (selected): `border-sage-500 bg-sage-100 text-foreground`
 - Chips (unselected): `border-border text-muted-foreground hover:border-sage-400`
 
-## M01: Conditional Probability
+## M01: Conditional Pooling
 
-**File**: `ConditionalProbability.tsx`
+**File**: `website/frontend/src/ConditionalProbability.tsx`
 
 **Purpose:**
-Visualizes surprisal analysis for color distributions by county and landcover type.
+Visualizes conditional pooling analysis comparing county-level color distributions to regional (neighbor-pooled) distributions. Uses KL divergence and L1 distance to identify anomalies relative to spatial context.
 
 **UI Layout:**
 - Full-bleed map with top-left controls panel
-- Statistics summary: Shows total counties, mean/max surprisal
-- Display section: Context columns, target, min support, landcover filter dropdown
+- Statistics summary: Mean and max KL divergence or L1 distance
+- Display section: Metric selector (KL Divergence / L1 Distance), landcover filter dropdown
+- Load Map button: Manual trigger to update map
+- Bottom-right legend: Color scale for selected metric
 - Collapsible bottom sheet detail panel
 
 **Features:**
-- Interactive California map showing surprisal metrics by county
-- Hover tooltip shows max surprisal, mean surprisal, and top anomaly
-- **Landcover filtering**: Dropdown to filter by landcover type in display section
+- Interactive California map showing KL divergence or L1 distance metrics by county
+- **Metric selection**: Toggle between KL Divergence (information-theoretic) and L1 Distance (intuitive)
+- **Landcover filtering**: Dropdown to filter by landcover type
+- **Load Map button**: Manual trigger to update map with current selections
+- **Initial auto-load**: Map loads automatically on mount with "All Landcover Types"
+- **Fullscreen mode**: Toggle fullscreen display
 - **Click counties to see detailed breakdown:**
-  - **Color Distribution List**: Shows all colors sorted by surprisal (highest first):
+  - **Color Distribution (KL Contribution)**: Shows all colors sorted by KL contribution (absolute value, highest first)
     - Color swatch (visual representation using COLOR_MAP)
     - Color name
-    - Surprisal value bar (scaled to max surprisal in that landcover)
-    - Surprisal value displayed numerically
+    - KL contribution bar (scaled to max contribution, color-coded: gray for positive, red for negative)
+    - KL contribution value displayed numerically
+  - **Deviation from Regional Norm**: Horizontal bar chart showing probability differences
+    - Red bars extend right for over-represented colors (p_county > p_pool)
+    - Blue bars extend left for under-represented colors (p_county < p_pool)
+    - Sorted by absolute difference (largest deviations first)
+    - Shows actual difference value (+/-)
+  - **Top Contributing Colors**: Shows top 10 colors by absolute KL contribution
+    - County probability bar (blue) vs Pool probability bar (sage green)
+    - Both bars scaled to same max for easy comparison
+    - Shows KL contribution value and actual probability values
+  - **County vs Pooled Distribution**: D3.js bar chart component
+    - Blue bar: County probability (p_county)
+    - Green bar: Pooled probability (p_pool)
+    - Responsive sizing with ResizeObserver
+  - Statistics per landcover:
+    - County exposure (n_county) vs Pooled exposure (n_pool)
+    - Number of neighbors used
+    - KL divergence and L1 distance values
+    - Top contributing color and its contribution value
   - Organized by landcover type
-  - Shows total rows, max surprisal, and mean surprisal per landcover
-  - Auto-scrolls to detail section when county is clicked
+  - Auto-expands and scrolls to detail section when county is clicked
 
 **Visualization patterns:**
-- **Surprisal**: Measures how unexpected a color is given the context (county + landcover)
-- Higher surprisal = more unexpected/anomalous
-- Colors sorted from highest to lowest surprisal
-- Bar width scales to max surprisal within each landcover type
+- **KL Divergence**: Information-theoretic difference between county and pooled distributions
+  - Higher KL divergence = more different from regional pattern
+  - Measures how much information is lost when using pooled distribution to approximate county distribution
+- **L1 Distance**: Intuitive absolute difference (0.5 * sum(|p_county - p_pool|))
+  - More interpretable than KL divergence
+  - Ranges from 0 (identical) to 1 (completely different)
+- **KL Contribution**: Per-color contribution to total KL divergence
+  - Positive: County has higher probability than pool
+  - Negative: County has lower probability than pool
+  - Colors sorted by absolute contribution (most impactful first)
 
-**Implementation details:**
-- Uses CaliforniaMap component (reusable map component)
-- Click handler added to CaliforniaMap via `onCountyClick` prop
-- Color distribution list uses COLOR_MAP constant for consistency
-- Detail panel is a collapsible bottom sheet with header (county info, collapse/expand/close buttons)
-- Error handling and loading states included
+**Implementation details (`ConditionalProbability.tsx`):**
+
+**State Management (lines 102-113):**
+- `landcoverTypes`: Available landcover types from API
+- `selectedLandcover`: Currently selected landcover filter (empty = all)
+- `selectedMetric`: 'kl_div' or 'l1_distance'
+- `mapData`: GeoJSON data for map visualization
+- `countyDetail`: Detailed county data when county is clicked
+- `showDetailPanel`: Whether detail panel is expanded
+- `loading`: Loading state for API calls
+- `error`: Error message state
+- `legendRange`: Min/max values for legend
+- `isFullscreen`: Fullscreen mode state
+- `colorGroups`: Array of color group objects
+- `showColorPanel`: Whether color group panel is visible
+- `selectedColors`: Set of selected colors for grouping
+- `allColors`: All available colors (from COLOR_MAP)
+
+**Key Functions:**
+- `loadMapData`: Fetches map data from `/conditional-pooling/map/counties`
+  - Uses `selectedLandcover` and `selectedMetric` from state
+  - Updates `mapData` state
+  - Calls `updateMapLayer()` to render
+- `updateMapLayer`: Updates MapLibre map with new GeoJSON data
+  - Removes old layers
+  - Adds new source and fill/line layers
+  - Sets up hover tooltips and click handlers
+  - Updates legend range
+- `loadCountyDetail`: Fetches county detail from `/conditional-pooling/county/{fips}`
+  - Includes optional `lc_type` query param
+  - Updates `countyDetail` state
+  - Expands detail panel
+
+**Map Initialization (lines 133-176):**
+- Creates MapLibre map instance on mount
+- Sets center to California (`[-119.5, 37.0]`, zoom 5.5)
+- Adds navigation controls
+- Sets up click handler for counties (calls `loadCountyDetail`)
+- Sets up error handler
+
+**Data Loading Flow:**
+1. Component mounts → `useEffect` (line 178) fetches landcover types
+2. Landcover types loaded → `useEffect` (line 410) triggers initial map load
+3. User changes dropdown → State updates, but map doesn't reload (manual trigger)
+4. User clicks "Load Map" → `loadMapData()` called → Map updates
+5. User clicks county → `loadCountyDetail()` called → Detail panel shows
+
+**Visualization Components:**
+- `DeviationChart`: Horizontal bar chart showing probability differences
+  - Colors sorted by absolute difference (p_county - p_pool)
+  - Red bars (right) for over-represented, blue bars (left) for under-represented
+  - Centered at zero with visual indicator
+- `TopContributorsChart`: Shows top 10 colors by KL contribution
+  - Side-by-side bars: county (blue) vs pool (sage green)
+  - Displays KL contribution value and probability values
+  - Scaled to same max for easy comparison
+- `ComparisonChart`: D3.js bar chart component
+  - Shows county vs pooled probabilities side-by-side
+  - Blue bars for county, green bars for pooled
+  - Responsive sizing with ResizeObserver
+
+**Error Handling:**
+- All API calls wrapped in try/catch
+- Errors displayed in red banner at top of map
+- Loading overlay shown during API calls
+- Empty state handling for no data scenarios
 
 **API endpoints used:**
-- `POST /map/counties` - Load county-level map data
-- `POST /conditional-probability/county/{fips}` - Load detailed county surprisal breakdown
-- `GET /conditioning-options` - Load available landcover types
+- `GET /conditional-pooling/landcover-types` - Load available landcover types (called on mount)
+- `POST /conditional-pooling/map/counties` - Load county-level map data (called by `loadMapData`)
+  - Request body: `{ lc_type: string | null, metric: 'kl_div' | 'l1_distance' }`
+  - Response: GeoJSON with county features + statistics
+- `GET /conditional-pooling/county/{fips}` - Load detailed county breakdown (called by `loadCountyDetail`)
+  - Optional query param: `?lc_type=...`
+  - Response: County detail with by_landcover array
+
+**Data Flow:**
+1. **Component Mount**: Fetches landcover types from `/conditional-pooling/landcover-types`
+2. **Initial Map Load**: Runs when landcover types are loaded, calls `loadMapData()` with defaults
+3. **Manual Map Load**: Triggered by "Load Map" button, uses current selections
+4. **County Click**: Extracts FIPS from clicked feature, calls `loadCountyDetail()`
+   - Calls `loadCountyDetail(fips)` 
+   - Sets `countyDetail` state and expands detail panel
+   - Scrolls to detail panel
+5. **Map Layer Update** (`updateMapLayer` function, line 248-404):
+   - Removes existing map layers
+   - Adds new GeoJSON source and layers
+   - Sets up hover tooltips and click handlers
+   - Updates legend with value range
 
 ## M02: Empirical Bayes Pooling
 
@@ -412,10 +544,34 @@ const COLOR_MAP: Record<string, string> = {
 }
 ```
 
+## File Paths and Locations
+
+**Component Files:**
+- `ConditionalProbability.tsx`: `website/frontend/src/ConditionalProbability.tsx`
+- `EmpiricalBayesPooling.tsx`: `website/frontend/src/EmpiricalBayesPooling.tsx`
+- `NeighborDivergence.tsx`: `website/frontend/src/NeighborDivergence.tsx`
+- `C2STMap.tsx`: `website/frontend/src/C2STMap.tsx`
+- `MoransIMap.tsx`: `website/frontend/src/MoransIMap.tsx`
+
+**Configuration Files:**
+- `Router.tsx`: `website/frontend/src/Router.tsx` (defines `/conditional-probability`, `/bayesian-pooling`, `/neighbor-divergence`, `/c2st`, `/morans-i` routes)
+- `app-sidebar.tsx`: `website/frontend/src/components/app-sidebar.tsx` (navigation menu, line ~50+ defines M01-M05 routes with icons)
+- `package.json`: `website/frontend/package.json` (dependencies: react, maplibre-gl, d3, etc.)
+
+**Data Sources:**
+- All data fetched from backend API at `http://localhost:8000`
+- No local data files stored in frontend
+- GeoJSON geometries come from backend `ca_counties_geojson`
+- All statistical data computed on backend
+
 ## Notes
 
-- The API_URL is hardcoded to `http://localhost:8000` - ensure backend is running
-- GeoJSON data is fetched from the backend, not stored locally
-- H3 resolution levels are defined in backend constants
-- Each method (M01-M05) is in its own component file for maintainability
-- All maps share consistent UI/UX patterns for better user experience
+- **API_URL**: Hardcoded to `http://localhost:8000` in all components - ensure backend is running
+- **GeoJSON**: All GeoJSON data is fetched from backend, not stored locally
+- **H3 resolution**: H3 resolution levels are defined in backend `constants.py`
+- **Component organization**: Each method (M01-M05) is in its own component file for maintainability
+- **UI consistency**: All maps share consistent UI/UX patterns (full-bleed map, top-left controls, collapsible detail panel)
+- **State management**: Uses React hooks (`useState`, `useEffect`, `useCallback`, `useRef`) for all state
+- **Map library**: MapLibre GL for interactive maps (same as OpenStreetMap style)
+- **Chart library**: D3.js for all visualizations (bar charts, histograms)
+- **Styling**: Tailwind CSS v4 for all styling (no custom CSS files)

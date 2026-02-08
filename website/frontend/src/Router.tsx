@@ -10,7 +10,7 @@ import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
 
 const pageTitles: Record<Page, string> = {
     'home': 'Home',
-    'conditional-probability': 'Conditional Probability',
+    'conditional-probability': 'Conditional Pooling',
     'empirical-bayes': 'Empirical Bayes Pooling',
     'neighbor-divergence': 'Neighbor Divergence',
     'c2st': 'C2ST',

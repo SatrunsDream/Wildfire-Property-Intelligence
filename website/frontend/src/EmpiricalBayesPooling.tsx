@@ -110,6 +110,7 @@ export function EmpiricalBayesPooling() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     const loadCountyDetail = useCallback(async (fips: string) => {
         try {
@@ -198,7 +199,7 @@ export function EmpiricalBayesPooling() {
     }, [])
 
     // Load map data
-    const loadMapData = async () => {
+    const loadMapData = useCallback(async () => {
         setLoading(true)
         setError(null)
         try {
@@ -207,7 +208,7 @@ export function EmpiricalBayesPooling() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     lc_type: selectedLandcover || null,
-                    metric: 'abs_movement' // Always use absolute movement for map
+                    metric: 'abs_movement'
                 })
             })
 
@@ -232,9 +233,12 @@ export function EmpiricalBayesPooling() {
             if (data.features.length === 0) {
                 setError('No data found for the selected filters. Try selecting a different landcover type or check if data is loaded.')
                 setLegendRange(null)
+                // Don't clear existing mapData - keep showing previous map
+                // Don't call updateMapLayer - preserve existing map display
             } else {
                 setMapData(data)
                 updateMapLayer(data)
+                setError(null) // Clear any previous errors
             }
         } catch (err) {
             console.error('Error loading map data:', err)
@@ -242,7 +246,7 @@ export function EmpiricalBayesPooling() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [selectedLandcover])
 
     // Update map layer
     const updateMapLayer = (data: CountyMapData) => {
@@ -404,11 +408,34 @@ export function EmpiricalBayesPooling() {
     }
 
 
+
+    // Initial load with "All Landcover Types" when landcover types are loaded (only once)
     useEffect(() => {
-        if (mapData && map.current) {
+        if (landcoverTypes.length > 0 && !mapData) {
+            loadMapData()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [landcoverTypes.length])
+
+    useEffect(() => {
+        if (mapData && map.current && mapData.features && mapData.features.length > 0) {
             updateMapLayer(mapData)
         }
     }, [mapData])
+
+    const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false)
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isFullscreen])
+
+    useEffect(() => {
+        setTimeout(() => map.current?.resize(), 100)
+    }, [isFullscreen])
 
     // Calculate statistics from mapData
     const stats = mapData ? {
@@ -417,7 +444,10 @@ export function EmpiricalBayesPooling() {
     } : null
 
     return (
-        <div className="relative flex-1 min-h-0">
+        <div className={cn(
+            'relative flex-1 min-h-0',
+            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white'
+        )}>
             {/* Map Container - Full bleed */}
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
@@ -469,15 +499,18 @@ export function EmpiricalBayesPooling() {
                     </div>
                     
                     <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
                         onClick={loadMapData}
                         disabled={loading}
-                        className={cn(
-                            'px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150',
-                            'hover:bg-sage-100 hover:text-foreground hover:border-sage-300',
-                            'disabled:opacity-40 disabled:cursor-not-allowed'
-                        )}
                     >
                         {loading ? 'Loading...' : 'Load Map'}
+                    </button>
+                    
+                    <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        onClick={toggleFullscreen}
+                    >
+                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
                 </div>
 
