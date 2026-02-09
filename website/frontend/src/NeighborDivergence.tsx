@@ -843,7 +843,7 @@ export function NeighborDivergence() {
                     {!showMergedMap && (
                         <div className={cn(
                             'absolute right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
-                            selectedPair ? 'bottom-20' : 'bottom-7'
+                            selectedPair ? 'bottom-32' : 'bottom-24'
                         )}>
                             <div className="font-semibold mb-2 text-foreground">Avg JSD (Divergence)</div>
                             <div

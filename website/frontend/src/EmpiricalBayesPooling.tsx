@@ -465,7 +465,7 @@ export function EmpiricalBayesPooling() {
                 )}
 
                 {/* Map Controls - Top Left (Statistics and Display) */}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
                     {/* Statistics Summary */}
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
@@ -516,7 +516,7 @@ export function EmpiricalBayesPooling() {
 
                 {/* Legend - Bottom Right */}
                 {mapData && legendRange && (
-                    <div className="absolute right-2.5 bottom-7 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
                         <div className="font-semibold mb-2 text-foreground">Absolute Movement</div>
                         <div
                             className="w-44 h-2.5 rounded-sm"

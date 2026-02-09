@@ -472,37 +472,52 @@ Visualizes C2ST classifier results showing how well a classifier can distinguish
 **File**: `MoransIMap.tsx`
 
 **Purpose:**
-Visualizes spatial autocorrelation using Moran's I statistic to identify clusters of similar color distributions.
+Visualizes spatial autocorrelation using Moran's I statistic calculated from relative frequencies by landcover type and building type.
 
 **UI Layout:**
 - Full-bleed map with top-left controls panel
+- Filter dropdowns: Landcover Type and Building Type
+- "Load Map" button to refresh map with selected filters
 - Statistics summary: Total Counties, Mean Local, Max Local, Min Local, Std Dev
 - Bottom-right legend: Color scale for Moran's I scores
-- Collapsible bottom sheet detail panel (shows county name and local score)
+- Collapsible bottom sheet detail panel (shows county statistics by category)
 
 **Features:**
-- Interactive California map showing Moran's I local scores by county
+- **Filtering**: Query by landcover type and/or building type
+- Interactive California map showing calculated Local Moran's I scores by county
 - Hover tooltip shows county name and local score
 - **Click counties to see detail**:
-  - Shows county name and local Moran's I score
-  - Positive values indicate spatial clustering
-  - Negative values indicate spatial dispersion
+  - Shows frequency breakdown by `lc_type` × `bldgtype` combinations
+  - For each category: county frequency, neighbor mean/min/max, neighbor count
+  - Deviation from neighbor mean highlighted (red for over-represented, blue for under-represented)
 
 **Visualization patterns:**
 - **Local Moran's I**: Measures spatial autocorrelation
   - Positive values: Similar values cluster together
   - Negative values: Dissimilar values cluster together
   - Near zero: Random spatial distribution
-- Map coloring uses custom color scale (not Viridis) to highlight positive/negative values
+- Map coloring uses diverging color scale (blue → white → red) to highlight clustering/dispersion
+- County detail shows percentage frequencies and comparisons to neighbors
 
 **Implementation details:**
 - Uses MapLibre GL for map visualization
-- Data loaded from `morans_i_homogeneity.csv` (FIPS and local scores)
-- FIPS matching: Converts integer FIPS to zero-padded strings for GeoJSON matching
-- Error handling and loading states included
+- Data loaded from `relative_frequencies_lc_type_bldgtype.csv`
+- Moran's I calculated dynamically based on selected filters
+- Filters reset county detail panel when changed
+- Map updates only when "Load Map" button is clicked
+
+**Key Functions:**
+- `loadMapData()`: Fetches map data with current filter selections
+- `loadCountyDetail(fips)`: Fetches detailed county statistics
+- `updateMapLayer(data)`: Updates map layers with new GeoJSON data
 
 **API endpoints used:**
-- `GET /morans-i/map` - Load Moran's I map data (GeoJSON with local scores)
+- `GET /morans-i/filters` - Get available landcover types and building types
+- `POST /morans-i/map` - Load Moran's I map data (accepts `lc_type` and `bldgtype` filters)
+- `GET /morans-i/county/{fips}` - Get detailed county statistics (accepts optional `lc_type` and `bldgtype` query params)
+
+**File location:**
+- `website/frontend/src/MoransIMap.tsx`
 
 ## Common Patterns
 

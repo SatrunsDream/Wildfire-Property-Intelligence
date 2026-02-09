@@ -3,6 +3,7 @@ import {
     IconBrain,
     IconChartBar,
     IconFlame,
+    IconGitCompare,
     IconGraph,
     IconHome,
     IconMathFunction,
@@ -55,7 +56,7 @@ const navItems = [
     {
         title: "Group-Level Divergence",
         id: "group-divergence" as Page,
-        icon: IconChartBar,
+        icon: IconGitCompare,
     },
 ]
 

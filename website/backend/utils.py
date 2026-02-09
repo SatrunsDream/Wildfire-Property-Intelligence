@@ -209,3 +209,79 @@ def get_merged_feature_distribution(df_a, df_b, col_name, total_a, total_b, colo
     distribution_b = sorted(distribution_b, key=lambda x: totals[x["value"]], reverse=True)
 
     return distribution_a, distribution_b, len(vocab_a), len(vocab_b)
+
+
+def calculate_local_morans_i(freq_df: pl.DataFrame, neighbors_df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Calculate Local Moran's I for each county based on frequency values.
+    
+    Formula: I_i = (x_i - x̄) / s² * Σ(w_ij * (x_j - x̄))
+    where:
+    - x_i is the frequency for county i
+    - x̄ is the mean frequency across all counties
+    - s² is the variance
+    - w_ij is 1 if counties i and j are neighbors, 0 otherwise
+    
+    Args:
+        freq_df: DataFrame with columns [fips, freq] - one row per county
+        neighbors_df: DataFrame with columns [county_fips, neighbor_fips]
+    
+    Returns:
+        DataFrame with columns [fips, local] - Local Moran's I scores
+    """
+    if len(freq_df) == 0:
+        return pl.DataFrame({"fips": [], "local": []})
+    
+    # Build neighbor lookup: {fips: [neighbor_fips]}
+    neighbor_map = {}
+    for row in neighbors_df.iter_rows(named=True):
+        county = row["county_fips"]
+        neighbor = row["neighbor_fips"]
+        if county not in neighbor_map:
+            neighbor_map[county] = []
+        neighbor_map[county].append(neighbor)
+        if neighbor not in neighbor_map:
+            neighbor_map[neighbor] = []
+        neighbor_map[neighbor].append(county)
+    
+    # Get mean and variance
+    mean_freq = freq_df["freq"].mean()
+    var_freq = freq_df["freq"].var()
+    
+    if var_freq == 0 or var_freq is None:
+        return freq_df.select([
+            pl.col("fips"),
+            pl.lit(0.0).alias("local")
+        ])
+    
+    # Calculate Local Moran's I for each county
+    results = []
+    for row in freq_df.iter_rows(named=True):
+        fips = row["fips"]
+        freq_i = row["freq"]
+        
+        neighbors = neighbor_map.get(fips, [])
+        if not neighbors:
+            results.append({"fips": fips, "local": 0.0})
+            continue
+        
+        # Sum of neighbor deviations
+        neighbor_sum = 0.0
+        neighbor_count = 0
+        for neighbor_fips in neighbors:
+            neighbor_row = freq_df.filter(pl.col("fips") == neighbor_fips)
+            if len(neighbor_row) > 0:
+                freq_j = neighbor_row["freq"].item()
+                neighbor_sum += (freq_j - mean_freq)
+                neighbor_count += 1
+        
+        if neighbor_count == 0:
+            results.append({"fips": fips, "local": 0.0})
+            continue
+        
+        # Local Moran's I
+        local_i = ((freq_i - mean_freq) / var_freq) * neighbor_sum
+        
+        results.append({"fips": fips, "local": float(local_i)})
+    
+    return pl.DataFrame(results)
