@@ -19,7 +19,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st' | 'morans-i'
+export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st' | 'morans-i' | 'group-divergence'
 
 const navItems = [
     {
@@ -51,6 +51,11 @@ const navItems = [
         title: "Moran's I",
         id: "morans-i" as Page,
         icon: IconMap,
+    },
+    {
+        title: "Group-Level Divergence",
+        id: "group-divergence" as Page,
+        icon: IconChartBar,
     },
 ]
 

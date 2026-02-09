@@ -1458,3 +1458,105 @@ def get_morans_i_map():
             "std_local": float(np.std(local_scores))
         }
     }
+
+
+# ============================================================================
+# Group-Level Divergence
+# ============================================================================
+
+@router.get("/group-divergence/map")
+def get_group_divergence_map():
+    """Get group-level divergence map with county-level anomaly scores."""
+    from data import group_county_summary_df, ca_counties_geojson
+
+    if group_county_summary_df is None:
+        raise HTTPException(500, "Group county summary data not loaded")
+
+    if ca_counties_geojson is None:
+        raise HTTPException(500, "County geometries not loaded")
+
+    # Create lookup dict
+    summary_dict = {
+        row["fips"]: {
+            "num_anomalies": row["num_anomalies"],
+            "avg_divergence": row["avg_divergence"]
+        }
+        for row in group_county_summary_df.iter_rows(named=True)
+    }
+
+    # Merge into GeoJSON
+    features = []
+    for feature in ca_counties_geojson["features"]:
+        fips_str = feature.get("properties", {}).get("fips") or feature.get("properties", {}).get("FIPS")
+
+        if not fips_str:
+            name = feature.get("properties", {}).get("name") or feature.get("properties", {}).get("NAME")
+            fips_str = COUNTY_NAME_TO_FIPS.get(name)
+
+        if fips_str:
+            fips_int = int(fips_str)
+            if fips_int in summary_dict:
+                feature["properties"]["num_anomalies"] = summary_dict[fips_int]["num_anomalies"]
+                feature["properties"]["avg_divergence"] = summary_dict[fips_int]["avg_divergence"]
+                features.append(feature)
+
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "stats": {
+            "total_counties": len(features),
+            "mean_anomalies": float(group_county_summary_df["num_anomalies"].mean()),
+            "max_anomalies": float(group_county_summary_df["num_anomalies"].max()),
+            "mean_divergence": float(group_county_summary_df["avg_divergence"].mean()),
+            "max_divergence": float(group_county_summary_df["avg_divergence"].max())
+        }
+    }
+
+
+@router.get("/group-divergence/county/{fips}")
+def get_group_divergence_county(fips: int):
+    """Get detailed divergence scores for a specific county."""
+    from data import group_divergence_df
+
+    if group_divergence_df is None:
+        raise HTTPException(500, "Group divergence data not loaded")
+
+    county_data = group_divergence_df.filter(pl.col("fips") == fips)
+
+    if len(county_data) == 0:
+        raise HTTPException(404, f"No data found for county {fips}")
+
+    return {
+        "fips": fips,
+        "landcover_divergences": [
+            {
+                "lc_type": row["lc_type"],
+                "divergence": row["divergence"],
+                "anomalous": bool(row["anomalous"])
+            }
+            for row in county_data.iter_rows(named=True)
+        ]
+    }
+
+
+@router.get("/group-divergence/color-pairs")
+def get_color_pairs():
+    """Get color pairs analysis (similar colors used in different counties)."""
+    from data import color_pairs_df
+
+    if color_pairs_df is None:
+        raise HTTPException(500, "Color pairs data not loaded")
+
+    return {
+        "pairs": [
+            {
+                "color1": row["color1"],
+                "color2": row["color2"],
+                "context_similarity": row["context_similarity"],
+                "county_overlap": row["county_overlap"],
+                "counties1_only": row["counties1_only"],
+                "counties2_only": row["counties2_only"]
+            }
+            for row in color_pairs_df.iter_rows(named=True)
+        ]
+    }

@@ -4,6 +4,7 @@ import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
 import { NeighborDivergence } from './NeighborDivergence'
 import { C2STMap } from './C2STMap'
 import { MoransIMap } from './MoransIMap'
+import GroupDivergence from './GroupDivergence'
 import { AppSidebar, type Page } from './components/app-sidebar'
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
@@ -14,6 +15,7 @@ const pageTitles: Record<Page, string> = {
     'empirical-bayes': 'Empirical Bayes Pooling',
     'neighbor-divergence': 'Neighbor Divergence',
     'c2st': 'C2ST',
+    'group-divergence': 'Group-Level Divergence',
 }
 
 export function Router() {
@@ -50,6 +52,9 @@ export function Router() {
                         </div>
                         <div className={page === 'morans-i' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <MoransIMap />
+                        </div>
+                        <div className={page === 'group-divergence' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
+                            <GroupDivergence />
                         </div>
                     </div>
                 </div>
