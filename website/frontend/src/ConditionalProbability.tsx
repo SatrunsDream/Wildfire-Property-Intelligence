@@ -131,17 +131,8 @@ export function ConditionalProbability() {
 
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-            map.current.on('click', 'counties', (e) => {
-                if (e.features && e.features[0]) {
-                    const props = e.features[0].properties as any
-                    const fips = props.fips
-                    if (fips) {
-                        loadCountyDetail(fips)
-                        setTimeout(() => {
-                            detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                        }, 100)
-                    }
-                }
+            map.current.on('load', () => {
+                // Map is ready
             })
 
             map.current.on('error', () => setError('Map initialization error'))
@@ -155,7 +146,7 @@ export function ConditionalProbability() {
                 map.current = null
             }
         }
-    }, [loadCountyDetail])
+    }, [])
 
     useEffect(() => {
         fetch(`${API_URL}/conditional-pooling/landcover-types`)
@@ -189,10 +180,16 @@ export function ConditionalProbability() {
             const data = await response.json()
             if (data.features && data.features.length > 0) {
                 setMapData(data)
-                updateMapLayer(data)
+                setError(null)
             } else {
                 setError('No data found for the selected filters')
                 setLegendRange(null)
+                setMapData(null)
+                if (map.current) {
+                    if (map.current.getLayer('counties')) map.current.removeLayer('counties')
+                    if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
+                    if (map.current.getSource('counties')) map.current.removeSource('counties')
+                }
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load map data')
@@ -294,6 +291,7 @@ export function ConditionalProbability() {
 
             map.current.off('mousemove', 'counties')
             map.current.off('mouseleave', 'counties')
+            map.current.off('click', 'counties')
 
             map.current.on('mousemove', 'counties', (e) => {
                 if (!e.features || e.features.length === 0) return
@@ -330,20 +328,45 @@ export function ConditionalProbability() {
                     popup.remove()
                 }
             })
+
+            map.current.on('click', 'counties', (e) => {
+                if (!e.features || e.features.length === 0) return
+                const props = e.features[0].properties as any
+                if (props.fips) {
+                    loadCountyDetail(String(props.fips))
+                    setTimeout(() => {
+                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }, 100)
+                }
+            })
         } catch {
             setError('Failed to update map layer')
         }
-    }, [selectedMetric])
+    }, [selectedMetric, loadCountyDetail])
 
     useEffect(() => {
-        if (landcoverTypes.length > 0 && !mapData) {
+        if (landcoverTypes.length > 0) {
             loadMapData()
         }
-    }, [landcoverTypes.length, loadMapData, mapData])
+    }, [selectedLandcover, selectedMetric, landcoverTypes.length, loadMapData])
 
     useEffect(() => {
-        if (mapData && map.current && mapData.features && mapData.features.length > 0) {
-            updateMapLayer(mapData)
+        if (map.current && mapData) {
+            if (map.current.loaded()) {
+                updateMapLayer(mapData)
+            } else {
+                map.current.on('load', () => updateMapLayer(mapData))
+            }
+        }
+    }, [mapData, updateMapLayer])
+
+    useEffect(() => {
+        if (map.current && mapData) {
+            if (map.current.loaded()) {
+                updateMapLayer(mapData)
+            } else {
+                map.current.on('load', () => updateMapLayer(mapData))
+            }
         }
     }, [mapData, updateMapLayer])
 
@@ -423,14 +446,6 @@ export function ConditionalProbability() {
                             ))}
                         </select>
                     </div>
-                    
-                    <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
-                        onClick={loadMapData}
-                        disabled={loading}
-                    >
-                        {loading ? 'Loading...' : 'Load Map'}
-                    </button>
                     
                     <button
                         className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"

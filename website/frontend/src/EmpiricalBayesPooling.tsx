@@ -145,19 +145,6 @@ export function EmpiricalBayesPooling() {
 
             map.current.on('load', () => {})
 
-            map.current.on('click', 'counties', (e) => {
-                if (e.features && e.features[0]) {
-                    const props = e.features[0].properties as any
-                    const fips = props.fips
-                    if (fips) {
-                        loadCountyDetail(fips)
-                        setTimeout(() => {
-                            detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                        }, 100)
-                    }
-                }
-            })
-
             map.current.on('error', (e) => {
                 console.error('Map error:', e)
                 setError('Map initialization error')
@@ -173,7 +160,7 @@ export function EmpiricalBayesPooling() {
                 map.current = null
             }
         }
-    }, [loadCountyDetail])
+    }, [])
 
     // Load landcover types
     useEffect(() => {
@@ -231,14 +218,17 @@ export function EmpiricalBayesPooling() {
             }
 
             if (data.features.length === 0) {
-                setError('No data found for the selected filters. Try selecting a different landcover type or check if data is loaded.')
+                setError('No data found for the selected filters')
                 setLegendRange(null)
-                // Don't clear existing mapData - keep showing previous map
-                // Don't call updateMapLayer - preserve existing map display
+                setMapData(null)
+                if (map.current) {
+                    if (map.current.getLayer('counties')) map.current.removeLayer('counties')
+                    if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
+                    if (map.current.getSource('counties')) map.current.removeSource('counties')
+                }
             } else {
                 setMapData(data)
-                updateMapLayer(data)
-                setError(null) // Clear any previous errors
+                setError(null)
             }
         } catch (err) {
             console.error('Error loading map data:', err)
@@ -248,8 +238,7 @@ export function EmpiricalBayesPooling() {
         }
     }, [selectedLandcover])
 
-    // Update map layer
-    const updateMapLayer = (data: CountyMapData) => {
+    const updateMapLayer = useCallback((data: CountyMapData) => {
         if (!map.current) {
             return
         }
@@ -352,6 +341,8 @@ export function EmpiricalBayesPooling() {
             map.current.off('mousemove', 'counties')
             // @ts-expect-error MapLibre types don't include layer-specific off() overloads
             map.current.off('mouseleave', 'counties')
+            // @ts-expect-error MapLibre types don't include layer-specific off() overloads
+            map.current.off('click', 'counties')
 
             map.current.on('mousemove', 'counties', (e) => {
                 if (!e.features || e.features.length === 0) return
@@ -401,27 +392,40 @@ export function EmpiricalBayesPooling() {
                     popup.remove()
                 }
             })
+
+            map.current.on('click', 'counties', (e) => {
+                if (!e.features || e.features.length === 0) return
+                const props = e.features[0].properties as any
+                if (props.fips) {
+                    loadCountyDetail(String(props.fips))
+                    setTimeout(() => {
+                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }, 100)
+                }
+            })
         } catch (err) {
             console.error('Error updating map layer:', err)
             setError('Failed to update map layer')
         }
-    }
+    }, [loadCountyDetail])
 
 
 
-    // Initial load with "All Landcover Types" when landcover types are loaded (only once)
     useEffect(() => {
-        if (landcoverTypes.length > 0 && !mapData) {
+        if (landcoverTypes.length > 0) {
             loadMapData()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [landcoverTypes.length])
+    }, [selectedLandcover, landcoverTypes.length, loadMapData])
 
     useEffect(() => {
-        if (mapData && map.current && mapData.features && mapData.features.length > 0) {
-            updateMapLayer(mapData)
+        if (map.current && mapData) {
+            if (map.current.loaded()) {
+                updateMapLayer(mapData)
+            } else {
+                map.current.on('load', () => updateMapLayer(mapData))
+            }
         }
-    }, [mapData])
+    }, [mapData, updateMapLayer])
 
     const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
 
@@ -497,14 +501,6 @@ export function EmpiricalBayesPooling() {
                             ))}
                         </select>
                     </div>
-                    
-                    <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
-                        onClick={loadMapData}
-                        disabled={loading}
-                    >
-                        {loading ? 'Loading...' : 'Load Map'}
-                    </button>
                     
                     <button
                         className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"

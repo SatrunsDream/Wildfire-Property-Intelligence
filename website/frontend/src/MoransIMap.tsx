@@ -51,6 +51,7 @@ export function MoransIMap() {
     const [buildingTypes, setBuildingTypes] = useState<string[]>([])
     const [selectedLandcover, setSelectedLandcover] = useState<string>('')
     const [selectedBuildingType, setSelectedBuildingType] = useState<string>('')
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     useEffect(() => {
         fetch(`${API_URL}/morans-i/filters`)
@@ -96,6 +97,12 @@ export function MoransIMap() {
             } else {
                 setError('No data found for the selected filters')
                 setLegendRange(null)
+                setMapData(null)
+                if (map.current) {
+                    if (map.current.getLayer('counties')) map.current.removeLayer('counties')
+                    if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
+                    if (map.current.getSource('counties')) map.current.removeSource('counties')
+                }
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load map data')
@@ -105,10 +112,10 @@ export function MoransIMap() {
     }, [selectedLandcover, selectedBuildingType])
 
     useEffect(() => {
-        if (landcoverTypes.length > 0 && buildingTypes.length > 0 && !mapData) {
+        if (landcoverTypes.length > 0 && buildingTypes.length > 0) {
             loadMapData()
         }
-    }, [landcoverTypes.length, buildingTypes.length, loadMapData, mapData])
+    }, [selectedLandcover, selectedBuildingType, landcoverTypes.length, buildingTypes.length, loadMapData])
 
     const loadCountyDetail = useCallback(async (fips: string) => {
         try {
@@ -126,6 +133,20 @@ export function MoransIMap() {
             setError(err instanceof Error ? err.message : 'Failed to load county detail')
         }
     }, [selectedLandcover, selectedBuildingType])
+
+    const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false)
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isFullscreen])
+
+    useEffect(() => {
+        setTimeout(() => map.current?.resize(), 100)
+    }, [isFullscreen])
 
     // Initialize map
     useEffect(() => {
@@ -266,7 +287,10 @@ export function MoransIMap() {
     const stats = mapData ? mapData.stats : null
 
     return (
-        <div className="relative flex-1 min-h-0">
+        <div className={cn(
+            'relative flex-1 min-h-0',
+            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white'
+        )}>
             {/* Map Container - Full bleed */}
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
@@ -333,11 +357,10 @@ export function MoransIMap() {
                     </div>
                     
                     <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
-                        onClick={loadMapData}
-                        disabled={loading}
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        onClick={toggleFullscreen}
                     >
-                        {loading ? 'Loading...' : 'Load Map'}
+                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
                 </div>
 
