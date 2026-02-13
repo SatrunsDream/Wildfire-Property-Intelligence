@@ -44,3 +44,8 @@ class ColorGroupedCompareRequest(BaseModel):
 
 class ColorGroupedDivergenceRequest(BaseModel):
     color_groups: list[ColorGroupMapping]
+
+
+class MoransIMapRequest(BaseModel):
+    lc_type: str | None = None
+    bldgtype: str | None = None

@@ -177,7 +177,7 @@ export default function GroupDivergence() {
                 <div ref={mapContainer} className="w-full h-full" />
 
                 {/* Controls */}
-                <div className="absolute top-2.5 left-2.5 bg-white/95 rounded shadow-elevated p-3 space-y-3 z-10">
+                <div className="absolute top-2.5 left-2.5 bg-white/95 rounded shadow-elevated p-3 space-y-3 z-10 w-48">
                     <div>
                         <h2 className="font-semibold text-lg mb-2">Group-Level Divergence</h2>
                         <p className="text-sm text-gray-600 mb-3">

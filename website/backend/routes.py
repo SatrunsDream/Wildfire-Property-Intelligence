@@ -9,16 +9,16 @@ from constants import (
 )
 from models import (
     ConditionalProbRequest, MapRequest, CountyCompareRequest, BayesianMapRequest,
-    ColorGroupedCompareRequest, ColorGroupedDivergenceRequest
+    ColorGroupedCompareRequest, ColorGroupedDivergenceRequest, MoransIMapRequest
 )
 from utils import (
     estimate_alpha_eb, aggregate_hexes_to_resolution,
     build_hex_geojson, get_feature_distribution, apply_color_mapping,
-    get_merged_feature_distribution
+    get_merged_feature_distribution, calculate_local_morans_i
 )
 from data import (
     df, neighbors_df, c2st_df, ca_counties_geojson,
-    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df, morans_i_df,
+    bayesian_baseline_df, bayesian_stabilized_df, bayesian_counts_df, morans_i_freq_df,
     m01_summary_df, m01_detail_df
 )
 
@@ -1353,110 +1353,152 @@ def get_neighbor_divergence_merged(req: ColorGroupedDivergenceRequest):
     }
 
 
-@router.get("/morans-i/test")
-def test_morans_i_data():
-    """Test endpoint to debug Moran's I data loading."""
-    if morans_i_df is None:
-        return {"error": "Moran's I data not loaded", "loaded": False}
-    
-    sample_data = morans_i_df.head(10).to_dicts()
-    fips_values = morans_i_df["fips"].unique().to_list()
-    
-    # Check GeoJSON FIPS format
-    geo_fips_samples = []
-    if ca_counties_geojson:
-        for i, feature in enumerate(ca_counties_geojson.get("features", [])[:10]):
-            props = feature.get("properties", {})
-            geo_fips_samples.append({
-                "index": i,
-                "fips": props.get("fips"),
-                "FIPS": props.get("FIPS"),
-                "name": props.get("name"),
-                "county_name": props.get("county_name"),
-                "all_props_keys": list(props.keys())
-            })
+@router.get("/morans-i/filters")
+def get_morans_i_filters():
+    """Get available landcover types and building types for filtering."""
+    if morans_i_freq_df is None:
+        raise HTTPException(500, "Moran's I frequency data not loaded")
     
     return {
-        "loaded": True,
-        "total_rows": len(morans_i_df),
-        "columns": morans_i_df.columns,
-        "fips_dtype": str(morans_i_df["fips"].dtype),
-        "local_dtype": str(morans_i_df["local"].dtype),
-        "sample_fips": fips_values[:10],
-        "sample_data": sample_data,
-        "geojson_samples": geo_fips_samples,
-        "geojson_total_features": len(ca_counties_geojson.get("features", [])) if ca_counties_geojson else 0
+        "landcover_types": morans_i_freq_df["lc_type"].unique().sort().to_list(),
+        "building_types": morans_i_freq_df["bldgtype"].unique().sort().to_list()
     }
 
 
-@router.get("/morans-i/map")
-def get_morans_i_map():
-    """Get Moran's I spatial autocorrelation data for counties."""
-    if morans_i_df is None:
-        raise HTTPException(500, "Moran's I data not loaded")
+@router.post("/morans-i/map")
+def get_morans_i_map(req: MoransIMapRequest):
+    """Get Moran's I spatial autocorrelation data for counties with filtering."""
+    from data import ca_counties_geojson
     
-    if ca_counties_geojson is None:
+    if morans_i_freq_df is None:
+        raise HTTPException(500, "Moran's I frequency data not loaded")
+    if not ca_counties_geojson:
         raise HTTPException(500, "County geometries not loaded")
     
-    # Create a lookup dictionary for Moran's I scores by FIPS (as string "06001" format)
-    # This matches the pattern used by other working maps
+    filtered_df = morans_i_freq_df
+    if req.lc_type:
+        filtered_df = filtered_df.filter(pl.col("lc_type") == req.lc_type)
+    if req.bldgtype:
+        filtered_df = filtered_df.filter(pl.col("bldgtype") == req.bldgtype)
+    
+    if len(filtered_df) == 0:
+        return {
+            "type": "FeatureCollection",
+            "features": [],
+            "stats": {"total_counties": 0, "mean_local": 0.0, "max_local": 0.0, "min_local": 0.0, "std_local": 0.0}
+        }
+    
+    county_freqs = filtered_df.group_by("fips").agg([
+        pl.col("freq").mean().alias("freq")
+    ])
+    
+    morans_scores = calculate_local_morans_i(county_freqs, neighbors_df)
+    
     morans_lookup = {}
-    for row in morans_i_df.iter_rows(named=True):
-        fips_val = row.get("fips")
-        local_val = row.get("local")
-        if fips_val is not None and local_val is not None:
-            try:
-                # Convert to int then to string format "06001"
-                fips_int = int(fips_val) if not isinstance(fips_val, int) else fips_val
-                fips_str = str(fips_int).zfill(5)  # Convert 6001 -> "06001"
-                morans_lookup[fips_str] = float(local_val)
-            except (ValueError, TypeError):
-                continue
+    for row in morans_scores.iter_rows(named=True):
+        fips_int = row["fips"]
+        fips_str = str(fips_int).zfill(5)
+        morans_lookup[fips_str] = float(row["local"])
     
-    if not morans_lookup:
-        raise HTTPException(500, f"No valid Moran's I data found. Loaded {len(morans_i_df)} rows but none had valid fips/local values")
-    
-    # Merge Moran's I scores with county geometries (same pattern as Bayesian map)
     features = []
-    for feature in ca_counties_geojson.get("features", []):
+    for feature in ca_counties_geojson["features"]:
         props = feature.get("properties", {})
-        fips_str = props.get("fips") or props.get("FIPS")
+        fips_str = props.get("fips") or props.get("FIPS") or COUNTY_NAME_TO_FIPS.get(props.get("name") or props.get("county_name", ""))
         
-        # Try to match by county name if FIPS not found (same as other maps)
-        if not fips_str:
-            county_name = props.get("name") or props.get("county_name", "")
-            fips_str = COUNTY_NAME_TO_FIPS.get(county_name)
+        if not fips_str or fips_str not in morans_lookup:
+            continue
         
-        if fips_str and fips_str in morans_lookup:
-            local_score = morans_lookup[fips_str]
-            new_props = {
+        local_score = morans_lookup[fips_str]
+        features.append({
+            "type": "Feature",
+            "properties": {
                 **props,
                 "fips": fips_str,
                 "county_name": FIPS_TO_COUNTY_NAME.get(fips_str, props.get("name", fips_str)),
                 "local": local_score
-            }
-            features.append({
-                "type": "Feature",
-                "properties": new_props,
-                "geometry": feature["geometry"]
-            })
+            },
+            "geometry": feature["geometry"]
+        })
     
-    # Calculate statistics
     local_scores = [f["properties"]["local"] for f in features if f["properties"]["local"] is not None]
-    
-    if not local_scores:
-        raise HTTPException(500, f"No matching counties found. Moran's I has {len(morans_lookup)} counties, GeoJSON has {len(ca_counties_geojson.get('features', []))} counties, matched {len(features)}")
     
     return {
         "type": "FeatureCollection",
         "features": features,
         "stats": {
             "total_counties": len(features),
-            "mean_local": float(np.mean(local_scores)),
-            "max_local": float(np.max(local_scores)),
-            "min_local": float(np.min(local_scores)),
-            "std_local": float(np.std(local_scores))
+            "mean_local": float(np.mean(local_scores)) if local_scores else 0.0,
+            "max_local": float(np.max(local_scores)) if local_scores else 0.0,
+            "min_local": float(np.min(local_scores)) if local_scores else 0.0,
+            "std_local": float(np.std(local_scores)) if local_scores else 0.0
         }
+    }
+
+
+@router.get("/morans-i/county/{fips}")
+def get_morans_i_county_detail(fips: str, lc_type: str | None = None, bldgtype: str | None = None):
+    """Get detailed Moran's I statistics for a specific county."""
+    if morans_i_freq_df is None:
+        raise HTTPException(500, "Moran's I frequency data not loaded")
+    
+    fips_int = int(fips.lstrip("0")) if fips.startswith("0") else int(fips)
+    filtered_df = morans_i_freq_df.filter(pl.col("fips") == fips_int)
+    
+    if lc_type:
+        filtered_df = filtered_df.filter(pl.col("lc_type") == lc_type)
+    if bldgtype:
+        filtered_df = filtered_df.filter(pl.col("bldgtype") == bldgtype)
+    
+    if len(filtered_df) == 0:
+        raise HTTPException(404, f"No data found for county {fips}")
+    
+    county_freqs = filtered_df.group_by(["lc_type", "bldgtype"]).agg([
+        pl.col("freq").first().alias("freq")
+    ])
+    
+    neighbor_rows = neighbors_df.filter(
+        (pl.col("county_fips") == fips_int) | (pl.col("neighbor_fips") == fips_int)
+    )
+    neighbor_fips_set = {fips_int}
+    for row in neighbor_rows.iter_rows(named=True):
+        if row["county_fips"] == fips_int:
+            neighbor_fips_set.add(row["neighbor_fips"])
+        else:
+            neighbor_fips_set.add(row["county_fips"])
+    
+    neighbor_data = morans_i_freq_df.filter(pl.col("fips").is_in(list(neighbor_fips_set)))
+    if lc_type:
+        neighbor_data = neighbor_data.filter(pl.col("lc_type") == lc_type)
+    if bldgtype:
+        neighbor_data = neighbor_data.filter(pl.col("bldgtype") == bldgtype)
+    
+    by_category = []
+    for row in county_freqs.iter_rows(named=True):
+        lc = row["lc_type"]
+        bldg = row["bldgtype"]
+        freq = row["freq"]
+        
+        neighbor_freqs = neighbor_data.filter(
+            (pl.col("lc_type") == lc) & (pl.col("bldgtype") == bldg)
+        )["freq"].to_list()
+        
+        by_category.append({
+            "lc_type": lc,
+            "bldgtype": bldg,
+            "frequency": float(freq),
+            "neighbor_mean": float(np.mean(neighbor_freqs)) if neighbor_freqs else 0.0,
+            "neighbor_min": float(np.min(neighbor_freqs)) if neighbor_freqs else 0.0,
+            "neighbor_max": float(np.max(neighbor_freqs)) if neighbor_freqs else 0.0,
+            "neighbor_count": len(neighbor_freqs)
+        })
+    
+    fips_str = str(fips_int).zfill(5)
+    return {
+        "fips": fips_str,
+        "county_name": FIPS_TO_COUNTY_NAME.get(fips_str, f"County {fips_str}"),
+        "num_neighbors": len(neighbor_fips_set) - 1,
+        "by_category": by_category,
+        "total_categories": len(by_category)
     }
 
 

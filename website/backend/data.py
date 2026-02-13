@@ -10,7 +10,7 @@ C2ST_PATH = os.environ.get("C2ST_PATH", str(DATA_DIR / "c2st_results_all_lc.csv"
 BAYESIAN_BASELINE_PATH = os.environ.get("BAYESIAN_BASELINE_PATH", str(DATA_DIR / "bayesian_shrinkage_baseline_distributions.csv"))
 BAYESIAN_STABILIZED_PATH = os.environ.get("BAYESIAN_STABILIZED_PATH", str(DATA_DIR / "bayesian_shrinkage_stabilized_distributions.csv"))
 BAYESIAN_COUNTS_PATH = os.environ.get("BAYESIAN_COUNTS_PATH", str(DATA_DIR / "bayesian_shrinkage_aggregated_counts.csv"))
-MORANS_I_PATH = os.environ.get("MORANS_I_PATH", str(DATA_DIR / "morans_i_homogeneity.csv"))
+MORANS_I_FREQ_PATH = os.environ.get("MORANS_I_FREQ_PATH", str(DATA_DIR / "relative_frequencies_lc_type_bldgtype.csv"))
 M01_SUMMARY_PATH = os.environ.get("M01_SUMMARY_PATH", str(DATA_DIR / "m01_neighbor_pool_county_lc_summary.csv"))
 M01_DETAIL_PATH = os.environ.get("M01_DETAIL_PATH", str(DATA_DIR / "m01_neighbor_pool_county_lc_color_detail.csv"))
 GROUP_DIVERGENCE_PATH = os.environ.get("GROUP_DIVERGENCE_PATH", str(DATA_DIR / "jsd_conditional_divergence.csv"))
@@ -26,16 +26,13 @@ bayesian_stabilized_df = pl.read_csv(BAYESIAN_STABILIZED_PATH)
 bayesian_counts_df = pl.read_csv(BAYESIAN_COUNTS_PATH)
 
 try:
-    morans_i_df = pl.read_csv(MORANS_I_PATH, infer_schema_length=1).select(["fips", "local"])
-    
-    if morans_i_df is not None and len(morans_i_df) > 0:
-        if morans_i_df["fips"].dtype != pl.Int64:
-            morans_i_df = morans_i_df.with_columns(pl.col("fips").cast(pl.Int64))
-        if morans_i_df["local"].dtype != pl.Float64:
-            morans_i_df = morans_i_df.with_columns(pl.col("local").cast(pl.Float64))
-except Exception as e:
-    print(f"Warning: Could not load Moran's I data: {e}")
-    morans_i_df = None
+    morans_i_freq_df = pl.read_csv(MORANS_I_FREQ_PATH)
+    if morans_i_freq_df["fips"].dtype != pl.Int64:
+        morans_i_freq_df = morans_i_freq_df.with_columns(pl.col("fips").cast(pl.Int64))
+    if morans_i_freq_df["freq"].dtype != pl.Float64:
+        morans_i_freq_df = morans_i_freq_df.with_columns(pl.col("freq").cast(pl.Float64))
+except Exception:
+    morans_i_freq_df = None
 
 try:
     m01_summary_df = pl.read_csv(M01_SUMMARY_PATH)

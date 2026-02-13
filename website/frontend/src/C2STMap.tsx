@@ -424,7 +424,7 @@ export function C2STMap() {
                 </div>
 
                 {/* Legend - Bottom Right */}
-                <div className="absolute bottom-4 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                <div className="absolute bottom-24 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
                     <div className="font-semibold mb-2 text-foreground">C2ST Accuracy</div>
                     <div
                         className="h-2.5 w-44 rounded-sm"

@@ -385,7 +385,7 @@ export function ConditionalProbability() {
                     </div>
                 )}
 
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 max-w-xs">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -441,7 +441,7 @@ export function ConditionalProbability() {
                 </div>
 
                 {mapData && legendRange && (
-                    <div className="absolute right-2.5 bottom-7 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
                         <div className="font-semibold mb-2 text-foreground">
                             {selectedMetric === 'kl_div' ? 'KL Divergence' : 'L1 Distance'}
                         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import * as d3 from 'd3'
@@ -19,10 +19,22 @@ interface MoranMapData {
     }
 }
 
+interface CategoryDetail {
+    lc_type: string
+    bldgtype: string
+    frequency: number
+    neighbor_mean: number
+    neighbor_min: number
+    neighbor_max: number
+    neighbor_count: number
+}
+
 interface CountyDetail {
     fips: string
     county_name: string
-    local: number
+    num_neighbors: number
+    by_category: CategoryDetail[]
+    total_categories: number
 }
 
 export function MoransIMap() {
@@ -32,40 +44,88 @@ export function MoransIMap() {
     const [countyDetail, setCountyDetail] = useState<CountyDetail | null>(null)
     const [showDetailPanel, setShowDetailPanel] = useState(false)
     const detailRef = useRef<HTMLDivElement>(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
+    const [landcoverTypes, setLandcoverTypes] = useState<string[]>([])
+    const [buildingTypes, setBuildingTypes] = useState<string[]>([])
+    const [selectedLandcover, setSelectedLandcover] = useState<string>('')
+    const [selectedBuildingType, setSelectedBuildingType] = useState<string>('')
 
-    // Load map data
     useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await fetch(`${API_URL}/morans-i/map`)
-                if (!response.ok) {
-                    throw new Error('Failed to load Moran\'s I data')
+        fetch(`${API_URL}/morans-i/filters`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.landcover_types && Array.isArray(data.landcover_types)) {
+                    setLandcoverTypes(data.landcover_types)
                 }
-                const data = await response.json()
+                if (data.building_types && Array.isArray(data.building_types)) {
+                    setBuildingTypes(data.building_types)
+                }
+            })
+            .catch(err => setError(`Failed to load filters: ${err instanceof Error ? err.message : 'Unknown error'}`))
+    }, [])
+
+    const loadMapData = useCallback(async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const response = await fetch(`${API_URL}/morans-i/map`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lc_type: selectedLandcover || null,
+                    bldgtype: selectedBuildingType || null
+                })
+            })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                throw new Error(JSON.parse(errorText).detail || errorText)
+            }
+
+            const data = await response.json()
+            if (data.features && data.features.length > 0) {
                 setMapData(data)
-                
-                // Calculate legend range
                 const localScores = data.features
                     .map((f: GeoJSON.Feature) => f.properties?.local)
                     .filter((v: any) => v !== null && v !== undefined && !isNaN(v))
-                
                 if (localScores.length > 0) {
-                    const minVal = Math.min(...localScores)
-                    const maxVal = Math.max(...localScores)
-                    setLegendRange({ min: minVal, max: maxVal })
+                    setLegendRange({ min: Math.min(...localScores), max: Math.max(...localScores) })
                 }
-            } catch (err) {
-                console.error('Failed to load Moran\'s I data:', err)
-                setError(err instanceof Error ? err.message : 'Failed to load Moran\'s I data')
-            } finally {
-                setLoading(false)
+            } else {
+                setError('No data found for the selected filters')
+                setLegendRange(null)
             }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load map data')
+        } finally {
+            setLoading(false)
         }
-        fetchData()
-    }, [])
+    }, [selectedLandcover, selectedBuildingType])
+
+    useEffect(() => {
+        if (landcoverTypes.length > 0 && buildingTypes.length > 0 && !mapData) {
+            loadMapData()
+        }
+    }, [landcoverTypes.length, buildingTypes.length, loadMapData, mapData])
+
+    const loadCountyDetail = useCallback(async (fips: string) => {
+        try {
+            const params = new URLSearchParams()
+            if (selectedLandcover) params.append('lc_type', selectedLandcover)
+            if (selectedBuildingType) params.append('bldgtype', selectedBuildingType)
+            const paramStr = params.toString() ? `?${params.toString()}` : ''
+            
+            const response = await fetch(`${API_URL}/morans-i/county/${fips}${paramStr}`)
+            if (!response.ok) throw new Error('Failed to load county detail')
+            const data = await response.json()
+            setCountyDetail(data)
+            setShowDetailPanel(true)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to load county detail')
+        }
+    }, [selectedLandcover, selectedBuildingType])
 
     // Initialize map
     useEffect(() => {
@@ -102,134 +162,106 @@ export function MoransIMap() {
         }
     }, [])
 
-    // Update map layer when data loads
-    useEffect(() => {
-        if (!map.current || !mapData) return
+    const updateMapLayer = useCallback((data: MoranMapData) => {
+        if (!map.current) return
 
-        const addLayers = () => {
-            if (!map.current || !mapData) return
+        if (map.current.getLayer('counties')) map.current.removeLayer('counties')
+        if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
+        if (map.current.getSource('counties')) map.current.removeSource('counties')
 
-            // Remove existing layers
-            if (map.current.getLayer('counties')) map.current.removeLayer('counties')
-            if (map.current.getLayer('counties-outline')) map.current.removeLayer('counties-outline')
-            if (map.current.getSource('counties')) map.current.removeSource('counties')
+        if (data.features.length === 0) return
 
-            if (mapData.features.length === 0) {
-                return
+        map.current.addSource('counties', {
+            type: 'geojson',
+            data: data
+        })
+
+        const localScores = data.features
+            .map(f => f.properties?.local)
+            .filter((v: any) => v !== null && v !== undefined && !isNaN(v)) as number[]
+
+        if (localScores.length === 0) return
+
+        const minVal = Math.min(...localScores)
+        const maxVal = Math.max(...localScores)
+        const colorScale = d3.scaleDiverging(d3.interpolateRdBu)
+            .domain([minVal, (minVal + maxVal) / 2, maxVal])
+
+        map.current.addLayer({
+            id: 'counties',
+            type: 'fill',
+            source: 'counties',
+            paint: {
+                'fill-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'local'],
+                    minVal, colorScale(minVal),
+                    (minVal + maxVal) / 2, colorScale((minVal + maxVal) / 2),
+                    maxVal, colorScale(maxVal)
+                ],
+                'fill-opacity': 0.7
             }
+        })
 
-            // Add source
-            map.current.addSource('counties', {
-                type: 'geojson',
-                data: mapData
-            })
-
-            // Get valid local scores for color scale
-            const localScores = mapData.features
-                .map(f => f.properties?.local)
-                .filter((v: any) => v !== null && v !== undefined && !isNaN(v)) as number[]
-
-            if (localScores.length === 0) {
-                return
+        map.current.addLayer({
+            id: 'counties-outline',
+            type: 'line',
+            source: 'counties',
+            paint: {
+                'line-color': '#888',
+                'line-width': 1
             }
+        })
 
-            const minVal = Math.min(...localScores)
-            const maxVal = Math.max(...localScores)
+        const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
 
-            // Create color scale: blue (negative/clustering) -> white (no autocorrelation) -> red (positive/dispersion)
-            // Moran's I typically ranges from -1 to +1, but local values can vary
-            const colorScale = d3.scaleDiverging(d3.interpolateRdBu)
-                .domain([minVal, (minVal + maxVal) / 2, maxVal])
+        map.current.off('mousemove', 'counties')
+        map.current.off('mouseleave', 'counties')
+        map.current.off('click', 'counties')
 
-            // Add fill layer
-            map.current.addLayer({
-                id: 'counties',
-                type: 'fill',
-                source: 'counties',
-                paint: {
-                    'fill-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['get', 'local'],
-                        minVal, colorScale(minVal),
-                        (minVal + maxVal) / 2, colorScale((minVal + maxVal) / 2),
-                        maxVal, colorScale(maxVal)
-                    ],
-                    'fill-opacity': 0.7
-                }
-            })
+        map.current.on('mousemove', 'counties', (e) => {
+            if (!e.features || e.features.length === 0) return
+            if (map.current) map.current.getCanvas().style.cursor = 'pointer'
+            const props = e.features[0].properties as any
+            const html = `
+                <div style="font-size: 12px; line-height: 1.5;">
+                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 13px;">${props.county_name || 'Unknown'} County</div>
+                    <div style="margin-bottom: 4px;">Local Moran's I: <strong>${props.local?.toFixed(4) || 'N/A'}</strong></div>
+                    <div style="margin-top: 6px; font-size: 10px; color: #666;">Click for details</div>
+                </div>
+            `
+            popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
+        })
 
-            // Add outline layer
-            map.current.addLayer({
-                id: 'counties-outline',
-                type: 'line',
-                source: 'counties',
-                paint: {
-                    'line-color': '#888',
-                    'line-width': 1
-                }
-            })
-
-            // Set up hover tooltip
-            const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
-
-            map.current.on('mousemove', 'counties', (e) => {
-                if (!e.features || e.features.length === 0) return
-                if (map.current) {
-                    map.current.getCanvas().style.cursor = 'pointer'
-                }
-
-                const props = e.features[0].properties as any
-                const countyName = props.name || props.county_name || 'Unknown'
-                const localScore = props.local?.toFixed(4) || 'N/A'
-                const fips = props.fips || 'N/A'
-
-                const html = `
-                    <div style="font-size: 12px; line-height: 1.5;">
-                        <div style="font-weight: bold; margin-bottom: 6px; font-size: 13px;">${countyName} County</div>
-                        <div style="margin-bottom: 4px;">FIPS: <strong>${fips}</strong></div>
-                        <div style="margin-bottom: 4px;">Local Moran's I: <strong>${localScore}</strong></div>
-                        <div style="margin-top: 6px; font-size: 10px; color: #666;">Click for details</div>
-                    </div>
-                `
-                popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
-            })
-
-            map.current.on('mouseleave', 'counties', () => {
-                if (map.current) {
-                    map.current.getCanvas().style.cursor = ''
-                }
+        map.current.on('mouseleave', 'counties', () => {
+            if (map.current) {
+                map.current.getCanvas().style.cursor = ''
                 popup.remove()
-            })
+            }
+        })
 
-            // Set up click handler
-            map.current.on('click', 'counties', (e) => {
-                if (!e.features || e.features.length === 0) return
-                const props = e.features[0].properties as any
-                const fips = props.fips
-                const countyName = props.name || props.county_name || 'Unknown'
-                const localScore = props.local
+        map.current.on('click', 'counties', (e) => {
+            if (!e.features || e.features.length === 0) return
+            const props = e.features[0].properties as any
+            if (props.fips) {
+                loadCountyDetail(String(props.fips))
+                setTimeout(() => {
+                    detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }, 100)
+            }
+        })
+    }, [loadCountyDetail])
 
-                if (fips && localScore !== null && localScore !== undefined) {
-                    setCountyDetail({
-                        fips: String(fips),
-                        county_name: countyName,
-                        local: localScore
-                    })
-                    setShowDetailPanel(true)
-                    setTimeout(() => {
-                        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }, 100)
-                }
-            })
+    useEffect(() => {
+        if (map.current && mapData) {
+            if (map.current.loaded()) {
+                updateMapLayer(mapData)
+            } else {
+                map.current.on('load', () => updateMapLayer(mapData))
+            }
         }
-
-        if (map.current.loaded()) {
-            addLayers()
-        } else {
-            map.current.on('load', addLayers)
-        }
-    }, [mapData])
+    }, [mapData, updateMapLayer])
 
     const stats = mapData ? mapData.stats : null
 
@@ -252,7 +284,7 @@ export function MoransIMap() {
                 )}
 
                 {/* Map Controls - Top Left (Statistics and Display) */}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
                     {/* Statistics Summary */}
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
@@ -268,19 +300,50 @@ export function MoransIMap() {
                         </div>
                     )}
                     
-                    {/* Display Section */}
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Display</span>
-                        <div className="text-xs text-muted-foreground">
-                            <div>Spatial Autocorrelation</div>
-                            <div className="text-[10px] mt-1">Local Moran's I</div>
-                        </div>
+                        <select
+                            value={selectedLandcover}
+                            onChange={(e) => {
+                                setSelectedLandcover(e.target.value)
+                                setCountyDetail(null)
+                                setShowDetailPanel(false)
+                            }}
+                            className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
+                        >
+                            <option value="">All Landcover Types</option>
+                            {landcoverTypes.map(lc => (
+                                <option key={lc} value={lc}>{lc}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={selectedBuildingType}
+                            onChange={(e) => {
+                                setSelectedBuildingType(e.target.value)
+                                setCountyDetail(null)
+                                setShowDetailPanel(false)
+                            }}
+                            className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
+                        >
+                            <option value="">All Building Types</option>
+                            {buildingTypes.map(bldg => (
+                                <option key={bldg} value={bldg}>{bldg}</option>
+                            ))}
+                        </select>
                     </div>
+                    
+                    <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
+                        onClick={loadMapData}
+                        disabled={loading}
+                    >
+                        {loading ? 'Loading...' : 'Load Map'}
+                    </button>
                 </div>
 
                 {/* Legend - Bottom Right */}
                 {legendRange && (
-                    <div className="absolute right-2.5 bottom-7 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
                         <div className="font-semibold mb-2 text-foreground">Local Moran's I</div>
                         <div
                             className="w-44 h-2.5 rounded-sm"
@@ -335,51 +398,54 @@ export function MoransIMap() {
                         </div>
                     </div>
 
-                    {/* Panel Content - Expandable */}
                     {showDetailPanel && (
                         <div className="h-[calc(100%-65px)] overflow-y-auto p-6">
-                            <h2 className="mt-0 mb-4 text-2xl text-foreground">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h2>
-                            
-                            <div className="space-y-4">
-                                <div className="p-4 bg-background border border-border rounded">
-                                    <h3 className="mt-0 mb-2 text-xl text-foreground">Local Moran's I Score</h3>
-                                    <div className="text-3xl font-bold mb-2" style={{
-                                        color: countyDetail.local > 0 ? '#dc2626' : countyDetail.local < 0 ? '#2563eb' : '#6b7280'
-                                    }}>
-                                        {countyDetail.local.toFixed(4)}
-                                    </div>
-                                    <p className="text-muted-foreground text-sm">
-                                        {countyDetail.local > 0 
-                                            ? 'Positive values indicate spatial clustering (similar values cluster together)'
-                                            : countyDetail.local < 0
-                                            ? 'Negative values indicate spatial dispersion (dissimilar values cluster together)'
-                                            : 'Zero indicates no spatial autocorrelation'}
-                                    </p>
-                                </div>
+                            <div className="mb-4">
+                                <p className="text-muted-foreground mb-2">
+                                    Neighbors: {countyDetail.num_neighbors} | Categories: {countyDetail.total_categories}
+                                </p>
+                            </div>
 
-                                {stats && (
-                                    <div className="p-4 bg-muted/30 border border-border rounded">
-                                        <h4 className="mt-0 mb-2 text-base font-semibold text-foreground">Statewide Statistics</h4>
+                            <div className="space-y-4">
+                                {countyDetail.by_category.map((cat, idx) => (
+                                    <div key={idx} className="p-4 bg-background border border-border rounded">
+                                        <h3 className="mt-0 mb-2 text-lg text-foreground">
+                                            {cat.lc_type} × {cat.bldgtype}
+                                        </h3>
                                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                             <div>
-                                                <span className="text-muted-foreground">Mean:</span>
-                                                <span className="ml-2 font-semibold">{stats.mean_local.toFixed(4)}</span>
+                                                <span className="text-muted-foreground">County Frequency:</span>
+                                                <span className="ml-2 font-semibold">{(cat.frequency * 100).toFixed(2)}%</span>
                                             </div>
                                             <div>
-                                                <span className="text-muted-foreground">Std Dev:</span>
-                                                <span className="ml-2 font-semibold">{stats.std_local.toFixed(4)}</span>
+                                                <span className="text-muted-foreground">Neighbor Mean:</span>
+                                                <span className="ml-2 font-semibold">{(cat.neighbor_mean * 100).toFixed(2)}%</span>
                                             </div>
                                             <div>
-                                                <span className="text-muted-foreground">Min:</span>
-                                                <span className="ml-2 font-semibold">{stats.min_local.toFixed(4)}</span>
+                                                <span className="text-muted-foreground">Neighbor Range:</span>
+                                                <span className="ml-2 font-semibold">
+                                                    {(cat.neighbor_min * 100).toFixed(2)}% - {(cat.neighbor_max * 100).toFixed(2)}%
+                                                </span>
                                             </div>
                                             <div>
-                                                <span className="text-muted-foreground">Max:</span>
-                                                <span className="ml-2 font-semibold">{stats.max_local.toFixed(4)}</span>
+                                                <span className="text-muted-foreground">Neighbor Count:</span>
+                                                <span className="ml-2 font-semibold">{cat.neighbor_count}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 pt-3 border-t border-border">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground">Deviation:</span>
+                                                <span className={`text-sm font-medium ${
+                                                    cat.frequency > cat.neighbor_mean ? 'text-red-600' : 
+                                                    cat.frequency < cat.neighbor_mean ? 'text-blue-600' : 'text-muted-foreground'
+                                                }`}>
+                                                    {cat.frequency > cat.neighbor_mean ? '+' : ''}
+                                                    {((cat.frequency - cat.neighbor_mean) * 100).toFixed(2)}%
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         </div>
                     )}
