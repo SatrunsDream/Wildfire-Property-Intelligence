@@ -6,9 +6,31 @@ import { cn } from './lib/utils'
 const API_URL = 'http://localhost:8000'
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
-interface CountySummary {
-    num_anomalies: number
-    avg_divergence: number
+function buildFillColor(metric: 'num_anomalies' | 'avg_divergence') {
+    const stops = metric === 'num_anomalies'
+        ? [0, '#f7fbff', 2, '#deebf7', 4, '#c6dbef', 6, '#9ecae1', 8, '#6baed6', 10, '#3182bd']
+        : [0, '#f7fbff', 0.4, '#deebf7', 0.5, '#c6dbef', 0.6, '#9ecae1', 0.7, '#6baed6', 0.8, '#3182bd']
+    return ['interpolate', ['linear'], ['get', metric], ...stops]
+}
+
+// CSS color approximations for non-standard names
+const COLOR_MAP: Record<string, string> = {
+    alabaster: '#f2efe8',
+    amber: '#ffbf00',
+    auburn: '#922b21',
+    cocoa: '#7b4b2a',
+    coffee: '#6f4e37',
+    emerald: '#2ecc71',
+    lemon: '#fff44f',
+    lilac: '#c8a2c8',
+    sage: '#8aaf7a',
+    scarlet: '#ff2400',
+    terracotta: '#c0654a',
+    verde: '#4caf50',
+}
+
+function cssColor(name: string): string {
+    return COLOR_MAP[name] ?? name
 }
 
 interface LandcoverDivergence {
@@ -20,6 +42,23 @@ interface LandcoverDivergence {
 interface CountyDetail {
     fips: number
     landcover_divergences: LandcoverDivergence[]
+}
+
+interface ColorEntry {
+    color: string
+    county_freq: number
+    baseline_freq: number
+}
+
+interface LandcoverColors {
+    lc_type: string
+    county_total: number
+    colors: ColorEntry[]
+}
+
+interface CountyColors {
+    fips: number
+    by_landcover: LandcoverColors[]
 }
 
 interface MapData {
@@ -34,13 +73,58 @@ interface MapData {
     }
 }
 
+function SwatchStrip({ colors, freqKey, onHover }: {
+    colors: ColorEntry[]
+    freqKey: 'county_freq' | 'baseline_freq'
+    onHover: (label: string | null) => void
+}) {
+    const total = colors.reduce((s, c) => s + c[freqKey], 0)
+    if (total === 0) return <div className="h-5 bg-gray-100 rounded text-xs text-gray-400 flex items-center px-1">no data</div>
+    return (
+        <div className="flex h-5 rounded overflow-hidden">
+            {colors.filter(c => c[freqKey] > 0).map(c => (
+                <div
+                    key={c.color}
+                    style={{ flex: c[freqKey], backgroundColor: cssColor(c.color) }}
+                    onMouseEnter={() => onHover(`${c.color}: ${(c[freqKey] * 100).toFixed(1)}%`)}
+                    onMouseLeave={() => onHover(null)}
+                />
+            ))}
+        </div>
+    )
+}
+
+function ColorStrips({ colorData }: { colorData: LandcoverColors }) {
+    const [hoverLabel, setHoverLabel] = useState<string | null>(null)
+    return (
+        <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 w-16 shrink-0">County</span>
+                <div className="flex-1">
+                    <SwatchStrip colors={colorData.colors} freqKey="county_freq" onHover={setHoverLabel} />
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 w-16 shrink-0">Statewide</span>
+                <div className="flex-1">
+                    <SwatchStrip colors={colorData.colors} freqKey="baseline_freq" onHover={setHoverLabel} />
+                </div>
+            </div>
+            <div className="h-4 text-xs text-gray-500 italic">
+                {hoverLabel ?? ''}
+            </div>
+        </div>
+    )
+}
+
 export default function GroupDivergence() {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
     const [mapData, setMapData] = useState<MapData | null>(null)
     const [selectedCounty, setSelectedCounty] = useState<CountyDetail | null>(null)
     const [selectedFips, setSelectedFips] = useState<string | null>(null)
-    const [metric, setMetric] = useState<'num_anomalies' | 'avg_divergence'>('num_anomalies')
+    const [countyColors, setCountyColors] = useState<CountyColors | null>(null)
+    const [metric, setMetric] = useState<'num_anomalies' | 'avg_divergence'>('avg_divergence')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -72,6 +156,8 @@ export default function GroupDivergence() {
         map.current.on('load', () => {
             if (!map.current) return
 
+            map.current.resize()
+
             map.current.addSource('counties', {
                 type: 'geojson',
                 data: mapData as any,
@@ -82,17 +168,7 @@ export default function GroupDivergence() {
                 type: 'fill',
                 source: 'counties',
                 paint: {
-                    'fill-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['get', metric],
-                        0, '#f7fbff',
-                        2, '#deebf7',
-                        4, '#c6dbef',
-                        6, '#9ecae1',
-                        8, '#6baed6',
-                        10, '#3182bd',
-                    ],
+                    'fill-color': buildFillColor(metric) as any,
                     'fill-opacity': 0.7,
                 },
             })
@@ -114,10 +190,15 @@ export default function GroupDivergence() {
 
                     if (fips) {
                         setSelectedFips(fips)
+                        setCountyColors(null)
                         fetch(`${API_URL}/group-divergence/county/${fips}`)
                             .then(res => res.json())
                             .then(data => setSelectedCounty(data))
                             .catch(err => console.error('Failed to load county detail:', err))
+                        fetch(`${API_URL}/group-divergence/county/${fips}/colors`)
+                            .then(res => res.json())
+                            .then(data => setCountyColors(data))
+                            .catch(err => console.error('Failed to load county colors:', err))
                     }
                 }
             })
@@ -141,17 +222,7 @@ export default function GroupDivergence() {
     useEffect(() => {
         if (!map.current || !map.current.getLayer('counties-fill')) return
 
-        map.current.setPaintProperty('counties-fill', 'fill-color', [
-            'interpolate',
-            ['linear'],
-            ['get', metric],
-            0, '#f7fbff',
-            metric === 'num_anomalies' ? 2 : 0.4, '#deebf7',
-            metric === 'num_anomalies' ? 4 : 0.5, '#c6dbef',
-            metric === 'num_anomalies' ? 6 : 0.6, '#9ecae1',
-            metric === 'num_anomalies' ? 8 : 0.7, '#6baed6',
-            metric === 'num_anomalies' ? 10 : 0.8, '#3182bd',
-        ])
+        map.current.setPaintProperty('counties-fill', 'fill-color', buildFillColor(metric))
     }, [metric])
 
     if (loading) {
@@ -218,6 +289,7 @@ export default function GroupDivergence() {
                                 onClick={() => {
                                     setSelectedCounty(null)
                                     setSelectedFips(null)
+                                    setCountyColors(null)
                                 }}
                                 className="text-sm text-gray-500 hover:text-gray-700"
                             >
@@ -232,37 +304,51 @@ export default function GroupDivergence() {
                     <div className="space-y-3">
                         {selectedCounty.landcover_divergences
                             .sort((a, b) => b.divergence - a.divergence)
-                            .map((lc) => (
-                                <div
-                                    key={lc.lc_type}
-                                    className={cn(
-                                        'p-3 rounded-lg border',
-                                        lc.anomalous
-                                            ? 'bg-red-50 border-red-300'
-                                            : 'bg-gray-50 border-gray-200'
-                                    )}
-                                >
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="font-medium text-sm">{lc.lc_type}</span>
-                                        {lc.anomalous && (
-                                            <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">
-                                                Anomalous
-                                            </span>
+                            .map((lc) => {
+                                const colorData = countyColors?.by_landcover.find(b => b.lc_type === lc.lc_type)
+                                return (
+                                    <div
+                                        key={lc.lc_type}
+                                        className={cn(
+                                            'p-3 rounded-lg border',
+                                            lc.anomalous
+                                                ? 'bg-red-50 border-red-300'
+                                                : 'bg-gray-50 border-gray-200'
                                         )}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-medium text-sm">{lc.lc_type}</span>
+                                            {lc.anomalous && (
+                                                <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">
+                                                    Anomalous
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-baseline gap-3 mb-2">
+                                            <div className="text-2xl font-bold">{lc.divergence.toFixed(3)}</div>
+                                            {colorData && (
+                                                <div className="text-xs text-gray-500">{colorData.county_total.toLocaleString()} structures</div>
+                                            )}
+                                        </div>
+
+                                        {colorData ? (
+                                            <ColorStrips colorData={colorData} />
+                                        ) : (
+                                            <div className="h-5 bg-gray-100 rounded animate-pulse" />
+                                        )}
+
+                                        <div className="text-xs text-gray-500 mt-2">
+                                            JS Divergence from baseline
+                                        </div>
                                     </div>
-                                    <div className="text-2xl font-bold">
-                                        {lc.divergence.toFixed(3)}
-                                    </div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        JS Divergence from baseline
-                                    </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                     </div>
 
                     <div className="mt-6 p-3 bg-blue-50 rounded-lg text-xs text-gray-700">
                         <strong>Note:</strong> Divergence measures how different this county's color distribution
                         is from the statewide baseline for each landcover type. Higher = more unusual.
+                        Hover swatches to see color names and percentages.
                     </div>
                 </div>
             )}

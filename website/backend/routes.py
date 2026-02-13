@@ -1538,6 +1538,7 @@ def get_group_divergence_map():
         if fips_str:
             fips_int = int(fips_str)
             if fips_int in summary_dict:
+                feature["properties"]["fips"] = str(fips_int).zfill(5)
                 feature["properties"]["num_anomalies"] = summary_dict[fips_int]["num_anomalies"]
                 feature["properties"]["avg_divergence"] = summary_dict[fips_int]["avg_divergence"]
                 features.append(feature)
@@ -1579,6 +1580,47 @@ def get_group_divergence_county(fips: int):
             for row in county_data.iter_rows(named=True)
         ]
     }
+
+
+@router.get("/group-divergence/county/{fips}/colors")
+def get_group_divergence_county_colors(fips: int):
+    """Get county vs statewide color distributions per landcover type."""
+    county_df = df.filter(pl.col("fips") == fips)
+
+    if len(county_df) == 0:
+        raise HTTPException(404, f"No data found for county {fips}")
+
+    lc_types = county_df["lc_type"].unique().to_list()
+    by_landcover = []
+
+    for lc in lc_types:
+        lc_county = county_df.filter(pl.col("lc_type") == lc)
+        lc_state = df.filter(pl.col("lc_type") == lc)
+
+        county_counts = lc_county.group_by("clr").agg(pl.len().alias("n"))
+        county_total = county_counts["n"].sum()
+        county_freqs = {row["clr"]: row["n"] / county_total for row in county_counts.iter_rows(named=True)}
+
+        state_counts = lc_state.group_by("clr").agg(pl.len().alias("n"))
+        state_total = state_counts["n"].sum()
+        state_freqs = {row["clr"]: row["n"] / state_total for row in state_counts.iter_rows(named=True)}
+
+        all_colors = sorted(set(county_freqs) | set(state_freqs))
+
+        by_landcover.append({
+            "lc_type": lc,
+            "county_total": int(county_total),
+            "colors": [
+                {
+                    "color": c,
+                    "county_freq": round(county_freqs.get(c, 0), 4),
+                    "baseline_freq": round(state_freqs.get(c, 0), 4),
+                }
+                for c in all_colors
+            ]
+        })
+
+    return {"fips": fips, "by_landcover": by_landcover}
 
 
 @router.get("/group-divergence/color-pairs")
