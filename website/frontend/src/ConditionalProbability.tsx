@@ -93,6 +93,7 @@ interface CountyDetail {
 export function ConditionalProbability() {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
+    const selectedLandcoverRef = useRef<string>('')
     const [landcoverTypes, setLandcoverTypes] = useState<string[]>([])
     const [selectedLandcover, setSelectedLandcover] = useState<string>('')
     const [selectedMetric, setSelectedMetric] = useState<string>('kl_div')
@@ -104,10 +105,16 @@ export function ConditionalProbability() {
     const [error, setError] = useState<string | null>(null)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isMapReady, setIsMapReady] = useState(false)
+
+    useEffect(() => {
+        selectedLandcoverRef.current = selectedLandcover
+    }, [selectedLandcover])
 
     const loadCountyDetail = useCallback(async (fips: string) => {
         try {
-            const lcParam = selectedLandcover ? `?lc_type=${encodeURIComponent(selectedLandcover)}` : ''
+            const lc = selectedLandcoverRef.current
+            const lcParam = lc ? `?lc_type=${encodeURIComponent(lc)}` : ''
             const response = await fetch(`${API_URL}/conditional-pooling/county/${fips}${lcParam}`)
             if (!response.ok) throw new Error('Failed to load county detail')
             const data = await response.json()
@@ -116,7 +123,7 @@ export function ConditionalProbability() {
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load county detail')
         }
-    }, [selectedLandcover])
+    }, [])
 
     useEffect(() => {
         if (!mapContainer.current || map.current) return
@@ -128,6 +135,7 @@ export function ConditionalProbability() {
                 center: [-119.5, 37.0],
                 zoom: 5.5
             })
+            map.current.on('load', () => setIsMapReady(true))
 
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
 
@@ -154,6 +162,7 @@ export function ConditionalProbability() {
                 map.current.remove()
                 map.current = null
             }
+            setIsMapReady(false)
         }
     }, [loadCountyDetail])
 
@@ -189,7 +198,6 @@ export function ConditionalProbability() {
             const data = await response.json()
             if (data.features && data.features.length > 0) {
                 setMapData(data)
-                updateMapLayer(data)
             } else {
                 setError('No data found for the selected filters')
                 setLegendRange(null)
@@ -336,16 +344,15 @@ export function ConditionalProbability() {
     }, [selectedMetric])
 
     useEffect(() => {
-        if (landcoverTypes.length > 0 && !mapData) {
-            loadMapData()
-        }
-    }, [landcoverTypes.length, loadMapData, mapData])
+        if (!isMapReady || landcoverTypes.length === 0) return
+        loadMapData()
+    }, [isMapReady, landcoverTypes.length, selectedMetric, selectedLandcover, loadMapData])
 
     useEffect(() => {
-        if (mapData && map.current && mapData.features && mapData.features.length > 0) {
+        if (isMapReady && mapData && map.current && mapData.features && mapData.features.length > 0) {
             updateMapLayer(mapData)
         }
-    }, [mapData, updateMapLayer])
+    }, [isMapReady, mapData, updateMapLayer])
 
     const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
 
@@ -423,14 +430,6 @@ export function ConditionalProbability() {
                             ))}
                         </select>
                     </div>
-                    
-                    <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
-                        onClick={loadMapData}
-                        disabled={loading}
-                    >
-                        {loading ? 'Loading...' : 'Load Map'}
-                    </button>
                     
                     <button
                         className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
