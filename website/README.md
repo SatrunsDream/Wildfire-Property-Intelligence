@@ -68,34 +68,11 @@ The backend expects data files in `backend/data/`:
 
 Set custom paths via environment variables `DATA_PATH`, `NEIGHBORS_PATH`, `C2ST_PATH`, `BAYESIAN_BASELINE_PATH`, `BAYESIAN_STABILIZED_PATH`, and `BAYESIAN_COUNTS_PATH`.
 
-## Single Docker Image (Railway-Ready)
-
-- builds the Vite frontend
-- runs FastAPI
-- serves the built frontend from the same process/image
-
-### Build and run locally
-
-```bash
-docker build -t wildfire-site .
-docker run --rm -p 8000:8000 wildfire-site
-```
-
-Open `http://localhost:8000`.
-
 ### Optional environment variables
 
 - `PORT`: runtime port
 - `ALLOWED_ORIGINS`: comma-separated CORS origins for cross-origin setups
 - `VITE_API_URL`: build-time frontend API base URL
+- `DATA_PATH`: main dataset CSV path (default `backend/data/Capstone2025_nsi_lvl9_with_landcover_and_color.csv`)
 - `RATE_LIMIT_MAX_REQUESTS`: max API requests allowed per client IP in the window (default `50`)
 - `RATE_LIMIT_WINDOW_SECONDS`: window size for rate limit in seconds (default `600`, i.e. 10 minutes)
-
-### Railway Deployment
-
-```bash
-# from repository root
-railway login
-railway link
-railway up --detach -m "Deploy single-image FastAPI + Vite app"
-```
