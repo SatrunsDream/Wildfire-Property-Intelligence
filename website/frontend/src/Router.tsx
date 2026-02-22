@@ -15,6 +15,7 @@ const pageTitles: Record<Page, string> = {
     'empirical-bayes': 'Empirical Bayes Pooling',
     'neighbor-divergence': 'Neighbor Divergence',
     'c2st': 'C2ST',
+    'morans-i': "Moran's I",
     'group-divergence': 'Group-Level Divergence',
 }
 
