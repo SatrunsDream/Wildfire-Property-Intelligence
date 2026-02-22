@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 import { cn } from './lib/utils'
 import { chartColors } from './lib/chart-colors'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 const COLOR_MAP: Record<string, string> = {
@@ -300,10 +300,10 @@ export function ConditionalProbability() {
 
             const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
 
-            map.current.off('mousemove', 'counties')
-            map.current.off('mouseleave', 'counties')
+            ;(map.current as any).off('mousemove', 'counties-fill')
+            ;(map.current as any).off('mouseleave', 'counties-fill')
 
-            map.current.on('mousemove', 'counties', (e) => {
+            ;(map.current as any).on('mousemove', 'counties-fill', (e: any) => {
                 if (!e.features || e.features.length === 0) return
                 if (map.current) {
                     map.current.getCanvas().style.cursor = 'pointer'
@@ -332,7 +332,7 @@ export function ConditionalProbability() {
                 popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
             })
 
-            map.current.on('mouseleave', 'counties', () => {
+            ;(map.current as any).on('mouseleave', 'counties-fill', () => {
                 if (map.current) {
                     map.current.getCanvas().style.cursor = ''
                     popup.remove()

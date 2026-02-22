@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import * as d3 from 'd3'
 import { cn } from './lib/utils'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 interface MoranMapData {
@@ -216,11 +216,11 @@ export function MoransIMap() {
 
         const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
 
-        map.current.off('mousemove', 'counties')
-        map.current.off('mouseleave', 'counties')
-        map.current.off('click', 'counties')
+        ;(map.current as any).off('mousemove', 'counties-fill')
+        ;(map.current as any).off('mouseleave', 'counties-fill')
+        ;(map.current as any).off('click', 'counties-fill')
 
-        map.current.on('mousemove', 'counties', (e) => {
+        ;(map.current as any).on('mousemove', 'counties-fill', (e: any) => {
             if (!e.features || e.features.length === 0) return
             if (map.current) map.current.getCanvas().style.cursor = 'pointer'
             const props = e.features[0].properties as any
@@ -234,14 +234,14 @@ export function MoransIMap() {
             popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
         })
 
-        map.current.on('mouseleave', 'counties', () => {
+        ;(map.current as any).on('mouseleave', 'counties-fill', () => {
             if (map.current) {
                 map.current.getCanvas().style.cursor = ''
                 popup.remove()
             }
         })
 
-        map.current.on('click', 'counties', (e) => {
+        ;(map.current as any).on('click', 'counties-fill', (e: any) => {
             if (!e.features || e.features.length === 0) return
             const props = e.features[0].properties as any
             if (props.fips) {

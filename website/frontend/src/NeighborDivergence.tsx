@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { cn } from './lib/utils'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 const COLOR_MAP: Record<string, string> = {
@@ -156,13 +156,13 @@ export function NeighborDivergence() {
 
     const [colorGroups, setColorGroups] = useState<ColorGroup[]>([])
     const [showColorPanel, setShowColorPanel] = useState(false)
-    const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set())
     const [newGroupName, setNewGroupName] = useState('')
     const [allColors, setAllColors] = useState<string[]>([])
 
     // Map comparison state
     const [showMergedMap, setShowMergedMap] = useState(false)
     const [mergedMapLoading, setMergedMapLoading] = useState(false)
+    const [mainMapReady, setMainMapReady] = useState(false)
 
     const [showComparisonPanel, setShowComparisonPanel] = useState(false)
 
@@ -213,10 +213,12 @@ export function NeighborDivergence() {
         })
 
         map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
+        map.current.on('load', () => setMainMapReady(true))
 
         return () => {
             map.current?.remove()
             map.current = null
+            setMainMapReady(false)
         }
     }, [])
 
@@ -429,19 +431,9 @@ export function NeighborDivergence() {
     }, [])
 
     useEffect(() => {
-        if (!map.current || !data) return
-
-        const addLayers = () => {
-            if (!map.current) return
-            addLayersToMap(map.current, data, true)
-        }
-
-        if (map.current.loaded()) {
-            addLayers()
-        } else {
-            map.current.on('load', addLayers)
-        }
-    }, [data, addLayersToMap])
+        if (!mainMapReady || !map.current || !data) return
+        addLayersToMap(map.current, data, true)
+    }, [mainMapReady, data, addLayersToMap])
 
     useEffect(() => {
         if (!mergedMap.current || !mergedData || !mergedMapReady) return
@@ -587,7 +579,9 @@ export function NeighborDivergence() {
     const addPreset = (presetKey: keyof typeof PRESETS) => {
         const preset = PRESETS[presetKey]
         if (colorGroups.some(g => g.name === preset.name)) return
-        setColorGroups([...colorGroups, { ...preset }])
+        const nextGroups = [...colorGroups, { ...preset }]
+        setColorGroups(nextGroups)
+        recalculateAllPairs(nextGroups)
     }
 
     const addAllPresets = () => {
@@ -597,49 +591,36 @@ export function NeighborDivergence() {
                 newGroups.push({ ...preset })
             }
         }
-        setColorGroups([...colorGroups, ...newGroups])
+        if (newGroups.length === 0) return
+        const nextGroups = [...colorGroups, ...newGroups]
+        setColorGroups(nextGroups)
+        recalculateAllPairs(nextGroups)
     }
 
     const removeGroup = (name: string) => {
-        setColorGroups(colorGroups.filter(g => g.name !== name))
+        const nextGroups = colorGroups.filter(g => g.name !== name)
+        setColorGroups(nextGroups)
+        if (nextGroups.length === 0) {
+            setShowMergedMap(false)
+            setMergedData(null)
+        } else {
+            recalculateAllPairs(nextGroups)
+        }
     }
 
     const resetGroups = () => {
         setColorGroups([])
-        setSelectedColors(new Set())
+        setNewGroupName('')
         setShowMergedMap(false)
         setMergedData(null)
     }
 
-    const toggleColorSelection = (color: string) => {
-        const newSelected = new Set(selectedColors)
-        if (newSelected.has(color)) {
-            newSelected.delete(color)
-        } else {
-            newSelected.add(color)
-        }
-        setSelectedColors(newSelected)
-    }
-
-    const addSelectedToGroup = (groupName: string) => {
-        if (selectedColors.size === 0) return
-
-        if (groupName === '__new__') {
-            if (!newGroupName.trim()) return
-            const newGroup: ColorGroup = {
-                name: newGroupName.trim().toLowerCase().replace(/\s+/g, '_'),
-                colors: Array.from(selectedColors)
-            }
-            setColorGroups([...colorGroups, newGroup])
-            setNewGroupName('')
-        } else {
-            setColorGroups(colorGroups.map(g =>
-                g.name === groupName
-                    ? { ...g, colors: [...new Set([...g.colors, ...selectedColors])] }
-                    : g
-            ))
-        }
-        setSelectedColors(new Set())
+    const createGroup = () => {
+        const normalized = newGroupName.trim().toLowerCase().replace(/\s+/g, '_')
+        if (!normalized) return
+        if (colorGroups.some(g => g.name === normalized)) return
+        setColorGroups([...colorGroups, { name: normalized, colors: [] }])
+        setNewGroupName('')
     }
 
     const handleDragStart = (color: string, fromGroup: string | null) => {
@@ -681,14 +662,19 @@ export function NeighborDivergence() {
             })
         }
 
-        newGroups = newGroups.filter(g => g.colors.length > 0)
-
         setColorGroups(newGroups)
+        if (newGroups.length === 0) {
+            setShowMergedMap(false)
+            setMergedData(null)
+        } else {
+            recalculateAllPairs(newGroups)
+        }
         setDraggedColor(null)
     }
 
-    const recalculateAllPairs = async () => {
-        if (colorGroups.length === 0) return
+    const recalculateAllPairs = async (groupsOverride?: ColorGroup[]) => {
+        const groups = groupsOverride ?? colorGroups
+        if (groups.length === 0) return
 
         setMergedMapLoading(true)
         setShowMergedMap(true)
@@ -697,7 +683,7 @@ export function NeighborDivergence() {
             const res = await fetch(`${API_URL}/map/neighbor-divergence-merged`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ color_groups: colorGroups })
+                body: JSON.stringify({ color_groups: groups })
             })
             const result = await res.json()
             setMergedData(result)
@@ -1034,8 +1020,8 @@ export function NeighborDivergence() {
                                             onDrop={(e) => handleDrop(e, group.name)}
                                         >
                                             <span className="font-medium min-w-[70px]">{group.name}</span>
-                                            <span className="flex items-center gap-1 flex-1 flex-wrap">
-                                                {group.colors.map(c => (
+                                    <span className="flex items-center gap-1 flex-1 flex-wrap">
+                                        {group.colors.map(c => (
                                                     <span
                                                         key={c}
                                                         draggable
@@ -1066,83 +1052,56 @@ export function NeighborDivergence() {
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, null)}
                         >
-                            <h4 className="text-xs font-semibold mb-1.5">Ungrouped Colors</h4>
+                            <h4 className="text-xs font-semibold mb-1.5">Ungrouped Colors (drag into a group)</h4>
                             <div className="flex flex-wrap gap-1 min-h-[40px]">
                                 {ungroupedColors.map(color => (
-                                    <button
+                                    <div
                                         key={color}
                                         draggable
                                         onDragStart={() => handleDragStart(color, null)}
                                         onDragEnd={handleDragEnd}
                                         className={cn(
                                             'inline-flex items-center gap-1 px-2 py-0.5 text-xs border rounded cursor-grab active:cursor-grabbing transition-all',
-                                            selectedColors.has(color)
-                                                ? 'border-sage-500 bg-sage-100 text-foreground'
-                                                : 'border-border text-muted-foreground hover:border-sage-400',
+                                            'border-border text-muted-foreground hover:border-sage-400',
                                             draggedColor?.color === color && 'opacity-50'
                                         )}
-                                        onClick={() => toggleColorSelection(color)}
                                     >
                                         <span
                                             className="w-3 h-3 rounded-full border border-border"
                                             style={{ backgroundColor: COLOR_MAP[color] || '#ccc' }}
                                         />
                                         {color}
-                                    </button>
+                                    </div>
                                 ))}
                                 {ungroupedColors.length === 0 && (
                                     <span className="text-xs text-muted-foreground italic">All colors are grouped</span>
                                 )}
                             </div>
 
-                            {selectedColors.size > 0 && (
-                                <div className="flex items-center gap-2 mt-2 p-2 bg-sage-50 rounded border border-sage-200">
-                                    <span className="text-xs font-medium text-sage-700">{selectedColors.size} selected</span>
-                                    <select
-                                        className="px-2 py-1 text-xs border border-border rounded bg-white"
-                                        onChange={(e) => {
-                                            if (e.target.value) {
-                                                addSelectedToGroup(e.target.value)
-                                                e.target.value = ''
-                                            }
-                                        }}
-                                    >
-                                        <option value="">Add to...</option>
-                                        {colorGroups.map(g => (
-                                            <option key={g.name} value={g.name}>{g.name}</option>
-                                        ))}
-                                        <option value="__new__">+ New</option>
-                                    </select>
-                                    <input
-                                        type="text"
-                                        placeholder="Group name"
-                                        value={newGroupName}
-                                        onChange={(e) => setNewGroupName(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && newGroupName.trim()) {
-                                                addSelectedToGroup('__new__')
-                                            }
-                                        }}
-                                        className="px-2 py-1 text-xs border border-border rounded flex-1"
-                                    />
-                                </div>
-                            )}
+                            <div className="flex items-center gap-2 mt-2 p-2 bg-sage-50 rounded border border-sage-200">
+                                <input
+                                    type="text"
+                                    placeholder="New group name"
+                                    value={newGroupName}
+                                    onChange={(e) => setNewGroupName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            createGroup()
+                                        }
+                                    }}
+                                    className="px-2 py-1 text-xs border border-border rounded flex-1"
+                                />
+                                <button
+                                    className="px-2.5 py-1 text-xs border border-sage-300 rounded bg-white hover:bg-sage-100 transition-colors"
+                                    onClick={createGroup}
+                                >
+                                    Create Group
+                                </button>
+                            </div>
                         </div>
 
-                        <button
-                            className={cn(
-                                'w-full px-3 py-2 text-xs font-semibold rounded transition-colors',
-                                colorGroups.length === 0 || mergedMapLoading
-                                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                    : 'bg-sage-500 text-white hover:bg-sage-600 cursor-pointer'
-                            )}
-                            onClick={recalculateAllPairs}
-                            disabled={colorGroups.length === 0 || mergedMapLoading}
-                        >
-                            {mergedMapLoading ? 'Calculating...' : 'Recalculate All Pairs'}
-                        </button>
                         {colorGroups.length === 0 && (
-                            <p className="text-[10px] text-muted-foreground text-center">Add color groups to enable recalculation</p>
+                            <p className="text-[10px] text-muted-foreground text-center">Create a group, then drag colors into it</p>
                         )}
                     </div>
                 </div>

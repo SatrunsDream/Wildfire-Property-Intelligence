@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 import { cn } from './lib/utils'
 import { chartColors } from './lib/chart-colors'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 const COLOR_MAP: Record<string, string> = {
@@ -101,6 +101,7 @@ interface CountyDetail {
 export function EmpiricalBayesPooling() {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
+    const selectedLandcoverRef = useRef<string>('')
     const [landcoverTypes, setLandcoverTypes] = useState<string[]>([])
     const [selectedLandcover, setSelectedLandcover] = useState<string>('')
     const [mapData, setMapData] = useState<CountyMapData | null>(null)
@@ -111,10 +112,16 @@ export function EmpiricalBayesPooling() {
     const [error, setError] = useState<string | null>(null)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isMapReady, setIsMapReady] = useState(false)
+
+    useEffect(() => {
+        selectedLandcoverRef.current = selectedLandcover
+    }, [selectedLandcover])
 
     const loadCountyDetail = useCallback(async (fips: string) => {
         try {
-            const lcParam = selectedLandcover ? `&lc_type=${encodeURIComponent(selectedLandcover)}` : ''
+            const lc = selectedLandcoverRef.current
+            const lcParam = lc ? `&lc_type=${encodeURIComponent(lc)}` : ''
             const response = await fetch(`${API_URL}/bayesian/county/${fips}?${lcParam}`)
             if (!response.ok) {
                 const errorText = await response.text()
@@ -127,7 +134,7 @@ export function EmpiricalBayesPooling() {
             console.error('Failed to load county detail:', err)
             setError(err instanceof Error ? err.message : 'Failed to load county detail')
         }
-    }, [selectedLandcover])
+    }, [])
 
     // Initialize map
     useEffect(() => {
@@ -143,7 +150,7 @@ export function EmpiricalBayesPooling() {
 
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
 
-            map.current.on('load', () => {})
+            map.current.on('load', () => setIsMapReady(true))
 
             map.current.on('click', 'counties', (e) => {
                 if (e.features && e.features[0]) {
@@ -172,6 +179,7 @@ export function EmpiricalBayesPooling() {
                 map.current.remove()
                 map.current = null
             }
+            setIsMapReady(false)
         }
     }, [loadCountyDetail])
 
@@ -237,7 +245,6 @@ export function EmpiricalBayesPooling() {
                 // Don't call updateMapLayer - preserve existing map display
             } else {
                 setMapData(data)
-                updateMapLayer(data)
                 setError(null) // Clear any previous errors
             }
         } catch (err) {
@@ -409,19 +416,16 @@ export function EmpiricalBayesPooling() {
 
 
 
-    // Initial load with "All Landcover Types" when landcover types are loaded (only once)
     useEffect(() => {
-        if (landcoverTypes.length > 0 && !mapData) {
-            loadMapData()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [landcoverTypes.length])
+        if (!isMapReady || landcoverTypes.length === 0) return
+        loadMapData()
+    }, [isMapReady, landcoverTypes.length, selectedLandcover, loadMapData])
 
     useEffect(() => {
-        if (mapData && map.current && mapData.features && mapData.features.length > 0) {
+        if (isMapReady && mapData && map.current && mapData.features && mapData.features.length > 0) {
             updateMapLayer(mapData)
         }
-    }, [mapData])
+    }, [isMapReady, mapData])
 
     const toggleFullscreen = () => setIsFullscreen(!isFullscreen)
 
@@ -497,14 +501,6 @@ export function EmpiricalBayesPooling() {
                             ))}
                         </select>
                     </div>
-                    
-                    <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-sage-500 text-[11px] font-medium text-white cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-600"
-                        onClick={loadMapData}
-                        disabled={loading}
-                    >
-                        {loading ? 'Loading...' : 'Load Map'}
-                    </button>
                     
                     <button
                         className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
@@ -833,4 +829,3 @@ function ComparisonChart({
         </div>
     )
 }
-
