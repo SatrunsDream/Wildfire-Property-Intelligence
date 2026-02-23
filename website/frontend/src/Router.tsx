@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HomePage } from './HomePage'
 import { ConditionalProbability } from './ConditionalProbability'
 import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
 import { NeighborDivergence } from './NeighborDivergence'
@@ -36,8 +37,8 @@ export function Router() {
                 <SiteHeader title={pageTitles[page]} />
                 <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="@container/main flex flex-1 flex-col min-h-0">
-                        <div className={page === 'home' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6' : 'hidden'}>
-                            {/* Home page content */}
+                        <div className={page === 'home' ? 'overflow-y-auto px-4 lg:px-8' : 'hidden'}>
+                            <HomePage />
                         </div>
                         <div className={page === 'conditional-probability' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <ConditionalProbability />

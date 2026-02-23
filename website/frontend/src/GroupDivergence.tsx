@@ -3,7 +3,6 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { cn } from './lib/utils'
 
-const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 function buildFillColor(metric: 'num_anomalies' | 'avg_divergence') {
@@ -13,7 +12,6 @@ function buildFillColor(metric: 'num_anomalies' | 'avg_divergence') {
     return ['interpolate', ['linear'], ['get', metric], ...stops]
 }
 
-// CSS color approximations for non-standard names
 const COLOR_MAP: Record<string, string> = {
     alabaster: '#f2efe8',
     amber: '#ffbf00',
@@ -39,11 +37,6 @@ interface LandcoverDivergence {
     anomalous: boolean
 }
 
-interface CountyDetail {
-    fips: number
-    landcover_divergences: LandcoverDivergence[]
-}
-
 interface ColorEntry {
     color: string
     county_freq: number
@@ -54,11 +47,6 @@ interface LandcoverColors {
     lc_type: string
     county_total: number
     colors: ColorEntry[]
-}
-
-interface CountyColors {
-    fips: number
-    by_landcover: LandcoverColors[]
 }
 
 interface MapData {
@@ -121,23 +109,29 @@ export default function GroupDivergence() {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
     const [mapData, setMapData] = useState<MapData | null>(null)
-    const [selectedCounty, setSelectedCounty] = useState<CountyDetail | null>(null)
+    const [byCounty, setByCounty] = useState<Record<string, LandcoverDivergence[]> | null>(null)
+    const [allCountyColors, setAllCountyColors] = useState<Record<string, { by_landcover: LandcoverColors[] }> | null>(null)
+    const [selectedDivergences, setSelectedDivergences] = useState<LandcoverDivergence[] | null>(null)
     const [selectedFips, setSelectedFips] = useState<string | null>(null)
-    const [countyColors, setCountyColors] = useState<CountyColors | null>(null)
+    const [countyColors, setCountyColors] = useState<{ by_landcover: LandcoverColors[] } | null>(null)
     const [metric, setMetric] = useState<'num_anomalies' | 'avg_divergence'>('avg_divergence')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    // Load map data
+    // Load all static data on mount
     useEffect(() => {
-        fetch(`${API_URL}/group-divergence/map`)
-            .then(res => res.json())
-            .then(data => {
-                setMapData(data)
+        Promise.all([
+            fetch('/data/group-divergence.json').then(r => r.json()),
+            fetch('/data/county-colors.json').then(r => r.json()),
+        ])
+            .then(([gd, cc]) => {
+                setMapData(gd.map)
+                setByCounty(gd.by_county)
+                setAllCountyColors(cc)
                 setLoading(false)
             })
             .catch(err => {
-                setError(`Failed to load map data: ${err.message}`)
+                setError(`Failed to load data: ${err.message}`)
                 setLoading(false)
             })
     }, [])
@@ -185,20 +179,11 @@ export default function GroupDivergence() {
 
             map.current.on('click', 'counties-fill', (e) => {
                 if (e.features && e.features.length > 0) {
-                    const feature = e.features[0]
-                    const fips = feature.properties?.fips
-
+                    const fips = e.features[0].properties?.fips as string | undefined
                     if (fips) {
                         setSelectedFips(fips)
-                        setCountyColors(null)
-                        fetch(`${API_URL}/group-divergence/county/${fips}`)
-                            .then(res => res.json())
-                            .then(data => setSelectedCounty(data))
-                            .catch(err => console.error('Failed to load county detail:', err))
-                        fetch(`${API_URL}/group-divergence/county/${fips}/colors`)
-                            .then(res => res.json())
-                            .then(data => setCountyColors(data))
-                            .catch(err => console.error('Failed to load county colors:', err))
+                        setSelectedDivergences(byCounty?.[fips] ?? null)
+                        setCountyColors(allCountyColors?.[fips] ?? null)
                     }
                 }
             })
@@ -221,7 +206,6 @@ export default function GroupDivergence() {
     // Update map colors when metric changes
     useEffect(() => {
         if (!map.current || !map.current.getLayer('counties-fill')) return
-
         map.current.setPaintProperty('counties-fill', 'fill-color', buildFillColor(metric))
     }, [metric])
 
@@ -243,11 +227,9 @@ export default function GroupDivergence() {
 
     return (
         <div className="relative flex-1 min-h-0">
-            {/* Map Container */}
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
 
-                {/* Controls */}
                 <div className="absolute top-2.5 left-2.5 bg-white/95 rounded shadow-elevated p-3 space-y-3 z-10 w-48">
                     <div>
                         <h2 className="font-semibold text-lg mb-2">Group-Level Divergence</h2>
@@ -279,15 +261,14 @@ export default function GroupDivergence() {
                 </div>
             </div>
 
-            {/* County Detail Panel */}
-            {selectedCounty && (
+            {selectedDivergences && (
                 <div className="absolute top-2.5 right-2.5 w-96 max-h-[calc(100vh-5rem)] bg-white/95 rounded shadow-elevated p-4 overflow-y-auto z-10">
                     <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-semibold">County {selectedFips}</h3>
                             <button
                                 onClick={() => {
-                                    setSelectedCounty(null)
+                                    setSelectedDivergences(null)
                                     setSelectedFips(null)
                                     setCountyColors(null)
                                 }}
@@ -302,7 +283,7 @@ export default function GroupDivergence() {
                     </div>
 
                     <div className="space-y-3">
-                        {selectedCounty.landcover_divergences
+                        {[...selectedDivergences]
                             .sort((a, b) => b.divergence - a.divergence)
                             .map((lc) => {
                                 const colorData = countyColors?.by_landcover.find(b => b.lc_type === lc.lc_type)
@@ -334,7 +315,7 @@ export default function GroupDivergence() {
                                         {colorData ? (
                                             <ColorStrips colorData={colorData} />
                                         ) : (
-                                            <div className="h-5 bg-gray-100 rounded animate-pulse" />
+                                            <div className="h-5 bg-gray-100 rounded" />
                                         )}
 
                                         <div className="text-xs text-gray-500 mt-2">
