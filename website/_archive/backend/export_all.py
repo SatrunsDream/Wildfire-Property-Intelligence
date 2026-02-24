@@ -44,11 +44,17 @@ def load_geojson() -> dict:
 
 
 def get_feature_distribution(df_a: pl.DataFrame, df_b: pl.DataFrame, col: str):
-    total_a = len(df_a)
-    total_b = len(df_b)
+    total_a = int(df_a["clr_cc"].sum() or 0)
+    total_b = int(df_b["clr_cc"].sum() or 0)
 
-    counts_a = {r[col]: r["count"] for r in df_a.group_by(col).len().rename({"len": "count"}).iter_rows(named=True)}
-    counts_b = {r[col]: r["count"] for r in df_b.group_by(col).len().rename({"len": "count"}).iter_rows(named=True)}
+    counts_a = {
+        r[col]: r["count"]
+        for r in df_a.group_by(col).agg(pl.col("clr_cc").sum().alias("count")).iter_rows(named=True)
+    }
+    counts_b = {
+        r[col]: r["count"]
+        for r in df_b.group_by(col).agg(pl.col("clr_cc").sum().alias("count")).iter_rows(named=True)
+    }
 
     all_values = sorted(set(counts_a) | set(counts_b))
     unique_a = set(counts_a) - set(counts_b)
@@ -197,7 +203,7 @@ def export_county_colors(main_df: pl.DataFrame):
 
     all_fips = main_df["fips"].unique().to_list()
     state_lc_color_counts = (
-        main_df.group_by(["lc_type", "clr"]).len().rename({"len": "n"})
+        main_df.group_by(["lc_type", "clr"]).agg(pl.col("clr_cc").sum().alias("n"))
     )
     state_lc_totals = state_lc_color_counts.group_by("lc_type").agg(pl.col("n").sum().alias("total"))
     state_lc_total_dict = {r["lc_type"]: r["total"] for r in state_lc_totals.iter_rows(named=True)}
@@ -214,7 +220,7 @@ def export_county_colors(main_df: pl.DataFrame):
 
         for lc in lc_types:
             lc_county = county_df.filter(pl.col("lc_type") == lc)
-            county_counts = lc_county.group_by("clr").len().rename({"len": "n"})
+            county_counts = lc_county.group_by("clr").agg(pl.col("clr_cc").sum().alias("n"))
             county_total = county_counts["n"].sum()
             county_freqs = {r["clr"]: r["n"] / county_total for r in county_counts.iter_rows(named=True)}
 
@@ -267,7 +273,7 @@ def export_county_pair_comparisons(main_df: pl.DataFrame):
             "county_a": {
                 "fips": fips_a,
                 "name": FIPS_TO_COUNTY_NAME.get(fips_a, fips_a),
-                "total_count": len(df_a),
+                "total_count": int(df_a["clr_cc"].sum() or 0),
                 "clr": {"distribution": clr_a, "vocab_size": va},
                 "bldgtype": {"distribution": bldg_a, "vocab_size": len({d["value"] for d in bldg_a if d["count"] > 0})},
                 "st_damcat": {"distribution": occ_a, "vocab_size": len({d["value"] for d in occ_a if d["count"] > 0})},
@@ -275,7 +281,7 @@ def export_county_pair_comparisons(main_df: pl.DataFrame):
             "county_b": {
                 "fips": fips_b,
                 "name": FIPS_TO_COUNTY_NAME.get(fips_b, fips_b),
-                "total_count": len(df_b),
+                "total_count": int(df_b["clr_cc"].sum() or 0),
                 "clr": {"distribution": clr_b, "vocab_size": vb},
                 "bldgtype": {"distribution": bldg_b, "vocab_size": len({d["value"] for d in bldg_b if d["count"] > 0})},
                 "st_damcat": {"distribution": occ_b, "vocab_size": len({d["value"] for d in occ_b if d["count"] > 0})},

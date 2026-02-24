@@ -44,7 +44,9 @@ def main():
     all_colors = df["clr"].unique().sort().to_list()
     all_lc_types = df["lc_type"].unique().sort().to_list()
 
-    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).len().rename({"len": "count"})
+    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).agg(
+        pl.col("clr_cc").sum().alias("count")
+    )
     county_lc_support = county_lc_clr_counts.group_by(["fips", "lc_type"]).agg(
         pl.col("count").sum().alias("support")
     )
