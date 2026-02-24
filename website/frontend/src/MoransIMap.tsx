@@ -173,7 +173,7 @@ export function MoransIMap() {
         try {
             map.current = new maplibregl.Map({ container: mapContainer.current, style: MAP_STYLE, center: [-119.5, 37.0], zoom: 5.5 })
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
-            map.current.on('load', () => setIsMapReady(true))
+            map.current.once('load', () => setIsMapReady(true))
             map.current.on('error', () => setError('Map initialization error'))
         } catch { setError('Failed to initialize map') }
         return () => { if (map.current) { map.current.remove(); map.current = null } }
@@ -211,11 +211,9 @@ export function MoransIMap() {
     }, [loadCountyDetail])
 
     useEffect(() => {
-        if (map.current && mapData) {
-            if (map.current.loaded()) updateMapLayer(mapData)
-            else map.current.on('load', () => updateMapLayer(mapData))
-        }
-    }, [mapData, updateMapLayer])
+        if (!isMapReady || !map.current || !mapData) return
+        updateMapLayer(mapData)
+    }, [isMapReady, mapData, updateMapLayer])
 
     const stats = mapData ? mapData.stats : null
 
