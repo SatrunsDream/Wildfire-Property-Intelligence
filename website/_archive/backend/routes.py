@@ -172,7 +172,7 @@ def get_neighbor_divergence_map():
     all_colors = df["clr"].unique().sort().to_list()
     all_lc_types = df["lc_type"].unique().sort().to_list()
 
-    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).len().rename({"len": "count"})
+    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).agg(pl.col("clr_cc").sum().alias("count"))
     county_lc_support = county_lc_clr_counts.group_by(["fips", "lc_type"]).agg(pl.col("count").sum().alias("support"))
     support_dict = {(row["fips"], row["lc_type"]): row["support"] for row in county_lc_support.iter_rows(named=True)}
 
@@ -765,7 +765,7 @@ def get_neighbor_divergence_merged(req: ColorGroupedDivergenceRequest):
 
     all_lc_types = df["lc_type"].unique().sort().to_list()
 
-    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).len().rename({"len": "count"})
+    county_lc_clr_counts = df.group_by(["fips", "lc_type", "clr"]).agg(pl.col("clr_cc").sum().alias("count"))
     county_lc_support = county_lc_clr_counts.group_by(["fips", "lc_type"]).agg(pl.col("count").sum().alias("support"))
     support_dict = {(row["fips"], row["lc_type"]): row["support"] for row in county_lc_support.iter_rows(named=True)}
 
@@ -1114,11 +1114,11 @@ def get_group_divergence_county_colors(fips: int):
         lc_county = county_df.filter(pl.col("lc_type") == lc)
         lc_state = df.filter(pl.col("lc_type") == lc)
 
-        county_counts = lc_county.group_by("clr").agg(pl.len().alias("n"))
+        county_counts = lc_county.group_by("clr").agg(pl.col("clr_cc").sum().alias("n"))
         county_total = county_counts["n"].sum()
         county_freqs = {row["clr"]: row["n"] / county_total for row in county_counts.iter_rows(named=True)}
 
-        state_counts = lc_state.group_by("clr").agg(pl.len().alias("n"))
+        state_counts = lc_state.group_by("clr").agg(pl.col("clr_cc").sum().alias("n"))
         state_total = state_counts["n"].sum()
         state_freqs = {row["clr"]: row["n"] / state_total for row in state_counts.iter_rows(named=True)}
 

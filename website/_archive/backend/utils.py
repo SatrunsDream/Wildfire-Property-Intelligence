@@ -114,8 +114,8 @@ def build_hex_geojson(hex_data: list[dict]) -> dict:
 
 
 def get_feature_distribution(df_a, df_b, col_name, total_a, total_b):
-    counts_a = df_a.group_by(col_name).len().rename({"len": "count"})
-    counts_b = df_b.group_by(col_name).len().rename({"len": "count"})
+    counts_a = df_a.group_by(col_name).agg(pl.col("clr_cc").sum().alias("count"))
+    counts_b = df_b.group_by(col_name).agg(pl.col("clr_cc").sum().alias("count"))
 
     dist_a = {row[col_name]: row["count"] for row in counts_a.iter_rows(named=True)}
     dist_b = {row[col_name]: row["count"] for row in counts_b.iter_rows(named=True)}
@@ -167,8 +167,8 @@ def apply_color_mapping(color_counts: dict, color_groups: list) -> dict:
 
 def get_merged_feature_distribution(df_a, df_b, col_name, total_a, total_b, color_groups: list):
 
-    counts_a = df_a.group_by(col_name).len().rename({"len": "count"})
-    counts_b = df_b.group_by(col_name).len().rename({"len": "count"})
+    counts_a = df_a.group_by(col_name).agg(pl.col("clr_cc").sum().alias("count"))
+    counts_b = df_b.group_by(col_name).agg(pl.col("clr_cc").sum().alias("count"))
 
     dist_a = {row[col_name]: row["count"] for row in counts_a.iter_rows(named=True)}
     dist_b = {row[col_name]: row["count"] for row in counts_b.iter_rows(named=True)}
