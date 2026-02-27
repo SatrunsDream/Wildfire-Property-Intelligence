@@ -1,0 +1,4 @@
+method,n_groups,mean_jsd
+leiden,3,0.20507111551707405
+manual_semantic,8,0.16446145023946757
+hierarchical_clustering,4,0.17094161971251293
