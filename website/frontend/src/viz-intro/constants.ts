@@ -17,11 +17,11 @@ export const MAP_STYLE: maplibregl.StyleSpecification = {
     ],
 }
 
-/** Napa/Sonoma spotlight */
-export const NAPA_FIPS = '06055'
-export const SONOMA_FIPS = '06097'
-export const SPOTLIGHT_CENTER: [number, number] = [-122.5, 38.35]
-export const SPOTLIGHT_ZOOM = 8.5
+/** San Diego / Orange spotlight — centered on San Diego */
+export const SPOTLIGHT_FIPS_A = '06059'  // Orange
+export const SPOTLIGHT_FIPS_B = '06073'  // San Diego
+export const SPOTLIGHT_CENTER: [number, number] = [-116.9, 32.9]
+export const SPOTLIGHT_ZOOM = 8.2
 
 /** Scene identifiers */
 export type SceneId = 'hero' | 'counties' | 'spotlight'

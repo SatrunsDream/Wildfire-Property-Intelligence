@@ -1,8 +1,13 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react'
+import { IconArrowLeft } from '@tabler/icons-react'
 import { HeroSection } from './viz-intro/HeroSection'
 import { StickyGraphic, type MapApi } from './viz-intro/StickyGraphic'
 import { ScrollNarration } from './viz-intro/ScrollNarration'
 import type { SceneId } from './viz-intro/constants'
+
+function goToDashboard() {
+    window.location.href = '/'
+}
 
 interface State {
     activeScene: SceneId
@@ -35,7 +40,7 @@ function applyScene(api: MapApi, scene: SceneId, progress: number) {
             api.revealChoropleth(progress)
             break
         case 'spotlight':
-            api.spotlightNapaSonoma()
+            api.spotlightCounties()
             break
     }
 }
@@ -57,13 +62,13 @@ export function VizIntroduction() {
     const stateRef = useRef(state)
     stateRef.current = state
 
-    // Load Napa/Sonoma comparison data
+    // Load San Diego / Orange comparison data
     const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
     useEffect(() => {
         fetch('/data/county-pair-comparisons.json')
             .then((r) => r.json())
             .then((all: Record<string, ComparisonData>) => {
-                setComparisonData(all['06055-06097'] ?? null)
+                setComparisonData(all['06059-06073'] ?? all['06073-06059'] ?? null)
             })
             .catch((e) => console.error('Failed to load comparison data', e))
     }, [])
@@ -93,7 +98,7 @@ export function VizIntroduction() {
                 api.revealChoropleth(0)
                 break
             case 'spotlight':
-                api.spotlightNapaSonoma()
+                api.spotlightCounties()
                 break
         }
     }, [])
@@ -105,8 +110,33 @@ export function VizIntroduction() {
         }
     }, [])
 
+    // Escape key exits to dashboard
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                goToDashboard()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
     return (
         <div style={{ background: '#fcfbf8' }}>
+            {/* Exit button — fixed top-left, always visible */}
+            <a
+                href="/"
+                onClick={(e) => {
+                    e.preventDefault()
+                    goToDashboard()
+                }}
+                className="fixed left-4 top-4 z-[100] flex items-center gap-2 rounded-lg border border-gray-200 bg-white/95 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-md transition-colors hover:bg-gray-50 hover:text-gray-900"
+                style={{ textDecoration: 'none' }}
+            >
+                <IconArrowLeft size={18} stroke={2} />
+                <span>Back to Dashboard</span>
+                <span className="ml-1 text-xs text-gray-400">(Esc)</span>
+            </a>
             {/* Part 1: Editorial intro — no map */}
             <HeroSection />
 

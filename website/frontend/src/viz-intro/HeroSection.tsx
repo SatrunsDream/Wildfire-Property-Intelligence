@@ -123,10 +123,10 @@ export function HeroSection() {
 }
 
 const SAMPLE_ROWS = [
-    ['Napa', 'Urban + Forest', 'Wood', 'cocoa', '847'],
-    ['Napa', 'Urban + Forest', 'Masonry', 'olive', '412'],
-    ['Napa', 'Forest', 'Wood', 'purple', '218'],
-    ['Sonoma', 'Urban + Forest', 'Wood', 'brown', '2,103'],
-    ['Sonoma', 'Urban + Forest', 'Masonry', 'sage', '961'],
-    ['Sonoma', 'Forest', 'Wood', 'lavender', '534'],
+    ['San Diego', 'Urban + Forest', 'Wood', 'cocoa', '3,421'],
+    ['San Diego', 'Urban + Forest', 'Masonry', 'olive', '1,892'],
+    ['San Diego', 'Urban', 'Wood', 'terracotta', '5,103'],
+    ['Orange', 'Urban + Forest', 'Wood', 'brown', '2,847'],
+    ['Orange', 'Urban + Forest', 'Masonry', 'sage', '1,456'],
+    ['Orange', 'Urban', 'Wood', 'lavender', '4,221'],
 ]

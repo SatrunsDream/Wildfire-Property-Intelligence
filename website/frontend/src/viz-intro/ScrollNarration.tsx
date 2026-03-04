@@ -73,7 +73,7 @@ export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData,
                     </div>
                 </Step>
 
-                {/* Scene 2: Spotlight on Napa & Sonoma */}
+                {/* Scene 2: Spotlight on San Diego & Orange */}
                 <Step data="spotlight">
                     <div className="flex min-h-[140vh] items-center px-6 md:px-16">
                         <SpotlightComparison

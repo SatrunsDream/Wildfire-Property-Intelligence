@@ -1,4 +1,4 @@
-/** Side-by-side bar chart comparing Napa vs Sonoma color distributions */
+/** Side-by-side bar chart comparing San Diego vs Orange color distributions */
 
 interface DistEntry {
     value: string

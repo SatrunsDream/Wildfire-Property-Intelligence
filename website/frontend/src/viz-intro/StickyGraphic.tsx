@@ -11,8 +11,8 @@ import {
     COUNTY_OUTLINE_LAYER,
     UNIFORM_FILL,
     DIVERGENCE_STOPS,
-    NAPA_FIPS,
-    SONOMA_FIPS,
+    SPOTLIGHT_FIPS_A,
+    SPOTLIGHT_FIPS_B,
     SPOTLIGHT_CENTER,
     SPOTLIGHT_ZOOM,
     type SceneId,
@@ -35,7 +35,7 @@ export interface MapApi {
     hideCounties: () => void
     revealChoropleth: (progress: number) => void
     resetToUniform: () => void
-    spotlightNapaSonoma: () => void
+    spotlightCounties: () => void
     resetFromSpotlight: () => void
 }
 
@@ -200,18 +200,18 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
         map.current.setPaintProperty(COUNTY_FILL_LAYER, 'fill-opacity', 0.55)
     }, [])
 
-    const spotlightNapaSonoma = useCallback(() => {
+    const spotlightCounties = useCallback(() => {
         const m = map.current
         if (!m || !layersAdded.current) return
 
-        // Fly to Napa/Sonoma area
+        // Fly to San Diego / Orange area
         m.flyTo({ center: SPOTLIGHT_CENTER, zoom: SPOTLIGHT_ZOOM, duration: 1200 })
 
-        // Highlight Napa & Sonoma, dim everything else
+        // Highlight Orange & San Diego, dim everything else
         const highlightExpr: maplibregl.ExpressionSpecification = [
             'case',
-            ['==', ['get', 'fips'], NAPA_FIPS], '#21918c',
-            ['==', ['get', 'fips'], SONOMA_FIPS], '#440154',
+            ['==', ['get', 'fips'], SPOTLIGHT_FIPS_A], '#21918c',
+            ['==', ['get', 'fips'], SPOTLIGHT_FIPS_B], '#440154',
             '#e8e8e4',
         ]
         m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-color', highlightExpr)
@@ -219,7 +219,7 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
         m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-opacity', 0.8)
         m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-width', [
             'case',
-            ['any', ['==', ['get', 'fips'], NAPA_FIPS], ['==', ['get', 'fips'], SONOMA_FIPS]],
+            ['any', ['==', ['get', 'fips'], SPOTLIGHT_FIPS_A], ['==', ['get', 'fips'], SPOTLIGHT_FIPS_B]],
             2,
             0.5,
         ] as maplibregl.ExpressionSpecification)
@@ -239,11 +239,11 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
         if (layersAdded.current && data && !notifiedRef.current) {
             notifiedRef.current = true
             onReady(
-                { showCounties, hideCounties, revealChoropleth, resetToUniform, spotlightNapaSonoma, resetFromSpotlight },
+                { showCounties, hideCounties, revealChoropleth, resetToUniform, spotlightCounties, resetFromSpotlight },
                 data,
             )
         }
-    }, [mapReady, data, onReady, showCounties, hideCounties, revealChoropleth, resetToUniform, spotlightNapaSonoma, resetFromSpotlight])
+    }, [mapReady, data, onReady, showCounties, hideCounties, revealChoropleth, resetToUniform, spotlightCounties, resetFromSpotlight])
 
     return (
         <div className="sticky top-0 h-screen w-full">
