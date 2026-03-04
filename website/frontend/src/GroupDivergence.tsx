@@ -178,6 +178,28 @@ export default function GroupDivergence() {
                 },
             })
 
+            const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
+
+            map.current.on('mousemove', 'counties-fill', (e: maplibregl.MapLayerMouseEvent) => {
+                if (!e.features || e.features.length === 0) return
+                if (map.current) map.current.getCanvas().style.cursor = 'pointer'
+                const props = e.features[0].properties as Record<string, unknown>
+                const countyName = (props.county_name as string) || (props.name as string) || 'Unknown'
+                const numAnomalies = props.num_anomalies as number | undefined
+                const avgDiv = props.avg_divergence as number | undefined
+                const html = `<div style="font-size:12px;line-height:1.5">
+                    <div style="font-weight:bold;margin-bottom:6px">${countyName} County</div>
+                    <div>Num Anomalies: <strong>${numAnomalies != null ? numAnomalies.toFixed(0) : 'N/A'}</strong></div>
+                    <div>Avg Divergence: <strong>${avgDiv != null ? avgDiv.toFixed(4) : 'N/A'}</strong></div>
+                    <div style="margin-top:6px;font-size:10px;color:#666">Click for details</div>
+                </div>`
+                popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
+            })
+
+            map.current.on('mouseleave', 'counties-fill', () => {
+                if (map.current) { map.current.getCanvas().style.cursor = ''; popup.remove() }
+            })
+
             map.current.on('click', 'counties-fill', (e) => {
                 if (e.features && e.features.length > 0) {
                     const fips = e.features[0].properties?.fips as string | undefined
@@ -187,14 +209,6 @@ export default function GroupDivergence() {
                         setCountyColors(allCountyColors?.[fips] ?? null)
                     }
                 }
-            })
-
-            map.current.on('mouseenter', 'counties-fill', () => {
-                if (map.current) map.current.getCanvas().style.cursor = 'pointer'
-            })
-
-            map.current.on('mouseleave', 'counties-fill', () => {
-                if (map.current) map.current.getCanvas().style.cursor = ''
             })
         })
 
