@@ -160,4 +160,4 @@ Wildfire-Property-Intelligence/
     _archive/backend/         # Legacy backend
 ```
 
-For detailed paths and notebook data sources, see `results.md`.
+
