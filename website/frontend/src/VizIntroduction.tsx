@@ -40,6 +40,7 @@ function applyScene(api: MapApi, scene: SceneId, progress: number) {
             api.revealChoropleth(progress)
             break
         case 'spotlight':
+        case 'findings':
             api.spotlightCounties()
             break
     }
@@ -98,6 +99,7 @@ export function VizIntroduction() {
                 api.revealChoropleth(0)
                 break
             case 'spotlight':
+            case 'findings':
                 api.spotlightCounties()
                 break
         }

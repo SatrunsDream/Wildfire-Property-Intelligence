@@ -24,7 +24,7 @@ export const SPOTLIGHT_CENTER: [number, number] = [-116.9, 32.9]
 export const SPOTLIGHT_ZOOM = 8.2
 
 /** Scene identifiers */
-export type SceneId = 'hero' | 'counties' | 'spotlight'
+export type SceneId = 'hero' | 'counties' | 'spotlight' | 'findings'
 
 /** Color ramp for divergence choropleth (Viridis) */
 export const DIVERGENCE_STOPS: [number, string][] = [

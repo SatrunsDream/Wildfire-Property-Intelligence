@@ -1,4 +1,4 @@
-/** Side-by-side bar chart comparing San Diego vs Orange color distributions */
+/** Side by side bar chart comparing San Diego vs Orange color distributions */
 
 interface DistEntry {
     value: string
@@ -51,8 +51,11 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
             >
                 Same border. Different data.
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.35rem' }}>
-                Jensen-Shannon divergence: {data.jsd.original.toFixed(3)}
+            <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
+                San Diego and Orange share a border and similar geography: urban, coastal Southern California.
+                Yet their <strong>Jensen Shannon divergence</strong> is {data.jsd.original.toFixed(3)}.
+                Neighboring counties often use different color vocabularies (e.g. "cocoa" vs "brown")
+                for similar structures, just as assessors might use "duplex" vs "flat."
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1rem' }}>
@@ -72,9 +75,10 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
                 />
             </div>
 
-            <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '1rem', lineHeight: 1.6 }}>
-                These counties share a border and similar geography — yet their top reported
-                building attributes barely overlap.
+            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '1rem', lineHeight: 1.6 }}>
+                The top colors differ between counties. Pooling similar labels (browns, reds,
+                greens) reduces mean neighbor JSD from ~0.62 to ~0.36 statewide, evidence that
+                much observed divergence is labeling convention, not structural difference.
             </p>
         </div>
     )
