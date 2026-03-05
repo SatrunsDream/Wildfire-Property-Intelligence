@@ -11,8 +11,6 @@ import {
     COUNTY_OUTLINE_LAYER,
     UNIFORM_FILL,
     DIVERGENCE_STOPS,
-    SPOTLIGHT_FIPS_A,
-    SPOTLIGHT_FIPS_B,
     SPOTLIGHT_CENTER,
     SPOTLIGHT_ZOOM,
     type SceneId,
@@ -30,6 +28,13 @@ interface DivergenceData {
     }
 }
 
+export interface SelectedPair {
+    fips_a: string
+    fips_b: string
+    county_a: string
+    county_b: string
+}
+
 export interface MapApi {
     showCounties: () => void
     hideCounties: () => void
@@ -43,9 +48,22 @@ interface StickyGraphicProps {
     scene: SceneId
     progress: number
     onReady: (api: MapApi, data: DivergenceData) => void
+    onEdgeSelect?: (pair: SelectedPair) => void
 }
 
-export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) {
+const SD_FIPS = '06073'
+
+/** Filter edges to only those from San Diego to its neighbors */
+function filterSdEdges(edges: FeatureCollection): FeatureCollection {
+    const sdFeatures = edges.features.filter((f) => {
+        const p = f.properties as Record<string, string> | undefined
+        if (!p) return false
+        return p.fips_a === SD_FIPS || p.fips_b === SD_FIPS
+    })
+    return { type: 'FeatureCollection', features: sdFeatures }
+}
+
+export function StickyGraphic({ scene, progress, onReady, onEdgeSelect }: StickyGraphicProps) {
     const mapContainer = useRef<HTMLDivElement>(null)
     const map = useRef<maplibregl.Map | null>(null)
     const [mapReady, setMapReady] = useState(false)
@@ -161,8 +179,47 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
             },
         })
 
+        // SD paths (edges from San Diego to neighbors) — shown in spotlight
+        const sdEdges = filterSdEdges(data.edges as FeatureCollection)
+        map.current.addSource('sd-edges', { type: 'geojson', data: sdEdges })
+        map.current.addLayer({
+            id: 'sd-edges-line',
+            type: 'line',
+            source: 'sd-edges',
+            layout: { visibility: 'none' },
+            paint: {
+                'line-color': [
+                    'interpolate', ['linear'],
+                    ['to-number', ['get', 'weighted_jsd'], 0],
+                    0.0, '#fde725',
+                    0.5, '#21918c',
+                    1.0, '#440154',
+                ] as maplibregl.ExpressionSpecification,
+                'line-width': 4,
+                'line-opacity': 0.9,
+            },
+        })
+
+        const edgesLayerId = 'sd-edges-line'
+        map.current.on('mouseenter', edgesLayerId, () => {
+            if (map.current) map.current.getCanvas().style.cursor = 'pointer'
+        })
+        map.current.on('mouseleave', edgesLayerId, () => {
+            if (map.current) map.current.getCanvas().style.cursor = ''
+        })
+        map.current.on('click', edgesLayerId, (e) => {
+            if (!e.features?.length || !onEdgeSelect) return
+            const p = e.features[0].properties as Record<string, string>
+            onEdgeSelect({
+                fips_a: p.fips_a ?? '',
+                fips_b: p.fips_b ?? '',
+                county_a: p.county_a ?? 'Unknown',
+                county_b: p.county_b ?? 'Unknown',
+            })
+        })
+
         layersAdded.current = true
-    }, [mapReady, data])
+    }, [mapReady, data, onEdgeSelect])
 
     // --- Transition functions ---
 
@@ -204,25 +261,20 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
         const m = map.current
         if (!m || !layersAdded.current) return
 
-        // Fly to San Diego / Orange area
         m.flyTo({ center: SPOTLIGHT_CENTER, zoom: SPOTLIGHT_ZOOM, duration: 1200 })
 
-        // Highlight Orange & San Diego, dim everything else
-        const highlightExpr: maplibregl.ExpressionSpecification = [
-            'case',
-            ['==', ['get', 'fips'], SPOTLIGHT_FIPS_A], '#21918c',
-            ['==', ['get', 'fips'], SPOTLIGHT_FIPS_B], '#440154',
-            '#e8e8e4',
-        ]
-        m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-color', highlightExpr)
-        m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-opacity', 0.7)
-        m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-opacity', 0.8)
-        m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-width', [
-            'case',
-            ['any', ['==', ['get', 'fips'], SPOTLIGHT_FIPS_A], ['==', ['get', 'fips'], SPOTLIGHT_FIPS_B]],
-            2,
-            0.5,
-        ] as maplibregl.ExpressionSpecification)
+        // Light gray fill for all counties — paths stand out
+        m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-color', '#e8e8e4')
+        m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-opacity', 0.5)
+        m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-opacity', 0.6)
+        m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-width', 0.7)
+
+        // Show SD paths (edges branching from San Diego to Imperial, Orange, Riverside)
+        try {
+            m.setLayoutProperty('sd-edges-line', 'visibility', 'visible')
+        } catch {
+            /* layer may not exist yet */
+        }
     }, [])
 
     const resetFromSpotlight = useCallback(() => {
@@ -232,6 +284,11 @@ export function StickyGraphic({ scene, progress, onReady }: StickyGraphicProps) 
         m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-color', UNIFORM_FILL)
         m.setPaintProperty(COUNTY_FILL_LAYER, 'fill-opacity', 0.55)
         m.setPaintProperty(COUNTY_OUTLINE_LAYER, 'line-width', 0.7)
+        try {
+            m.setLayoutProperty('sd-edges-line', 'visibility', 'none')
+        } catch {
+            /* ignore */
+        }
     }, [])
 
     // Notify parent

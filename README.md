@@ -160,4 +160,3 @@ Wildfire-Property-Intelligence/
     _archive/backend/         # Legacy backend
 ```
 
-

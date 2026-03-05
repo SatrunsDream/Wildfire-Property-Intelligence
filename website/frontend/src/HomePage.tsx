@@ -44,13 +44,10 @@ export function HomePage() {
         <div className="max-w-3xl space-y-10 py-6">
 
             {/* Title */}
-            <div className="space-y-1">
+            <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
-                    Wildfire Property Intelligence
+                    Wildfire Property Intelligence: Finding Outliers Before Fire Finds Them First
                 </h1>
-                <p className="text-muted-foreground text-sm italic">
-                    Finding outliers before fire finds them first
-                </p>
             </div>
 
             {/* Authors */}

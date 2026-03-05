@@ -30,7 +30,7 @@ const navItems = [
         icon: IconHome,
     },
     {
-        title: "Storyboard",
+        title: "Case Study",
         href: "/viz",
         icon: IconBook,
     },
@@ -83,7 +83,7 @@ export function AppSidebar({ currentPage, onPageChange, ...props }: AppSidebarPr
                         >
                             <a href="#">
                                 <IconFlame className="!size-5" />
-                                <span className="text-base font-semibold">Wildfire Intel</span>
+                                <span className="text-base font-semibold">Wildfire Property Intelligence: Finding Outliers Before Fire Finds Them First</span>
                             </a>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

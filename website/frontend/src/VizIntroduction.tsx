@@ -1,7 +1,7 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react'
 import { IconArrowLeft } from '@tabler/icons-react'
 import { HeroSection } from './viz-intro/HeroSection'
-import { StickyGraphic, type MapApi } from './viz-intro/StickyGraphic'
+import { StickyGraphic, type MapApi, type SelectedPair } from './viz-intro/StickyGraphic'
 import { ScrollNarration } from './viz-intro/ScrollNarration'
 import type { SceneId } from './viz-intro/constants'
 
@@ -40,7 +40,7 @@ function applyScene(api: MapApi, scene: SceneId, progress: number) {
             api.revealChoropleth(progress)
             break
         case 'spotlight':
-        case 'findings':
+        case 'distributions':
             api.spotlightCounties()
             break
     }
@@ -63,16 +63,33 @@ export function VizIntroduction() {
     const stateRef = useRef(state)
     stateRef.current = state
 
-    // Load San Diego / Orange comparison data
-    const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null)
+    const [pairComparisons, setPairComparisons] = useState<Record<string, ComparisonData>>({})
+    const [caseStudyData, setCaseStudyData] = useState<Record<string, unknown> | null>(null)
+    const [selectedPair, setSelectedPair] = useState<SelectedPair | null>(null)
+
     useEffect(() => {
-        fetch('/data/county-pair-comparisons.json')
-            .then((r) => r.json())
-            .then((all: Record<string, ComparisonData>) => {
-                setComparisonData(all['06059-06073'] ?? all['06073-06059'] ?? null)
+        Promise.all([
+            fetch('/data/county-pair-comparisons.json').then((r) => r.json()),
+            fetch('/data/case_study_sd_region.json').then((r) => r.json()),
+        ])
+            .then(([all, caseStudy]: [Record<string, ComparisonData>, Record<string, unknown>]) => {
+                setPairComparisons(all)
+                setCaseStudyData(caseStudy)
+                setSelectedPair(null) // default: will use SD–Orange
             })
-            .catch((e) => console.error('Failed to load comparison data', e))
+            .catch((e) => console.error('Failed to load case study data', e))
     }, [])
+
+    const handleEdgeSelect = useCallback((pair: SelectedPair) => setSelectedPair(pair), [])
+
+    const comparisonData: ComparisonData | null = (() => {
+        if (!selectedPair) {
+            return pairComparisons['06059-06073'] ?? pairComparisons['06073-06059'] ?? null
+        }
+        const key1 = `${selectedPair.fips_a}-${selectedPair.fips_b}`
+        const key2 = `${selectedPair.fips_b}-${selectedPair.fips_a}`
+        return pairComparisons[key1] ?? pairComparisons[key2] ?? null
+    })()
 
     const handleMapReady = useCallback((api: MapApi) => {
         mapApi.current = api
@@ -99,7 +116,7 @@ export function VizIntroduction() {
                 api.revealChoropleth(0)
                 break
             case 'spotlight':
-            case 'findings':
+            case 'distributions':
                 api.spotlightCounties()
                 break
         }
@@ -148,11 +165,14 @@ export function VizIntroduction() {
                     scene={state.activeScene}
                     progress={state.progress}
                     onReady={handleMapReady}
+                    onEdgeSelect={handleEdgeSelect}
                 />
                 <ScrollNarration
                     onSceneEnter={handleSceneEnter}
                     onSceneProgress={handleSceneProgress}
                     comparisonData={comparisonData}
+                    caseStudyData={caseStudyData}
+                    selectedPair={selectedPair}
                     activeScene={state.activeScene}
                 />
             </div>

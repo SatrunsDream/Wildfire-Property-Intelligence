@@ -14,6 +14,7 @@ interface ComparisonData {
 
 interface SpotlightComparisonProps {
     data: ComparisonData | null
+    selectedPair?: { fips_a: string; fips_b: string; county_a: string; county_b: string } | null
     visible: boolean
 }
 
@@ -52,10 +53,9 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
                 Same border. Different data.
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
-                San Diego and Orange share a border and similar geography: urban, coastal Southern California.
-                Yet their <strong>Jensen Shannon divergence</strong> is {data.jsd.original.toFixed(3)}.
-                Neighboring counties often use different color vocabularies (e.g. "cocoa" vs "brown")
-                for similar structures, just as assessors might use "duplex" vs "flat."
+                Paths show JSD between San Diego and each neighbor. <strong>Click a path</strong> to compare.
+                {data.county_a.name}–{data.county_b.name}: JSD <strong>{data.jsd.original.toFixed(3)}</strong>.
+                Different color vocabularies (e.g. "cocoa" vs "brown") create divergence.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1rem' }}>
