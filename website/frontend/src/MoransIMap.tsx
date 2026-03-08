@@ -171,7 +171,8 @@ export function MoransIMap() {
     useEffect(() => {
         if (!mapContainer.current || map.current) return
         try {
-            map.current = new maplibregl.Map({ container: mapContainer.current, style: MAP_STYLE, center: [-119.5, 37.0], zoom: 5.5 })
+            const isMobile = window.innerWidth < 640
+            map.current = new maplibregl.Map({ container: mapContainer.current, style: MAP_STYLE, center: [-119.5, 37.0], zoom: isMobile ? 4.5 : 5.5 })
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
             map.current.once('load', () => setIsMapReady(true))
             map.current.on('error', () => setError('Map initialization error'))
@@ -223,7 +224,7 @@ export function MoransIMap() {
                 <div ref={mapContainer} className="w-full h-full" />
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading Moran's I data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -250,31 +251,31 @@ export function MoransIMap() {
                     </div>
                 </div>
                 {legendRange && (
-                    <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
-                        <div className="font-semibold mb-2 text-foreground">Local Moran's I</div>
-                        <div className="w-44 h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateRdBu(0)}, ${d3.interpolateRdBu(0.5)}, ${d3.interpolateRdBu(1)})` }} />
-                        <div className="flex justify-between mt-1 text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
-                        <div className="flex justify-between mt-1 text-[10px] text-muted-foreground"><span>Clustering</span><span>Dispersion</span></div>
+                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
+                        <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Local Moran's I</div>
+                        <div className="w-28 sm:w-44 h-2 sm:h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateRdBu(0)}, ${d3.interpolateRdBu(0.5)}, ${d3.interpolateRdBu(1)})` }} />
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>Clustering</span><span>Dispersion</span></div>
                     </div>
                 )}
             </div>
             {countyDetail && (
-                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[65%]' : 'h-auto')}>
-                    <div className="px-5 py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
-                        <h3 className="font-semibold text-base">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
+                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
+                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
+                        <h3 className="font-semibold text-sm sm:text-base truncate mr-2">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
                         <div className="flex items-center gap-3">
                             <button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors" onClick={(e) => { e.stopPropagation(); setShowDetailPanel(!showDetailPanel) }}>{showDetailPanel ? 'Collapse' : 'Expand'}</button>
                             <button className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded text-xl leading-none" onClick={(e) => { e.stopPropagation(); setCountyDetail(null); setShowDetailPanel(false) }}>×</button>
                         </div>
                     </div>
                     {showDetailPanel && (
-                        <div className="h-[calc(100%-65px)] overflow-y-auto p-6">
-                            <p className="text-muted-foreground mb-4">Neighbors: {countyDetail.num_neighbors} | Categories: {countyDetail.total_categories}</p>
-                            <div className="space-y-4">
+                        <div className="h-[calc(100%-55px)] sm:h-[calc(100%-65px)] overflow-y-auto p-3 sm:p-6">
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Neighbors: {countyDetail.num_neighbors} | Categories: {countyDetail.total_categories}</p>
+                            <div className="space-y-3 sm:space-y-4">
                                 {countyDetail.by_category.map((cat, idx) => (
-                                    <div key={idx} className="p-4 bg-background border border-border rounded">
-                                        <h3 className="mt-0 mb-2 text-lg text-foreground">{cat.lc_type} × {cat.bldgtype}</h3>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div key={idx} className="p-3 sm:p-4 bg-background border border-border rounded">
+                                        <h3 className="mt-0 mb-2 text-base sm:text-lg text-foreground">{cat.lc_type} × {cat.bldgtype}</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 sm:gap-y-2 text-xs sm:text-sm">
                                             <div><span className="text-muted-foreground">County Frequency:</span><span className="ml-2 font-semibold">{(cat.frequency * 100).toFixed(2)}%</span></div>
                                             <div><span className="text-muted-foreground">Neighbor Mean:</span><span className="ml-2 font-semibold">{(cat.neighbor_mean * 100).toFixed(2)}%</span></div>
                                             <div><span className="text-muted-foreground">Neighbor Range:</span><span className="ml-2 font-semibold">{(cat.neighbor_min * 100).toFixed(2)}% - {(cat.neighbor_max * 100).toFixed(2)}%</span></div>
