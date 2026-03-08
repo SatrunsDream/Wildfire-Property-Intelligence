@@ -77,8 +77,8 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
             </div>
 
             <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '1rem', lineHeight: 1.6 }}>
-                The top colors differ between counties. Pooling similar labels (browns, reds,
-                greens) reduces mean neighbor JSD from ~0.62 to ~0.36 statewide, evidence that
+                The top colors differ between counties. Pooling similar labels (e.g. cocoa, olive,
+                red, navy) reduces mean neighbor JSD from ~0.62 to ~0.21 statewide, evidence that
                 much observed divergence is labeling convention, not structural difference.
             </p>
         </div>
