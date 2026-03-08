@@ -9,7 +9,7 @@ interface DistEntry {
 interface ComparisonData {
     county_a: { name: string; total_count: number; clr: { distribution: DistEntry[] } }
     county_b: { name: string; total_count: number; clr: { distribution: DistEntry[] } }
-    jsd: { original: number }
+    jsd: { original: number; pooled?: { weighted_jsd: number; mean_jsd: number } }
 }
 
 interface SpotlightComparisonProps {
@@ -54,7 +54,8 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
                 Paths show JSD between San Diego and each neighbor. <strong>Click a path</strong> to compare.
-                {data.county_a.name}–{data.county_b.name}: JSD <strong>{data.jsd.original.toFixed(3)}</strong>.
+                {data.county_a.name}–{data.county_b.name}: JSD <strong>{data.jsd.original.toFixed(3)}</strong>
+                {data.jsd.pooled != null && <> → <strong>{data.jsd.pooled.weighted_jsd.toFixed(3)}</strong> after pooling</>}.
                 Different color vocabularies (e.g. "cocoa" vs "brown") create divergence.
             </p>
 

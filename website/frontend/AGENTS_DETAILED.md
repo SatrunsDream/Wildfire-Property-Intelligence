@@ -80,19 +80,35 @@ The frontend uses **static JSON files** from `public/data/`. Vite serves `public
 
 | File | Used By | Purpose |
 |------|---------|---------|
-| `group-divergence.json` | ConditionalProbability, EmpiricalBayesPooling, NeighborDivergence, MoransIMap, StickyGraphic | County GeoJSON features (geometry) + map metadata |
-| `conditional-pooling-summary.json` | ConditionalProbability | County×landcover summary (kl_div, l1_distance, top_color, etc.) |
-| `conditional-pooling-detail.json` | ConditionalProbability | County×landcover×color detail rows |
+| `group-divergence.json` | ConditionalProbability, EmpiricalBayesPooling, NeighborDivergence, MoransIMap, VizIntroduction | County GeoJSON features (geometry) + map metadata. Viz: geoFeaturesRef for buildCountyDetailAllLandcover |
+| `conditional-pooling-summary.json` | ConditionalProbability, VizIntroduction | County×landcover summary (kl_div, l1_distance, top_color, etc.). Viz: processKLByFipsSdOnly |
+| `conditional-pooling-detail.json` | ConditionalProbability, VizIntroduction | County×landcover×color detail rows. Viz: buildCountyDetailAllLandcover |
 | `bayesian-baseline.json` | EmpiricalBayesPooling | Landcover baseline distributions |
 | `bayesian-stabilized.json` | EmpiricalBayesPooling | Stabilized distributions post-shrinkage |
-| `neighbor-divergence-map.json` | NeighborDivergence, StickyGraphic | Counties + edges (GeoJSON) with weighted_jsd |
+| `neighbor-divergence-map.json` | NeighborDivergence, StickyGraphic | Counties GeoJSON (fips, max_divergence) + edges (fips_a, fips_b, weighted_jsd). StickyGraphic: county fill layer, SD edges, choropleths |
 | `neighbor-divergence-map-pooled.json` | NeighborDivergence | Same structure, colors merged into groups |
-| `county-pair-comparisons.json` | NeighborDivergence, C2STMap, VizIntroduction | County A vs B distributions + JSD |
+| `county-pair-comparisons.json` | NeighborDivergence, C2STMap, VizIntroduction | County A vs B distributions + JSD (original) |
+| `case_study_sd_region.json` | VizIntroduction | San Diego region: counties, exposure, distributions, sd_vs_neighbors (original + **pooled** JSD) |
+| `neighbor-jsd-pooled-greedy.json` | VizIntroduction | Post-pooling weighted_jsd/mean_jsd per pair; `processPooledJsdByFips` → max per county → post-pooling map choropleth. Also used by case_study for sd_vs_neighbors |
+| `color-pool-merge-tree.json` | ColorPoolDendrogram | D3-ready dendrogram tree (merge sequence from greedy algorithm) |
+| `h3-color-cells.json` | ColorMap | H3 hex cells (optional) |
 | `c2st-results.json` | C2STMap | C2ST rows (fips_a, fips_b, lc_type, accuracy, etc.) |
 | `morans-freq.json` | MoransIMap | Relative frequencies (fips, lc_type, bldgtype, freq) |
 | `ca-county-neighbors.json` | MoransIMap | Adjacency list (county_fips, neighbor_fips) |
 | `county-colors.json` | GroupDivergence | Per-county color distributions by landcover |
 | `conditioning-options.json` | (Referenced in AGENTS; may be unused) | Filter options |
+
+**Viz-specific data** (scrollytelling at `/viz`):
+
+| File | Structure | Viz Usage |
+|------|-----------|-----------|
+| `neighbor-divergence-map.json` | `{ counties: GeoJSON, edges: GeoJSON, stats }` — counties have `fips`, `max_divergence`; edges have `fips_a`, `fips_b`, `weighted_jsd` | StickyGraphic: counties layer, SD edges layer |
+| `neighbor-jsd-pooled-greedy.json` | `{ "06001-06013": { weighted_jsd, mean_jsd }, ... }` | VizIntroduction: `processPooledJsdByFips` → `jsdByFips` (max JSD per county) → `showPostPoolingChoropleth` |
+| `case_study_sd_region.json` | `{ counties, exposure, distributions, sd_vs_neighbors: { "06073-06025": { county_a, county_b, jsd: { original, pooled } }, ... } }` | SpotlightComparison, PostPoolingScoresCard; comparisonData prefers sd_vs_neighbors |
+| `conditional-pooling-summary.json` | `SummaryRow[]`: `{ fips, lc_type, kl_div, top_color, ... }` | `processKLByFipsSdOnly` → mean KL per SD county; `buildCountyDetailAllLandcover` uses detail |
+| `conditional-pooling-detail.json` | `DetailRow[]`: `{ fips, lc_type, clr, y_county, y_pool, p_county, p_pool, ... }` | `buildCountyDetailAllLandcover` — aggregates by color across all landcovers |
+| `group-divergence.json` | `{ map: { features: GeoJSON.Feature[] } }` | Geo features for county names in buildCountyDetailAllLandcover |
+| `color-pool-merge-tree.json` | `{ name, value?, children?: TreeNode[] }` | ColorPoolDendrogram D3 tree |
 
 **Note**: Vite config also proxies `/conditional-pooling`, `/map`, `/c2st`, `/bayesian`, `/morans-i`, `/group-divergence` to `http://localhost:8000`. Current map components use static JSON; the proxy is for potential live API integration.
 
@@ -235,45 +251,204 @@ All map views share:
 
 **Entry**: `main.tsx` checks `pathname === '/viz'` → renders `VizIntroduction` instead of `Router`.
 
-**Structure**:
-- `HeroSection`: Editorial intro (no map)
-- `StickyGraphic`: Map fixed in viewport; scenes change on scroll
-- `ScrollNarration`: ScrollNarration (react-scrollama) drives scene changes
+### 8.1 Structure
 
-**Scenes** (`SceneId`):
-- `hero`: Counties visible, uniform or initial state
-- `counties`: Choropleth reveal (progress 0→1)
-- `spotlight`: Zoom to Napa/Sonoma, highlight edge
+- **HeroSection**: Editorial intro (stakes, data, exposure, sample table). No map, no scrollama.
+- **StickyGraphic**: Map fixed in viewport; zoom to **SD region only** (Imperial, Orange, Riverside, San Diego) for `spotlight`, `distributions`, `solution`, `postPooling`; draws SD–neighbor edges; legends in bottom-right per scene.
+- **ScrollNarration**: react-scrollama drives **six** scroll steps; each triggers `onSceneEnter`/`onSceneProgress` → `activeScene`.
 
-**Data**: Loads `neighbor-divergence-map.json`, `county-pair-comparisons.json` (Napa–Sonoma pair). `StickyGraphic` exposes `MapApi`: `showCounties`, `revealChoropleth`, `spotlightNapaSonoma`, `resetFromSpotlight`, etc.
+### 8.2 Scenes (`SceneId`)
 
-**Files**: `viz-intro/HeroSection.tsx`, `StickyGraphic.tsx`, `ScrollNarration.tsx`, `SpotlightComparison.tsx`, `constants.ts`
+| Scene | Step | Content | Map / Legend |
+|-------|------|---------|--------------|
+| `hero` | — | HeroSection | — |
+| `counties` | 130vh | "58 counties report..." | `revealChoropleth(progress)` — Max Divergence choropleth (full state). Legend: "Max Divergence" + gradient Low/High |
+| `spotlight` | 140vh | `SpotlightComparison` — "Same border. Different data." | `spotlightCounties` — gray fill, SD edges. Legend: county names (teal/purple swatches) |
+| `distributions` | 120vh | `KLDivergenceCard` — "Deviation from Regional Norm" | `showKLChoropleth(klByFips)` — 4 SD counties colored by mean KL, rest gray. Legend: "KL Divergence" |
+| `solution` | 120vh | `SolutionCard` — greedy pooling, ColorPoolDendrogram | `spotlightCounties` — zoomed to SD region |
+| `postPooling` | 140vh | `PostPoolingScoresCard` + map choropleth | `showPostPoolingChoropleth(jsdByFips)` — 4 SD counties by pooled JSD (green scale), rest gray. Legend: "Post-pooling JSD" |
+
+### 8.3 Data Flow (VizIntroduction)
+
+**Loaded on mount** (6 fetches in `Promise.all`):
+1. `county-pair-comparisons.json` → `pairComparisons`
+2. `case_study_sd_region.json` → `caseStudyData`
+3. `conditional-pooling-summary.json` → `cpSummaryRef`; `processKLByFipsSdOnly` → `klByFips` (SD region only)
+4. `conditional-pooling-detail.json` → `cpDetailRef`
+5. `group-divergence.json` → `geoFeaturesRef`; county names for `buildCountyDetailAllLandcover`
+6. `neighbor-jsd-pooled-greedy.json` → `processPooledJsdByFips` → `jsdByFips` (max pooled JSD per county)
+
+**processPooledJsdByFips** (`VizIntroduction.tsx`):
+- Input: `{ "06001-06013": { weighted_jsd, mean_jsd }, ... }`
+- For each county fips, collect all pair `weighted_jsd` where fips appears; return `max`
+- Output: `Record<string, number>` e.g. `{ "06073": 0.23, "06025": 0.22, ... }`
+
+**processKLByFipsSdOnly** (`VizIntroduction.tsx`):
+- Filters `conditional-pooling-summary` to SD_FIPS `[6025, 6059, 6065, 6073]`
+- Mean KL per county → `Record<string, number>`
+
+**buildCountyDetailAllLandcover** (`src/lib/conditionalPooling.ts`):
+- Aggregates `conditional-pooling-detail` by color across **all landcovers** for a county
+- Returns `CountyDetail` with single `by_landcover: [{ lc_type: "All land cover types", distributions: ColorDistribution[] }]`
+- Used by `KLDivergenceCard` for Deviation table (diverging bars: red = over, blue = under)
+
+**comparisonData** (passed to SpotlightComparison + StickyGraphic):
+- When `selectedPair` null: default `sd_vs_neighbors['06073-06059']`
+- Prefers `caseStudyData.sd_vs_neighbors` for SD pairs (has `jsd.pooled`)
+- SD pair keys: `06073-06025`, `06073-06059`, `06073-06065`
+
+### 8.4 StickyGraphic — MapApi
+
+| Method | When | Behavior |
+|--------|------|----------|
+| `showCounties` | hero | Uniform fill, labels visible |
+| `revealChoropleth(progress)` | counties | Interpolate `max_divergence` → Viridis; opacity by progress |
+| `spotlightCounties` | spotlight, solution | `flyTo(SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM)`; gray fill `#e8e8e4`; SD edges visible; click edge → `onEdgeSelect` |
+| `showKLChoropleth(klByFips, onCountySelect)` | distributions | Merge `mean_kl` into features; SD region only colored, rest gray (`#e8e8e4`); `case` expr; flyTo SPOTLIGHT; click county → `onCountySelect` |
+| `showPostPoolingChoropleth(jsdByFips)` | postPooling | Merge `pooled_jsd` into features; SD region only; normalize to 0–1 with max 0.6 (green scale); `case` expr; flyTo SPOTLIGHT |
+| `resetFromSpotlight` | hero (scroll up) | flyTo MAP_CENTER, uniform fill, hide edges |
+
+**Zoom enforcement** (`useEffect` in StickyGraphic):
+- When `scene` ∈ `['spotlight', 'distributions', 'solution', 'postPooling']` → `flyTo(SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM)`
+- Ensures map stays zoomed to SD region
+
+**SD_REGION_FIPS**: `['06025', '06059', '06065', '06073']` (Imperial, Orange, Riverside, San Diego)
+
+**Legends** (bottom-right `absolute bottom-8 right-6`):
+- counties / distributions: "Max Divergence" or "KL Divergence" + Viridis gradient + Low/High
+- spotlight: county names + teal/purple swatches (from `comparisonData`)
+- postPooling: "Post-pooling JSD" + same Viridis gradient
+
+### 8.5 KLDivergenceCard — Deviation from Regional Norm
+
+- **Scope**: SD region only. **All land cover types** aggregated (no per-landcover breakdown).
+- **Default**: San Diego (06073) on enter; click another county to switch.
+- **Data**: `countyKlDetail` from `buildCountyDetailAllLandcover(fipsNum, cpDetailRef.current, geoFeaturesRef.current)`
+- **Display**: Single table — `DeviationTable` with diverging bars (p_county − p_pool per color). Red = over-represented, blue = under. Legend: Under / Over.
+
+### 8.6 PostPoolingScoresCard
+
+- **Data**: `caseStudyData.sd_vs_neighbors` — keys `06073-06025`, `06073-06059`, `06073-06065`
+- **Display**: SD vs Imperial, Orange, Riverside — original JSD → pooled JSD per pair
+- **Legend**: Original (navy) / Pooled (green) swatches
+
+### 8.7 ColorPoolDendrogram
+
+- Loads `color-pool-merge-tree.json`
+- **Initial scale**: 0.65 (zoomed out)
+- D3 cluster layout, d3-zoom; click branch → focus; click background → reset to 0.65
+- `COLOR_MAP`, `GROUP_COLORS` for node colors
+
+### 8.8 File Paths
+
+| Path | Purpose |
+|------|---------|
+| `src/VizIntroduction.tsx` | Orchestrator; 6 fetches; applyScene; handleSceneEnter; handleMapReady |
+| `src/viz-intro/HeroSection.tsx` | Editorial intro |
+| `src/viz-intro/StickyGraphic.tsx` | Map, MapApi, legends, zoom enforcement |
+| `src/viz-intro/ScrollNarration.tsx` | Scrollama steps, cards |
+| `src/viz-intro/SpotlightComparison.tsx` | County A vs B color bars |
+| `src/viz-intro/KLDivergenceCard.tsx` | Deviation from Regional Norm |
+| `src/viz-intro/PostPoolingScoresCard.tsx` | Post-pooling JSD scores |
+| `src/viz-intro/ColorPoolDendrogram.tsx` | D3 dendrogram |
+| `src/viz-intro/constants.ts` | MAP_CENTER, SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM, SceneId, DIVERGENCE_STOPS |
+| `src/lib/conditionalPooling.ts` | buildCountyDetail, buildCountyDetailAllLandcover, SummaryRow, DetailRow, CountyDetail, ColorDistribution |
 
 ---
 
-## 9. UI Primitives and Utilities
+## 9. Notebook → JSON Data Pipeline (Viz-Specific)
 
-### `src/lib/utils.ts`
+The scrollytelling at `/viz` depends on JSON files produced by notebooks and scripts. Regenerate in this order:
+
+### 9.1 `neighbor-jsd-pooled-greedy.json`
+
+**Source**: `notebooks/methods/color_groupings/color_pool.ipynb`
+
+- Run the greedy merge algorithm (produces `results` or `refined_results`)
+- Run the **export cell** (after JSD evaluation)
+- Output: `{ "06073-06025": { "weighted_jsd": 0.226, "mean_jsd": 0.272 }, ... }`
+- Keys: `fips_a-fips_b` (smaller fips first)
+- Export cell uses `Path.cwd()` and walks up to find `website/frontend/public/data/`
+
+### 9.2 `color-pool-merge-tree.json`
+
+**Source**: `scripts/build_merge_tree.py` or equivalent cell in color_pool notebook
+
+- Builds D3-ready tree from `MERGE_LIST` (merged → canonical, votes)
+- Output: nested `{ name, value?, children[] }` structure
+- Run: `python scripts/build_merge_tree.py` from project root
+
+### 9.3 `case_study_sd_region.json`
+
+**Source**: `notebooks/eda/case_study.ipynb`
+
+- **Requires**: `neighbor-jsd-pooled-greedy.json` (from step 9.1) must exist
+- Loads `county-pair-comparisons.json` for SD pairs (06073 vs 06025, 06059, 06065)
+- Loads `jsd_pooled` from `neighbor-jsd-pooled-greedy.json` if present
+- Builds `sd_vs_neighbors` with `jsd: { original, pooled }` per pair
+- Output path: `OUTPUT_PATH / 'case_study_sd_region.json'` = `website/frontend/public/data/case_study_sd_region.json`
+- Run **all cells** including the "Load post-pooling JSD" cell (cell 8) and the "Build Case Study JSON" cell (cell 14)
+
+### 9.4 `county-pair-comparisons.json`
+
+**Source**: Backend export or pre-existing pipeline (see `website/_archive/backend/`)
+
+- Structure: `{ "06059-06073": { county_a, county_b, jsd: { original } }, ... }`
+- Used by VizIntroduction as fallback when case study sd_vs_neighbors lacks pooled
+- Also used by NeighborDivergence, C2STMap
+
+### 9.5 Dependency Graph
+
+```
+color_pool.ipynb (greedy merge + JSD)
+    → neighbor-jsd-pooled-greedy.json
+    → color-pool-merge-tree.json (via build_merge_tree.py)
+
+case_study.ipynb
+    ← county-pair-comparisons.json
+    ← neighbor-jsd-pooled-greedy.json
+    → case_study_sd_region.json (sd_vs_neighbors with jsd.original + jsd.pooled)
+
+VizIntroduction
+    ← county-pair-comparisons.json
+    ← case_study_sd_region.json
+    ← conditional-pooling-summary.json
+    ← conditional-pooling-detail.json
+    ← group-divergence.json
+    ← neighbor-jsd-pooled-greedy.json
+
+StickyGraphic
+    ← neighbor-divergence-map.json
+    ← comparisonData (from VizIntroduction, for spotlight legend)
+    ← klByFips (for showKLChoropleth)
+    ← jsdByFips (for showPostPoolingChoropleth)
+```
+
+---
+
+## 10. UI Primitives and Utilities
+
+### 10.1 `src/lib/utils.ts`
 - `cn(...inputs)`: Merges class names via `clsx` + `tailwind-merge`. Use for conditional Tailwind classes.
 
-### `src/lib/chart-colors.ts`
+### 10.2 `src/lib/chart-colors.ts`
 - `chartColors`: Primary (sage), gradient, anomaly, sequential, diverging, categorical, text, axis
 - `viridisColors`, `surprisalColors`: Legacy scales
 
-### `src/index.css`
+### 10.3 `src/index.css`
 - Tailwind imports + tw-animate-css
 - Geist font (variable)
 - Custom theme: sage palette, semantic tokens (background, foreground, muted, border)
 - MapLibre popup/control overrides (styling to match app)
 - Radix/shadcn CSS variables (radius, colors)
 
-### `src/components/ui/*`
+### 10.4 `src/components/ui/*`
 - Radix-based primitives: `button`, `card`, `input`, `label`, `select`, `tabs`, `tooltip`, `badge`, `separator`, `checkbox`, `dropdown-menu`, `sheet`, `drawer`, `skeleton`, `table`, `breadcrumb`, `avatar`, `sonner`, `toggle`, `toggle-group`
 - `sidebar.tsx`: SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarInset
 
 ---
 
-## 10. Conventions and Best Practices
+## 11. Conventions and Best Practices
 
 1. **Functional components + hooks** — No class components
 2. **Tailwind for styling** — Utility classes; use `cn()` for conditional classes
@@ -286,7 +461,7 @@ All map views share:
 
 ---
 
-## 11. File Reference
+## 12. File Reference
 
 | Path | Purpose |
 |------|---------|
@@ -299,8 +474,16 @@ All map views share:
 | `src/C2STMap.tsx` | C2ST edges + pair comparison panel |
 | `src/MoransIMap.tsx` | Moran's I choropleth + detail panel |
 | `src/GroupDivergence.tsx` | Group-level JSD choropleth + county panel |
-| `src/VizIntroduction.tsx` | Scrollytelling orchestrator |
-| `src/viz-intro/*` | Scrollytelling subcomponents |
+| `src/VizIntroduction.tsx` | Scrollytelling orchestrator (HeroSection, StickyGraphic, ScrollNarration) |
+| `src/viz-intro/HeroSection.tsx` | Editorial intro (no map) |
+| `src/viz-intro/StickyGraphic.tsx` | Sticky map, SD edges, edge click → selectedPair |
+| `src/viz-intro/ScrollNarration.tsx` | Scrollama steps, SpotlightComparison, KLDivergenceCard, SolutionCard, PostPoolingScoresCard |
+| `src/viz-intro/SpotlightComparison.tsx` | County A vs B bars, JSD original + pooled |
+| `src/viz-intro/KLDivergenceCard.tsx` | Deviation from Regional Norm (All land cover types) |
+| `src/viz-intro/PostPoolingScoresCard.tsx` | Post-pooling JSD scores SD vs neighbors |
+| `src/viz-intro/ColorPoolDendrogram.tsx` | Interactive D3 dendrogram (initialScale 0.65) |
+| `src/viz-intro/constants.ts` | MAP_CENTER, SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM, SceneId, DIVERGENCE_STOPS |
+| `src/lib/conditionalPooling.ts` | buildCountyDetail, buildCountyDetailAllLandcover, SummaryRow, DetailRow, CountyDetail |
 | `src/components/app-sidebar.tsx` | Sidebar + nav definition |
 | `src/components/nav-main.tsx` | Nav menu renderer |
 | `src/components/site-header.tsx` | Header bar |
@@ -312,7 +495,7 @@ All map views share:
 
 ---
 
-## 12. Backend API Reference (Proxy Targets)
+## 13. Backend API Reference (Proxy Targets)
 
 If switching to live API, these endpoints are proxied from `/` to `http://localhost:8000`:
 
@@ -337,7 +520,7 @@ If switching to live API, these endpoints are proxied from `/` to `http://localh
 
 ---
 
-## 13. Development Commands
+## 14. Development Commands
 
 ```bash
 npm run dev     # Start Vite dev server
@@ -347,3 +530,52 @@ npm run preview # Preview production build
 ```
 
 **To run with backend**: Start FastAPI backend at `localhost:8000` for proxy. Static data in `public/data/` must exist for map views to load.
+
+---
+
+## 15. Troubleshooting (Viz / Scrollytelling)
+
+### Pooled JSD not showing in SpotlightComparison
+
+- **Cause**: `case_study_sd_region.json` lacks `jsd.pooled` in `sd_vs_neighbors`.
+- **Fix**: Run `notebooks/methods/color_groupings/color_pool.ipynb` export cell → `neighbor-jsd-pooled-greedy.json`; then run `notebooks/eda/case_study.ipynb` (all cells). Ensure case_study cell 8 (load pooled) ran and cell 14 (build JSON) ran.
+
+### Post-pooling section: map shows KL colors (purple) instead of green
+
+- **Cause**: Wrong data or scale. Post-pooling JSD uses `jsdByFips` from `neighbor-jsd-pooled-greedy.json`. Color scale uses max 0.6 so values 0.15–0.3 map to green.
+- **Fix**: Ensure `neighbor-jsd-pooled-greedy.json` is fetched (6th in Promise.all). Check `processPooledJsdByFips` returns per-county max. If `jsdByFips` empty, falls back to `spotlightCounties` (gray).
+
+### Post-pooling section: map zooms out to full state
+
+- **Cause**: `showPostPoolingChoropleth` or zoom enforcement not running.
+- **Fix**: `useEffect` in StickyGraphic enforces `flyTo(SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM)` when `scene` ∈ `['spotlight','distributions','solution','postPooling']`. Ensure `handleSceneEnter` calls `showPostPoolingChoropleth` for postPooling. Check `handleMapReady` passes `jsdByFips` to `applyScene`.
+
+### Post-pooling section: counties not colored (gray)
+
+- **Cause**: `jsdByFips` empty when entering postPooling (race: data loads after scroll).
+- **Fix**: `useEffect` in VizIntroduction re-applies `showPostPoolingChoropleth` when `activeScene === 'postPooling'` and `Object.keys(jsdByFips).length > 0`.
+
+### KL / Deviation card: no county detail on click
+
+- **Cause**: `buildCountyDetailAllLandcover` requires `cpDetailRef`, `geoFeaturesRef` populated. Non-SD counties not clickable.
+- **Fix**: Ensure conditional-pooling-detail.json and group-divergence.json load. SD_REGION_FIPS = ['06025','06059','06065','06073'].
+
+### Scroll stops at "Our solution" section
+
+- **Cause**: Solution step had insufficient height.
+- **Fix**: Solution step uses `min-h-[120vh]`. If stuck, increase or add padding.
+
+### Dendrogram too zoomed in
+
+- **Cause**: Initial scale was 1.0.
+- **Fix**: ColorPoolDendrogram uses `initialScale = 0.65`; reset also uses 0.65.
+
+### Dendrogram not loading
+
+- **Cause**: `color-pool-merge-tree.json` missing or malformed.
+- **Fix**: Run `python scripts/build_merge_tree.py` from project root.
+
+### Case study data 404 / blank
+
+- **Cause**: JSON files missing from `public/data/`.
+- **Fix**: Run notebooks in order (see 9.5 Dependency Graph). All 6 viz data files must exist.

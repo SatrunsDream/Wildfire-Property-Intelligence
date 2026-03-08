@@ -1,0 +1,251 @@
+{
+  "name": "root",
+  "children": [
+    {
+      "name": "RED",
+      "value": 40.0,
+      "children": [
+        {
+          "name": "scarlet"
+        },
+        {
+          "name": "red",
+          "value": 62.0,
+          "children": [
+            {
+              "name": "crimson"
+            },
+            {
+              "name": "red",
+              "value": 31.0,
+              "children": [
+                {
+                  "name": "purple",
+                  "value": 162.5,
+                  "children": [
+                    {
+                      "name": "azure",
+                      "value": 50.5,
+                      "children": [
+                        {
+                          "name": "indigo"
+                        },
+                        {
+                          "name": "azure",
+                          "value": 46.0,
+                          "children": [
+                            {
+                              "name": "blue"
+                            },
+                            {
+                              "name": "azure"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "purple"
+                    }
+                  ]
+                },
+                {
+                  "name": "red",
+                  "value": 31.5,
+                  "children": [
+                    {
+                      "name": "foo"
+                    },
+                    {
+                      "name": "red"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NAVY",
+      "value": 44.0,
+      "children": [
+        {
+          "name": "aquamarine"
+        },
+        {
+          "name": "navy",
+          "value": 36.5,
+          "children": [
+            {
+              "name": "aqua"
+            },
+            {
+              "name": "navy",
+              "value": 36.0,
+              "children": [
+                {
+                  "name": "lilac"
+                },
+                {
+                  "name": "navy",
+                  "value": 88.0,
+                  "children": [
+                    {
+                      "name": "lavender"
+                    },
+                    {
+                      "name": "navy"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "COCOA",
+      "value": 93.0,
+      "children": [
+        {
+          "name": "beige"
+        },
+        {
+          "name": "cocoa",
+          "value": 212.0,
+          "children": [
+            {
+              "name": "coffee"
+            },
+            {
+              "name": "cocoa",
+              "value": 371.5,
+              "children": [
+                {
+                  "name": "brown"
+                },
+                {
+                  "name": "cocoa"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OLIVE",
+      "value": 51.0,
+      "children": [
+        {
+          "name": "verde"
+        },
+        {
+          "name": "olive",
+          "value": 94.5,
+          "children": [
+            {
+              "name": "green",
+              "value": 48.5,
+              "children": [
+                {
+                  "name": "sage"
+                },
+                {
+                  "name": "green"
+                }
+              ]
+            },
+            {
+              "name": "olive"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ALABASTER",
+      "value": 152.0,
+      "children": [
+        {
+          "name": "ivory"
+        },
+        {
+          "name": "alabaster",
+          "value": 78.5,
+          "children": [
+            {
+              "name": "grey"
+            },
+            {
+              "name": "alabaster",
+              "value": 53.5,
+              "children": [
+                {
+                  "name": "gray"
+                },
+                {
+                  "name": "alabaster"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AMBER",
+      "value": 65.0,
+      "children": [
+        {
+          "name": "gold"
+        },
+        {
+          "name": "amber",
+          "value": 70.5,
+          "children": [
+            {
+              "name": "yellow"
+            },
+            {
+              "name": "amber",
+              "value": 41.5,
+              "children": [
+                {
+                  "name": "lemon"
+                },
+                {
+                  "name": "amber"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ORANGE",
+      "value": 36.5,
+      "children": [
+        {
+          "name": "sienna"
+        },
+        {
+          "name": "orange",
+          "value": 94.0,
+          "children": [
+            {
+              "name": "terracotta"
+            },
+            {
+              "name": "orange"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
