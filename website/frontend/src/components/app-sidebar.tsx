@@ -8,6 +8,7 @@ import {
     IconHome,
     IconMathFunction,
     IconMap,
+    IconPalette,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -20,7 +21,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st' | 'morans-i' | 'group-divergence'
+export type Page = 'home' | 'conditional-probability' | 'empirical-bayes' | 'neighbor-divergence' | 'c2st' | 'morans-i' | 'group-divergence' | 'color-map'
 
 const navItems = [
     {
@@ -57,6 +58,11 @@ const navItems = [
         title: "Group-Level Divergence",
         id: "group-divergence" as Page,
         icon: IconGitCompare,
+    },
+    {
+        title: "Color Distribution Map",
+        id: "color-map" as Page,
+        icon: IconPalette,
     },
 ]
 
