@@ -1,10 +1,10 @@
-/** Pure editorial intro — no map, no scrollama. Just text + a sample data table. */
+/** Pure editorial intro, no map, no scrollama. Story driven narrative from report.tex */
 export function HeroSection() {
     return (
         <section style={{ background: '#fcfbf8' }}>
-            {/* Headline */}
+            {/* Act 1: The stakes */}
             <div
-                className="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-6"
+                className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-6"
                 style={{ textAlign: 'center' }}
             >
                 <h1
@@ -17,7 +17,7 @@ export function HeroSection() {
                         letterSpacing: '-0.015em',
                     }}
                 >
-                    When wildfire hits, the models that predict damage depend on property data.
+                    Finding outliers before fire finds them first.
                 </h1>
                 <p
                     style={{
@@ -28,30 +28,50 @@ export function HeroSection() {
                         maxWidth: '36rem',
                     }}
                 >
-                    Across California, insurers, planners, and emergency responders rely on
-                    structural databases to estimate risk. But what if the data itself is inconsistent?
+                    Wildfires are among the most costly natural disasters in California. The largest
+                    burned nearly one million acres and caused $16 billion in property damage. Insurers,
+                    planners, and emergency responders rely on structural databases to estimate risk.
+                    But inaccurate data can distort damage estimates and misallocate resources.
+                </p>
+                <p
+                    style={{
+                        marginTop: '1rem',
+                        fontSize: '1rem',
+                        lineHeight: 1.75,
+                        color: '#666',
+                        maxWidth: '34rem',
+                    }}
+                >
+                    Our question: <em>How can we detect erroneous property data and correct
+                    inconsistencies across regions?</em> We examine San Diego County and its
+                    neighbors to tell that story.
                 </p>
             </div>
 
-            {/* The data explainer */}
-            <div className="mx-auto max-w-2xl px-6" style={{ paddingBottom: '4rem' }}>
-                <p
-                    style={{
-                        fontSize: '0.95rem',
-                        lineHeight: 1.75,
-                        color: '#555',
-                        marginBottom: '1.5rem',
-                    }}
-                >
-                    The National Structure Inventory records property characteristics for every
-                    structure in the United States — building material, occupancy type, land cover.
-                    Here, each structure's material is encoded as a <em>color</em> label (a stand-in
-                    for categorical attributes like roofing material or wall type). This is what
-                    the data looks like:
+            {/* Act 2: The data */}
+            <div className="mx-auto max-w-2xl px-6 py-12">
+                <h2 className="text-xl font-semibold border-b pb-2 mb-4" style={{ color: '#282828' }}>
+                    The data
+                </h2>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: '#555', marginBottom: '1rem' }}>
+                    We use aggregated National Structure Inventory (NSI) data at the H3 hexagon level.
+                    Each cell contains counts of structures stratified by occupancy, building material,
+                    and land cover. Our categorical attribute, <em>color</em>, stands in for any
+                    property field (e.g. roofing material) whose distribution may vary across counties
+                    due to reporting conventions. Think of it like "duplex" vs "small multifamily":
+                    different labels, similar structures.
+                </p>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: '#555', marginBottom: '1.5rem' }}>
+                    San Diego and Los Angeles are both major urban counties with similar color distributions.
+                    Yet even adjacent counties like San Diego and Orange can diverge, not because
+                    structures differ, but because assessors use different vocabularies.
                 </p>
 
                 {/* Sample data table */}
-                <div style={{ overflowX: 'auto' }}>
+                <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.75rem' }}>
+                    Sample records: each row is a group of structures in one location.
+                </p>
+                <div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
                     <table
                         style={{
                             width: '100%',
@@ -104,18 +124,26 @@ export function HeroSection() {
                     </table>
                 </div>
 
-                <p
-                    style={{
-                        marginTop: '1.5rem',
-                        fontSize: '0.95rem',
-                        lineHeight: 1.75,
-                        color: '#555',
-                    }}
-                >
-                    Each row represents a group of structures in one location. The <em>clr</em> column
-                    — our focus — encodes a categorical property attribute. If neighboring counties
-                    with similar geography report very different distributions of these labels,
-                    something may be wrong with the data.
+                {/* Act 3: Exposure and sparsity */}
+                <h2 className="text-xl font-semibold border-b pb-2 mb-4 mt-10" style={{ color: '#282828' }}>
+                    Exposure drives instability
+                </h2>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: '#555', marginBottom: '1rem' }}>
+                    Across 221,108 H3 cells, exposure ranges from 2 to 2,195 structures per cell, with a
+                    median of 21. Twenty six percent of cells have fewer than 5 structures and contain
+                    only 1.5% of total structures. Rural and forest dominated counties, including
+                    parts of San Diego's inland and mountainous areas, have over 60% of cells classified
+                    as sparse (&lt;10 structures).
+                </p>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: '#555', marginBottom: '1rem' }}>
+                    This matters: <strong>low exposure creates unstable categorical proportions.</strong>
+                    A single observation can dramatically shift frequencies. Naive anomaly detection
+                    overflags rural areas not because the data is wrong, but because sample sizes
+                    are too small. Any framework must account for exposure heterogeneity.
+                </p>
+                <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: '#555', marginBottom: '1.5rem' }}>
+                    Scroll to see California's divergence landscape and zoom into San Diego to
+                    compare it with Orange County, a neighbor that shares a border and similar geography.
                 </p>
             </div>
         </section>
@@ -123,10 +151,10 @@ export function HeroSection() {
 }
 
 const SAMPLE_ROWS = [
-    ['Napa', 'Urban + Forest', 'Wood', 'cocoa', '847'],
-    ['Napa', 'Urban + Forest', 'Masonry', 'olive', '412'],
-    ['Napa', 'Forest', 'Wood', 'purple', '218'],
-    ['Sonoma', 'Urban + Forest', 'Wood', 'brown', '2,103'],
-    ['Sonoma', 'Urban + Forest', 'Masonry', 'sage', '961'],
-    ['Sonoma', 'Forest', 'Wood', 'lavender', '534'],
+    ['San Diego', 'Urban + Forest', 'Wood', 'cocoa', '3,421'],
+    ['San Diego', 'Urban + Forest', 'Masonry', 'olive', '1,892'],
+    ['San Diego', 'Urban', 'Wood', 'terracotta', '5,103'],
+    ['Orange', 'Urban + Forest', 'Wood', 'brown', '2,847'],
+    ['Orange', 'Urban + Forest', 'Masonry', 'sage', '1,456'],
+    ['Orange', 'Urban', 'Wood', 'lavender', '4,221'],
 ]

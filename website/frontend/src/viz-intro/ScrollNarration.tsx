@@ -8,10 +8,28 @@ interface ComparisonData {
     jsd: { original: number }
 }
 
+interface CaseStudyData {
+    counties?: { fips: string; name: string }[]
+    exposure?: Record<string, { total_exposure: number; median_exposure: number }>
+    distributions?: Record<string, { name: string; by_landcover: Record<string, { clr: string; proportion: number; count: number }[]> }>
+    surprisal?: Record<string, number>
+    group_level_divergence?: { avg_divergence_by_county?: Record<string, number> }
+    sd_vs_neighbors?: Record<string, { county_a: { name: string }; county_b: { name: string }; jsd: { original?: number } }>
+}
+
+interface SelectedPair {
+    fips_a: string
+    fips_b: string
+    county_a: string
+    county_b: string
+}
+
 interface ScrollNarrationProps {
     onSceneEnter: (scene: SceneId, direction: 'up' | 'down') => void
     onSceneProgress: (scene: SceneId, progress: number) => void
     comparisonData: ComparisonData | null
+    caseStudyData: CaseStudyData | Record<string, unknown> | null
+    selectedPair: SelectedPair | null
     activeScene: SceneId
 }
 
@@ -31,7 +49,55 @@ function NarrationCard({ children, accent = '#21918c' }: { children: React.React
     )
 }
 
-export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData, activeScene }: ScrollNarrationProps) {
+function DistributionsCard({
+    data,
+    visible,
+    slideFromRight = false,
+}: {
+    data: CaseStudyData | Record<string, unknown> | null
+    visible: boolean
+    slideFromRight?: boolean
+}) {
+    const d = data as CaseStudyData | null
+    if (!d?.distributions) return null
+    const urban = Object.entries(d.distributions).map(([, v]) => ({
+        name: v.name,
+        top: (v.by_landcover?.urban ?? [])?.slice(0, 6) ?? [],
+    }))
+    return (
+        <div
+            className="pointer-events-auto"
+            style={{
+                maxWidth: '26rem',
+                padding: '1.5rem',
+                background: 'rgba(252, 251, 248, 0.95)',
+                borderLeft: '3px solid #f97316',
+                opacity: visible ? 1 : 0,
+                transform: slideFromRight ? (visible ? 'translateX(0)' : 'translateX(100%)') : undefined,
+                transition: 'opacity 0.5s, transform 0.5s ease-out',
+            }}
+        >
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.35rem', fontWeight: 400, color: '#282828', margin: 0 }}>
+                Color distributions (urban landcover)
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.5rem', lineHeight: 1.5 }}>
+                P(color | landcover) varies by county. Top colors for urban areas:
+            </p>
+            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {urban.map(({ name, top }) => (
+                    <div key={name} style={{ padding: '0.5rem 0', borderBottom: '1px solid #eee' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666', marginTop: 4 }}>
+                            {top.map((t) => `${t.clr} ${(t.proportion * 100).toFixed(1)}%`).join(' · ')}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData, caseStudyData, selectedPair, activeScene }: ScrollNarrationProps) {
     const handleStepEnter = ({ data, direction }: ScrollamaStepEvent) => {
         onSceneEnter(data as SceneId, direction)
     }
@@ -65,20 +131,36 @@ export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData,
                                 58 counties report this data independently.
                             </h2>
                             <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#555', marginTop: '0.75rem' }}>
-                                Each county in California records structural characteristics
-                                using its own conventions. As you scroll, the color shifts
-                                to show how much each county's data diverges from its neighbors.
+                                Each county records structural characteristics using its own conventions.
+                                The map shows <strong>maximum neighbor divergence</strong>: how much each
+                                county's color distribution differs from adjacent counties. Scroll to zoom
+                                into the San Diego region: San Diego, Orange, Riverside, and Imperial.
                             </p>
                         </NarrationCard>
                     </div>
                 </Step>
 
-                {/* Scene 2: Spotlight on Napa & Sonoma */}
+                {/* Scene 2: Spotlight — "Same border, different data" */}
                 <Step data="spotlight">
                     <div className="flex min-h-[140vh] items-center px-6 md:px-16">
                         <SpotlightComparison
                             data={comparisonData}
+                            selectedPair={selectedPair}
                             visible={activeScene === 'spotlight'}
+                        />
+                    </div>
+                </Step>
+
+                {/* Scene 3: Color distributions — slides in from right, replacing the comparison */}
+                <Step data="distributions">
+                    <div
+                        className="flex min-h-[120vh] items-center px-6 md:px-16"
+                        style={{ overflow: 'hidden', justifyContent: 'flex-end' }}
+                    >
+                        <DistributionsCard
+                            data={caseStudyData}
+                            visible={activeScene === 'distributions'}
+                            slideFromRight={true}
                         />
                     </div>
                 </Step>

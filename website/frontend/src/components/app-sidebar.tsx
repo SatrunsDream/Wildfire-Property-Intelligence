@@ -1,5 +1,6 @@
 import * as React from "react"
 import {
+    IconBook,
     IconBrain,
     IconChartBar,
     IconFlame,
@@ -30,9 +31,9 @@ const navItems = [
         icon: IconHome,
     },
     {
-        title: "Conditional Pooling",
-        id: "conditional-probability" as Page,
-        icon: IconMathFunction,
+        title: "Case Study",
+        href: "/viz",
+        icon: IconBook,
     },
     {
         title: "Empirical Bayes Pooling",
@@ -40,9 +41,19 @@ const navItems = [
         icon: IconChartBar,
     },
     {
+        title: "Conditional Pooling",
+        id: "conditional-probability" as Page,
+        icon: IconMathFunction,
+    },
+    {
         title: "Neighbor Divergence",
         id: "neighbor-divergence" as Page,
         icon: IconGraph,
+    },
+    {
+        title: "Group-Level Divergence",
+        id: "group-divergence" as Page,
+        icon: IconGitCompare,
     },
     {
         title: "C2ST",
@@ -53,11 +64,6 @@ const navItems = [
         title: "Moran's I",
         id: "morans-i" as Page,
         icon: IconMap,
-    },
-    {
-        title: "Group-Level Divergence",
-        id: "group-divergence" as Page,
-        icon: IconGitCompare,
     },
     {
         title: "Color Distribution Map",
@@ -83,7 +89,7 @@ export function AppSidebar({ currentPage, onPageChange, ...props }: AppSidebarPr
                         >
                             <a href="#">
                                 <IconFlame className="!size-5" />
-                                <span className="text-base font-semibold">Wildfire Intel</span>
+                                <span className="text-base font-semibold">Wildfire Property Intelligence: Finding Outliers Before Fire Finds Them First</span>
                             </a>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

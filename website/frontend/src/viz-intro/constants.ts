@@ -17,14 +17,15 @@ export const MAP_STYLE: maplibregl.StyleSpecification = {
     ],
 }
 
-/** Napa/Sonoma spotlight */
-export const NAPA_FIPS = '06055'
-export const SONOMA_FIPS = '06097'
-export const SPOTLIGHT_CENTER: [number, number] = [-122.5, 38.35]
-export const SPOTLIGHT_ZOOM = 8.5
+/** San Diego regional case study — 4 counties */
+export const SPOTLIGHT_FIPS = ['06025', '06059', '06065', '06073'] as const  // Imperial, Orange, Riverside, San Diego
+export const SPOTLIGHT_FIPS_A = '06059'  // Orange (legacy)
+export const SPOTLIGHT_FIPS_B = '06073'  // San Diego (legacy)
+export const SPOTLIGHT_CENTER: [number, number] = [-116.5, 33.2]
+export const SPOTLIGHT_ZOOM = 7.5
 
 /** Scene identifiers */
-export type SceneId = 'hero' | 'counties' | 'spotlight'
+export type SceneId = 'hero' | 'counties' | 'spotlight' | 'distributions'
 
 /** Color ramp for divergence choropleth (Viridis) */
 export const DIVERGENCE_STOPS: [number, string][] = [

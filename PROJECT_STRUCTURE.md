@@ -16,6 +16,8 @@
 
 **`notebooks/eda/`** - Exploratory data analysis notebooks (dataset anatomy, exposure density, marginal distributions).
 
+**`notebooks/methods/color_groupings/`** - Color pooling methods: color_pool (vote-based), optimization (divergence), hierarchical_clustering (Ward/complete linkage).
+
 **`notebooks/frameworks/`** - Method implementation and comparison notebooks.
 
 **`figures/eda/`** - EDA visualization outputs (distribution plots, exposure analysis).

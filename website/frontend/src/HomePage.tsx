@@ -44,13 +44,10 @@ export function HomePage() {
         <div className="max-w-3xl space-y-10 py-6">
 
             {/* Title */}
-            <div className="space-y-1">
+            <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
-                    Wildfire Property Intelligence
+                    Wildfire Property Intelligence: Finding Outliers Before Fire Finds Them First
                 </h1>
-                <p className="text-muted-foreground text-sm italic">
-                    Finding outliers before fire finds them first
-                </p>
             </div>
 
             {/* Authors */}
@@ -126,21 +123,7 @@ export function HomePage() {
                         ]} />
                     </div>
 
-                    {/* Moran's I */}
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-semibold">Moran's I</h3>
-                        <div className="overflow-x-auto py-2">
-                            <BlockMath>{String.raw`I_i = \frac{\sum_j z_i \cdot z_j \cdot w_{ij}}{\sum_i z_i^2}`}</BlockMath>
-                        </div>
-                        <Legend items={[
-                            { sym: 'i,\\,j', desc: 'county indices (58 counties in California)' },
-                            { sym: 'z_i', desc: 'standardized feature value for county i (e.g. relative color frequency)' },
-                            { sym: 'w_{ij}', desc: 'spatial weight — 1 if counties i and j share a border, 0 otherwise' },
-                            { sym: 'I_i', desc: 'local Moran\'s I — high = clusters with neighbors, low = spatial outlier' },
-                        ]} />
-                    </div>
-
-                    {/* Neighbor JSD */}
+                    {/* Neighbor Divergence */}
                     <div className="space-y-2">
                         <h3 className="text-sm font-semibold">Jensen–Shannon Neighbor Divergence</h3>
                         <div className="overflow-x-auto py-2">
@@ -153,11 +136,6 @@ export function HomePage() {
                             { sym: 'w_{cc\'\\ell}', desc: 'weight = min sample size of the two counties for that land cover' },
                             { sym: 'D_{cc\'}', desc: 'weighted mean JSD across shared land cover types for the pair' },
                         ]} />
-                    </div>
-
-                    {/* C2ST */}
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-semibold">Classifier Two-Sample Test (C2ST)</h3>
                     </div>
 
                     {/* Group Divergence */}
@@ -175,6 +153,42 @@ export function HomePage() {
                         ]} />
                     </div>
 
+                    {/* C2ST */}
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold">Classifier Two-Sample Test (C2ST)</h3>
+                        <div className="overflow-x-auto py-2">
+                            <BlockMath>{String.raw`\mathbf{x}_i = (\text{occupancy}_i, \text{bldgtype}_i, \text{color}_i), \quad y_i = \begin{cases} 1 & \text{if from } c_a \\ 0 & \text{if from } c_b \end{cases}`}</BlockMath>
+                        </div>
+                        <div className="overflow-x-auto py-2">
+                            <BlockMath>{String.raw`\widehat{\text{Acc}}_\ell(c_a, c_b) = \frac{1}{N_\ell} \sum_{i=1}^{N_\ell} \mathbf{1}(\widehat{y}_i = y_i)`}</BlockMath>
+                        </div>
+                        <div className="overflow-x-auto py-2">
+                            <BlockMath>{String.raw`\text{C2ST}(c_a, c_b) = \sum_{\ell} w_\ell \, \widehat{\text{Acc}}_\ell(c_a, c_b), \quad w_\ell = \frac{\min(n_{c_a\ell}, n_{c_b\ell})}{\sum_{\ell'} \min(n_{c_a\ell'}, n_{c_b\ell'})}`}</BlockMath>
+                        </div>
+                        <Legend items={[
+                            { sym: 'c_a,\\,c_b', desc: 'neighboring county pair' },
+                            { sym: '\\ell', desc: 'land cover type' },
+                            { sym: '\\mathbf{x}_i', desc: 'categorical feature (occupancy, building type, color)' },
+                            { sym: 'y_i', desc: 'binary label: 1 if from c_a, 0 if from c_b' },
+                            { sym: '\\widehat{\\text{Acc}}_\\ell', desc: 'CV accuracy of classifier in land cover ℓ' },
+                            { sym: 'w_\\ell', desc: 'exposure weight = min sample sizes normalized across ℓ' },
+                        ]} />
+                    </div>
+
+                    {/* Moran's I */}
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold">Moran's I</h3>
+                        <div className="overflow-x-auto py-2">
+                            <BlockMath>{String.raw`I_i = \frac{\sum_j z_i \cdot z_j \cdot w_{ij}}{\sum_i z_i^2}`}</BlockMath>
+                        </div>
+                        <Legend items={[
+                            { sym: 'i,\\,j', desc: 'county indices (58 counties in California)' },
+                            { sym: 'z_i', desc: 'standardized feature value for county i (e.g. relative color frequency)' },
+                            { sym: 'w_{ij}', desc: 'spatial weight — 1 if counties i and j share a border, 0 otherwise' },
+                            { sym: 'I_i', desc: 'local Moran\'s I — high = clusters with neighbors, low = spatial outlier' },
+                        ]} />
+                    </div>
+
                 </div>
             </Section>
 
@@ -182,8 +196,13 @@ export function HomePage() {
             <Section title="Results & Discussion">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     {[
+                        { stat: '4.17', label: 'Mean surprisal (unweighted)' },
+                        { stat: '2.50', label: 'Exposure-weighted mean surprisal' },
                         { stat: '0.621', label: 'Mean neighbor JSD (raw color labels)' },
-                        { stat: '0.343', label: 'Mean neighbor JSD after color group pooling' },
+                        { stat: '0.21', label: 'Mean neighbor JSD after color group pooling' },
+                        { stat: '0.97', label: 'KL divergence (county vs neighbor pool, mean)' },
+                        { stat: '0.165', label: "Local Moran's I (mean)" },
+                        { stat: '93.4%', label: 'C2ST classifier accuracy (mean)' },
                     ].map(({ stat, label }) => (
                         <div key={label} className="rounded-lg border bg-card p-4">
                             <p className="text-2xl font-semibold tabular-nums">{stat}</p>

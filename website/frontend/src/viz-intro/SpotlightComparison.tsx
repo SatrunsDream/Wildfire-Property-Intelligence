@@ -1,4 +1,4 @@
-/** Side-by-side bar chart comparing Napa vs Sonoma color distributions */
+/** Side by side bar chart comparing San Diego vs Orange color distributions */
 
 interface DistEntry {
     value: string
@@ -14,6 +14,7 @@ interface ComparisonData {
 
 interface SpotlightComparisonProps {
     data: ComparisonData | null
+    selectedPair?: { fips_a: string; fips_b: string; county_a: string; county_b: string } | null
     visible: boolean
 }
 
@@ -51,8 +52,10 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
             >
                 Same border. Different data.
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.35rem' }}>
-                Jensen-Shannon divergence: {data.jsd.original.toFixed(3)}
+            <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
+                Paths show JSD between San Diego and each neighbor. <strong>Click a path</strong> to compare.
+                {data.county_a.name}–{data.county_b.name}: JSD <strong>{data.jsd.original.toFixed(3)}</strong>.
+                Different color vocabularies (e.g. "cocoa" vs "brown") create divergence.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '1rem' }}>
@@ -72,9 +75,10 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
                 />
             </div>
 
-            <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '1rem', lineHeight: 1.6 }}>
-                These counties share a border and similar geography — yet their top reported
-                building attributes barely overlap.
+            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '1rem', lineHeight: 1.6 }}>
+                The top colors differ between counties. Pooling similar labels (browns, reds,
+                greens) reduces mean neighbor JSD from ~0.62 to ~0.36 statewide, evidence that
+                much observed divergence is labeling convention, not structural difference.
             </p>
         </div>
     )

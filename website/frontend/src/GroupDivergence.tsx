@@ -117,6 +117,7 @@ export default function GroupDivergence() {
     const [metric, setMetric] = useState<'num_anomalies' | 'avg_divergence'>('avg_divergence')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
     // Load all static data on mount
     useEffect(() => {
@@ -177,6 +178,28 @@ export default function GroupDivergence() {
                 },
             })
 
+            const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false })
+
+            map.current.on('mousemove', 'counties-fill', (e: maplibregl.MapLayerMouseEvent) => {
+                if (!e.features || e.features.length === 0) return
+                if (map.current) map.current.getCanvas().style.cursor = 'pointer'
+                const props = e.features[0].properties as Record<string, unknown>
+                const countyName = (props.county_name as string) || (props.name as string) || 'Unknown'
+                const numAnomalies = props.num_anomalies as number | undefined
+                const avgDiv = props.avg_divergence as number | undefined
+                const html = `<div style="font-size:12px;line-height:1.5">
+                    <div style="font-weight:bold;margin-bottom:6px">${countyName} County</div>
+                    <div>Num Anomalies: <strong>${numAnomalies != null ? numAnomalies.toFixed(0) : 'N/A'}</strong></div>
+                    <div>Avg Divergence: <strong>${avgDiv != null ? avgDiv.toFixed(4) : 'N/A'}</strong></div>
+                    <div style="margin-top:6px;font-size:10px;color:#666">Click for details</div>
+                </div>`
+                popup.setLngLat(e.lngLat).setHTML(html).addTo(map.current!)
+            })
+
+            map.current.on('mouseleave', 'counties-fill', () => {
+                if (map.current) { map.current.getCanvas().style.cursor = ''; popup.remove() }
+            })
+
             map.current.on('click', 'counties-fill', (e) => {
                 if (e.features && e.features.length > 0) {
                     const fips = e.features[0].properties?.fips as string | undefined
@@ -186,14 +209,6 @@ export default function GroupDivergence() {
                         setCountyColors(allCountyColors?.[fips] ?? null)
                     }
                 }
-            })
-
-            map.current.on('mouseenter', 'counties-fill', () => {
-                if (map.current) map.current.getCanvas().style.cursor = 'pointer'
-            })
-
-            map.current.on('mouseleave', 'counties-fill', () => {
-                if (map.current) map.current.getCanvas().style.cursor = ''
             })
         })
 
@@ -208,6 +223,14 @@ export default function GroupDivergence() {
         if (!map.current || !map.current.getLayer('counties-fill')) return
         map.current.setPaintProperty('counties-fill', 'fill-color', buildFillColor(metric))
     }, [metric])
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false) }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isFullscreen])
+
+    useEffect(() => { setTimeout(() => map.current?.resize(), 100) }, [isFullscreen])
 
     if (loading) {
         return (
@@ -226,39 +249,79 @@ export default function GroupDivergence() {
     }
 
     return (
-        <div className="relative flex-1 min-h-0">
+        <div className={cn('relative flex-1 min-h-0', isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white')}>
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
+                {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading map data...</div>}
+                {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
 
-                <div className="absolute top-2.5 left-2.5 bg-white/95 rounded shadow-elevated p-3 space-y-3 z-10 w-48">
-                    <div>
-                        <h2 className="font-semibold text-lg mb-2">Group-Level Divergence</h2>
-                        <p className="text-sm text-gray-600 mb-3">
-                            Anomaly detection using Jensen-Shannon divergence on landcover-conditioned color distributions
-                        </p>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Color by:</label>
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
+                    {mapData && (
+                        <div className="pb-2 mb-1 border-b border-border">
+                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                <span className="text-muted-foreground">Counties:</span>
+                                <span className="font-semibold text-foreground">{mapData.stats.total_counties}</span>
+                                <span className="text-muted-foreground">Mean {metric === 'num_anomalies' ? 'Anomalies' : 'Divergence'}:</span>
+                                <span className="font-semibold text-foreground">
+                                    {metric === 'num_anomalies' ? mapData.stats.mean_anomalies.toFixed(2) : mapData.stats.mean_divergence.toFixed(3)}
+                                </span>
+                                <span className="text-muted-foreground">Max {metric === 'num_anomalies' ? 'Anomalies' : 'Divergence'}:</span>
+                                <span className="font-semibold text-foreground">
+                                    {metric === 'num_anomalies' ? mapData.stats.max_anomalies.toFixed(0) : mapData.stats.max_divergence.toFixed(3)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Display</span>
                         <select
                             value={metric}
                             onChange={(e) => setMetric(e.target.value as 'num_anomalies' | 'avg_divergence')}
-                            className="w-full px-3 py-2 border rounded"
+                            className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
                         >
                             <option value="num_anomalies">Number of Anomalies</option>
                             <option value="avg_divergence">Average Divergence</option>
                         </select>
                     </div>
-
-                    {mapData && (
-                        <div className="text-xs text-gray-600 space-y-1 pt-2 border-t">
-                            <div>Counties: {mapData.stats.total_counties}</div>
-                            <div>Avg Anomalies: {mapData.stats.mean_anomalies.toFixed(2)}</div>
-                            <div>Max Anomalies: {mapData.stats.max_anomalies.toFixed(0)}</div>
-                            <div>Avg Divergence: {mapData.stats.mean_divergence.toFixed(3)}</div>
-                        </div>
-                    )}
+                    <button
+                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        onClick={() => setIsFullscreen(!isFullscreen)}
+                    >
+                        {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                    </button>
                 </div>
+
+                {/* Heat map legend - bottom right (like Conditional Pooling, Neighbor Divergence) */}
+                {mapData && (
+                    <div
+                        className={cn(
+                            'absolute right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
+                            selectedDivergences ? 'bottom-32' : 'bottom-24'
+                        )}
+                    >
+                        <div className="font-semibold mb-2 text-foreground">
+                            {metric === 'num_anomalies' ? 'Number of Anomalies' : 'Average Divergence'}
+                        </div>
+                        <div
+                            className="w-44 h-2.5 rounded-sm"
+                            style={{
+                                background:
+                                    metric === 'num_anomalies'
+                                        ? 'linear-gradient(to right, #f7fbff, #deebf7, #c6dbef, #9ecae1, #6baed6, #3182bd)'
+                                        : 'linear-gradient(to right, #f7fbff, #deebf7, #c6dbef, #9ecae1, #6baed6, #3182bd)',
+                            }}
+                        />
+                        <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
+                            <span>0</span>
+                            <span>
+                                {metric === 'num_anomalies'
+                                    ? mapData.stats.max_anomalies.toFixed(0)
+                                    : mapData.stats.max_divergence.toFixed(3)}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {selectedDivergences && (
