@@ -6,6 +6,7 @@ import { NeighborDivergence } from './NeighborDivergence'
 import { C2STMap } from './C2STMap'
 import { MoransIMap } from './MoransIMap'
 import GroupDivergence from './GroupDivergence'
+import { ColorMap } from './ColorMap'
 import { AppSidebar, type Page } from './components/app-sidebar'
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
@@ -18,6 +19,7 @@ const pageTitles: Record<Page, string> = {
     'c2st': 'C2ST',
     'morans-i': "Moran's I",
     'group-divergence': 'Group-Level Divergence',
+    'color-map': 'Color Distribution Map',
 }
 
 export function Router() {
@@ -57,6 +59,9 @@ export function Router() {
                         </div>
                         <div className={page === 'group-divergence' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <GroupDivergence />
+                        </div>
+                        <div className={page === 'color-map' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
+                            <ColorMap />
                         </div>
                     </div>
                 </div>
