@@ -40,7 +40,7 @@ export function Router() {
                 <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="@container/main flex flex-1 flex-col min-h-0">
                         <div className={page === 'home' ? 'overflow-y-auto px-4 lg:px-8' : 'hidden'}>
-                            <HomePage />
+                            <HomePage onPageChange={setPage} />
                         </div>
                         <div className={page === 'conditional-probability' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <ConditionalProbability />
