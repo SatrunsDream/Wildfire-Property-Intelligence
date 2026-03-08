@@ -25,7 +25,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-base leading-relaxed">{children}</p>
+  return <p className="text-sm sm:text-base leading-relaxed">{children}</p>
 }
 
 function Dropdown({ title, children }: { title: string; children: React.ReactNode }) {
@@ -41,7 +41,7 @@ function Dropdown({ title, children }: { title: string; children: React.ReactNod
           ▾
         </span>
       </button>
-      {open && <div className="px-4 pb-4 pt-1 text-sm space-y-3">{children}</div>}
+      {open && <div className="px-3 sm:px-4 pb-4 pt-1 text-sm space-y-3">{children}</div>}
     </div>
   )
 }
@@ -64,15 +64,15 @@ function MethodLink({ title, page, onPageChange }: {
 
 export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void }) {
   return (
-    <div className="w-full space-y-12 py-8">
+    <div className="w-full space-y-8 sm:space-y-12 py-4 sm:py-8 px-1 sm:px-0">
       <div className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Wildfire Property Intelligence
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-base sm:text-lg text-muted-foreground">
           Finding Outliers Before Fire Finds Them First
         </p>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm pt-1">
           {AUTHORS.map((a) => (
             <div key={a.email}>
               <p className="font-medium">{a.name}</p>
@@ -82,7 +82,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
         </div>
         <div className="pt-2">
           <p className="text-xs text-muted-foreground font-medium mb-1">Industry Mentors</p>
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
             {MENTORS.map((m) => (
               <div key={m.name} className="text-sm">
                 <p className="font-medium">{m.name}</p>
@@ -251,8 +251,8 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
             { stat: '0.62', label: 'Mean neighbor JSD (raw labels)', note: 'High divergence between neighbors' },
             { stat: '0.21', label: 'Mean neighbor JSD (after pooling)', note: '66% reduction from color grouping' },
           ].map(({ stat, label, note }) => (
-            <div key={label} className="rounded-lg border bg-card p-4">
-              <p className="text-2xl font-semibold tabular-nums">{stat}</p>
+            <div key={label} className="rounded-lg border bg-card p-3 sm:p-4">
+              <p className="text-xl sm:text-2xl font-semibold tabular-nums">{stat}</p>
               <p className="text-sm font-medium mt-1">{label}</p>
               <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{note}</p>
             </div>

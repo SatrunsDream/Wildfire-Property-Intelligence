@@ -141,11 +141,12 @@ export default function GroupDivergence() {
     useEffect(() => {
         if (!mapContainer.current || map.current || !mapData) return
 
+        const isMobile = window.innerWidth < 640
         map.current = new maplibregl.Map({
             container: mapContainer.current,
             style: MAP_STYLE,
             center: [-119.4, 37.0],
-            zoom: 5.5,
+            zoom: isMobile ? 4.5 : 5.5,
         })
 
         map.current.on('load', () => {
@@ -255,7 +256,7 @@ export default function GroupDivergence() {
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
 
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {mapData && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -296,15 +297,15 @@ export default function GroupDivergence() {
                 {mapData && (
                     <div
                         className={cn(
-                            'absolute right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
-                            selectedDivergences ? 'bottom-32' : 'bottom-24'
+                            'absolute right-2.5 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
+                            selectedDivergences ? 'bottom-32' : 'bottom-20 sm:bottom-24'
                         )}
                     >
-                        <div className="font-semibold mb-2 text-foreground">
-                            {metric === 'num_anomalies' ? 'Number of Anomalies' : 'Average Divergence'}
+                        <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">
+                            {metric === 'num_anomalies' ? 'Num Anomalies' : 'Avg Divergence'}
                         </div>
                         <div
-                            className="w-44 h-2.5 rounded-sm"
+                            className="w-28 sm:w-44 h-2 sm:h-2.5 rounded-sm"
                             style={{
                                 background:
                                     metric === 'num_anomalies'
@@ -312,7 +313,7 @@ export default function GroupDivergence() {
                                         : 'linear-gradient(to right, #f7fbff, #deebf7, #c6dbef, #9ecae1, #6baed6, #3182bd)',
                             }}
                         />
-                        <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
                             <span>0</span>
                             <span>
                                 {metric === 'num_anomalies'
@@ -325,10 +326,10 @@ export default function GroupDivergence() {
             </div>
 
             {selectedDivergences && (
-                <div className="absolute top-2.5 right-2.5 w-96 max-h-[calc(100vh-5rem)] bg-white/95 rounded shadow-elevated p-4 overflow-y-auto z-10">
-                    <div className="mb-4">
+                <div className="absolute bottom-0 left-0 right-0 sm:bottom-auto sm:left-auto sm:top-2.5 sm:right-2.5 w-full sm:w-96 max-h-[75vh] sm:max-h-[calc(100vh-5rem)] bg-white/95 rounded-t-xl sm:rounded shadow-elevated p-3 sm:p-4 overflow-y-auto z-10">
+                    <div className="mb-3 sm:mb-4">
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">County {selectedFips}</h3>
+                            <h3 className="text-base sm:text-lg font-semibold">County {selectedFips}</h3>
                             <button
                                 onClick={() => {
                                     setSelectedDivergences(null)
@@ -368,8 +369,8 @@ export default function GroupDivergence() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-baseline gap-3 mb-2">
-                                            <div className="text-2xl font-bold">{lc.divergence.toFixed(3)}</div>
+                                        <div className="flex items-baseline gap-2 sm:gap-3 mb-2">
+                                            <div className="text-xl sm:text-2xl font-bold">{lc.divergence.toFixed(3)}</div>
                                             {colorData && (
                                                 <div className="text-xs text-gray-500">{colorData.county_total.toLocaleString()} structures</div>
                                             )}

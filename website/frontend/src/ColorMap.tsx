@@ -166,11 +166,12 @@ export function ColorMap() {
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
+    const isMobile = window.innerWidth < 640
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: MAP_STYLE,
       center: [-119.5, 37.0],
-      zoom: 5.5,
+      zoom: isMobile ? 4.5 : 5.5,
     })
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
     popup.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, maxWidth: '260px' })
@@ -314,7 +315,7 @@ export function ColorMap() {
         )}
 
         {/* Controls */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-52">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-52">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Landcover</span>
             <select
@@ -344,8 +345,8 @@ export function ColorMap() {
         </div>
 
         {/* Legend */}
-        <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10 max-h-72 overflow-y-auto w-36">
-          <div className="font-semibold mb-2 text-foreground">Dominant color</div>
+        <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 max-h-48 sm:max-h-72 overflow-y-auto w-28 sm:w-36">
+          <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Dominant color</div>
           <div className="flex flex-col gap-1">
             {Object.entries(COLOR_HEX).sort(([a], [b]) => a.localeCompare(b)).map(([name, hex]) => (
               <div key={name} className="flex items-center gap-1.5">

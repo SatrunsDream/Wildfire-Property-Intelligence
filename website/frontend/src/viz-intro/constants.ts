@@ -2,7 +2,8 @@ import type maplibregl from 'maplibre-gl'
 
 /** Map defaults */
 export const MAP_CENTER: [number, number] = [-119.5, 37.0]
-export const MAP_ZOOM = 5.5
+const IS_MOBILE = typeof window !== 'undefined' && window.innerWidth < 640
+export const MAP_ZOOM = IS_MOBILE ? 4.2 : 5.5
 /** Blank style — just a background color, no tiles. Counties render on top. */
 export const MAP_STYLE: maplibregl.StyleSpecification = {
     version: 8,
@@ -22,7 +23,7 @@ export const SPOTLIGHT_FIPS = ['06025', '06059', '06065', '06073'] as const  // 
 export const SPOTLIGHT_FIPS_A = '06059'  // Orange (legacy)
 export const SPOTLIGHT_FIPS_B = '06073'  // San Diego (legacy)
 export const SPOTLIGHT_CENTER: [number, number] = [-116.5, 33.2]
-export const SPOTLIGHT_ZOOM = 7.5
+export const SPOTLIGHT_ZOOM = IS_MOBILE ? 6.2 : 7.5
 
 /** Scene identifiers */
 export type SceneId = 'hero' | 'counties' | 'spotlight' | 'distributions' | 'solution' | 'postPooling'

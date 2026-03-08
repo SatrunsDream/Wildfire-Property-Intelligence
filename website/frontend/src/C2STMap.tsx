@@ -235,11 +235,12 @@ export function C2STMap() {
 
     useEffect(() => {
         if (!mapContainer.current || map.current) return
+        const isMobile = window.innerWidth < 640
         map.current = new maplibregl.Map({
             container: mapContainer.current,
             style: MAP_STYLE,
             center: [-119.5, 37.5],
-            zoom: 5.5,
+            zoom: isMobile ? 4.5 : 5.5,
         })
         map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
         return () => {
@@ -327,7 +328,7 @@ export function C2STMap() {
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading C2ST data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
 
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 max-w-[calc(100%-5rem)] sm:max-w-none">
                     {data && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -353,18 +354,18 @@ export function C2STMap() {
                     </button>
                 </div>
 
-                <div className="absolute bottom-24 right-2.5 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
-                    <div className="font-semibold mb-2 text-foreground">C2ST Accuracy</div>
-                    <div className="h-2.5 w-44 rounded-sm" style={{ background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)' }} />
-                    <div className="flex justify-between mt-1 text-[10px] text-muted-foreground"><span>50%</span><span>100%</span></div>
-                    <div className="flex justify-between text-[10px] text-muted-foreground"><span>Similar</span><span>Different</span></div>
+                <div className="absolute bottom-20 sm:bottom-24 right-2.5 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">C2ST Accuracy</div>
+                    <div className="h-2 sm:h-2.5 w-28 sm:w-44 rounded-sm" style={{ background: 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #fde725)' }} />
+                    <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>50%</span><span>100%</span></div>
+                    <div className="flex justify-between text-[9px] sm:text-[10px] text-muted-foreground"><span>Similar</span><span>Different</span></div>
                 </div>
             </div>
 
             {selectedPair && (
-                <div ref={comparisonRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showComparisonPanel ? 'h-[65%]' : 'h-auto')}>
-                    <div className="px-5 py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowComparisonPanel(!showComparisonPanel)}>
-                        <h3 className="font-semibold text-base">{selectedPair.county_a} vs {selectedPair.county_b}</h3>
+                <div ref={comparisonRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showComparisonPanel ? 'h-[85%] sm:h-[65%]' : 'h-auto')}>
+                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowComparisonPanel(!showComparisonPanel)}>
+                        <h3 className="font-semibold text-sm sm:text-base truncate mr-2">{selectedPair.county_a} vs {selectedPair.county_b}</h3>
                         <div className="flex items-center gap-3">
                             <button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors" onClick={(e) => { e.stopPropagation(); setShowComparisonPanel(!showComparisonPanel) }}>
                                 {showComparisonPanel ? 'Collapse' : 'Expand'}
@@ -374,22 +375,22 @@ export function C2STMap() {
                     </div>
 
                     {showComparisonPanel && (
-                        <div className="h-[calc(100%-65px)] overflow-y-auto p-6">
+                        <div className="h-[calc(100%-55px)] sm:h-[calc(100%-65px)] overflow-y-auto p-3 sm:p-6">
                             {pairComparison && (
-                                <div className="space-y-6">
+                                <div className="space-y-4 sm:space-y-6">
                                     <div>
-                                        <h3 className="font-medium mb-2">Accuracy by Land Cover Type</h3>
-                                        <p className="text-sm text-muted-foreground mb-4">50% = indistinguishable, 100% = completely different. Click a row to see distributions.</p>
+                                        <h3 className="font-medium mb-2 text-sm sm:text-base">Accuracy by Land Cover Type</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">50% = indistinguishable, 100% = completely different. Click a row to see distributions.</p>
                                         <div className="space-y-1">
                                             {pairComparison.by_landcover.map(lc => (
-                                                <div key={lc.lc_type} className={cn('flex items-center gap-2 text-xs p-2 rounded cursor-pointer transition-colors', selectedLcType === lc.lc_type ? 'bg-sage-100 border border-sage-300' : 'hover:bg-muted')} onClick={() => setSelectedLcType(lc.lc_type)}>
-                                                    <span className="w-32 truncate">{lc.lc_type}</span>
-                                                    <div className="flex-1 h-3 bg-muted rounded overflow-hidden">
+                                                <div key={lc.lc_type} className={cn('flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs p-1.5 sm:p-2 rounded cursor-pointer transition-colors', selectedLcType === lc.lc_type ? 'bg-sage-100 border border-sage-300' : 'hover:bg-muted')} onClick={() => setSelectedLcType(lc.lc_type)}>
+                                                    <span className="w-20 sm:w-32 truncate">{lc.lc_type}</span>
+                                                    <div className="flex-1 h-2.5 sm:h-3 bg-muted rounded overflow-hidden">
                                                         <div className="h-full rounded" style={{ width: `${(lc.accuracy - 0.5) * 200}%`, backgroundColor: getAccuracyColor(lc.accuracy) }} />
                                                     </div>
-                                                    <span className="w-14 text-right">{(lc.accuracy * 100).toFixed(1)}%</span>
+                                                    <span className="w-12 sm:w-14 text-right">{(lc.accuracy * 100).toFixed(1)}%</span>
                                                     {lc.imp_clr !== null && (
-                                                        <span className="text-muted-foreground ml-2">clr:{lc.imp_clr.toFixed(0)}% | bldg:{lc.imp_bldgtype?.toFixed(0)}% | occ:{lc.imp_st_damcat?.toFixed(0)}%</span>
+                                                        <span className="hidden sm:inline text-muted-foreground ml-2">clr:{lc.imp_clr.toFixed(0)}% | bldg:{lc.imp_bldgtype?.toFixed(0)}% | occ:{lc.imp_st_damcat?.toFixed(0)}%</span>
                                                     )}
                                                 </div>
                                             ))}
@@ -410,24 +411,24 @@ export function C2STMap() {
                                     )}
 
                                     {selectedLcType && countyComparison && !countyComparison.error && (
-                                        <div className="p-4 bg-muted/50 rounded">
-                                            <div className="flex items-center gap-4 mb-4">
-                                                <h3 className="font-medium">Distributions (overall)</h3>
-                                                <div className="flex gap-2">
+                                        <div className="p-3 sm:p-4 bg-muted/50 rounded">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                                                <h3 className="font-medium text-sm sm:text-base">Distributions (overall)</h3>
+                                                <div className="flex gap-1.5 sm:gap-2">
                                                     {(['clr', 'bldgtype', 'st_damcat'] as const).map(f => (
-                                                        <button key={f} onClick={() => setSelectedFeature(f)} className={cn('px-3 py-1 text-xs border rounded transition-colors', selectedFeature === f ? 'bg-sage-500 text-white border-sage-500' : 'border-border bg-white hover:bg-muted')}>
-                                                            {f === 'clr' ? 'Color' : f === 'bldgtype' ? 'Building Type' : 'Occupancy'}
+                                                        <button key={f} onClick={() => setSelectedFeature(f)} className={cn('px-2 sm:px-3 py-1 text-[10px] sm:text-xs border rounded transition-colors', selectedFeature === f ? 'bg-sage-500 text-white border-sage-500' : 'border-border bg-white hover:bg-muted')}>
+                                                            {f === 'clr' ? 'Color' : f === 'bldgtype' ? 'Bldg Type' : 'Occupancy'}
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                                 {(['county_a', 'county_b'] as const).map((side, idx) => {
                                                     const county = countyComparison[side]
                                                     return (
-                                                        <div key={side} className="border border-border rounded p-4 bg-white">
-                                                            <h4 className="font-medium mb-1">{county.name}</h4>
-                                                            <div className="text-xs text-muted-foreground mb-3">{county.total_count.toLocaleString()} records | {county[selectedFeature].vocab_size} values</div>
+                                                        <div key={side} className="border border-border rounded p-3 sm:p-4 bg-white">
+                                                            <h4 className="font-medium mb-1 text-sm sm:text-base">{county.name}</h4>
+                                                            <div className="text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">{county.total_count.toLocaleString()} records | {county[selectedFeature].vocab_size} values</div>
                                                             <div className="space-y-1">
                                                                 {county[selectedFeature].distribution.slice(0, 15).map((d: FeatureDist) => (
                                                                     <div key={d.value} className={cn('flex items-center gap-2 text-xs', d.unique && (idx === 0 ? 'bg-blue-50' : 'bg-orange-50') + ' -mx-2 px-2 py-0.5 rounded')}>
@@ -449,9 +450,9 @@ export function C2STMap() {
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="border border-border rounded p-4">
-                                            <h4 className="text-sm font-medium mb-2">Most Similar (within land cover)</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div className="border border-border rounded p-3 sm:p-4">
+                                            <h4 className="text-xs sm:text-sm font-medium mb-2">Most Similar (within land cover)</h4>
                                             <div className="flex flex-wrap gap-1">
                                                 {pairComparison.by_landcover.filter(lc => lc.accuracy < 0.7).slice(0, 5).map(lc => (
                                                     <span key={lc.lc_type} className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">{lc.lc_type}: {(lc.accuracy * 100).toFixed(0)}%</span>
@@ -459,8 +460,8 @@ export function C2STMap() {
                                                 {pairComparison.by_landcover.filter(lc => lc.accuracy < 0.7).length === 0 && <span className="text-xs text-muted-foreground">None below 70%</span>}
                                             </div>
                                         </div>
-                                        <div className="border border-border rounded p-4">
-                                            <h4 className="text-sm font-medium mb-2">Most Different (within land cover)</h4>
+                                        <div className="border border-border rounded p-3 sm:p-4">
+                                            <h4 className="text-xs sm:text-sm font-medium mb-2">Most Different (within land cover)</h4>
                                             <div className="flex flex-wrap gap-1">
                                                 {pairComparison.by_landcover.filter(lc => lc.accuracy >= 0.9).slice(0, 5).map(lc => (
                                                     <span key={lc.lc_type} className="px-2 py-0.5 text-xs bg-orange-100 text-orange-800 rounded">{lc.lc_type}: {(lc.accuracy * 100).toFixed(0)}%</span>

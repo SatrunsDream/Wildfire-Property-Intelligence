@@ -118,7 +118,8 @@ export function EmpiricalBayesPooling() {
     useEffect(() => {
         if (!mapContainer.current || map.current) return
         try {
-            map.current = new maplibregl.Map({ container: mapContainer.current, style: MAP_STYLE, center: [-119.5, 37.0], zoom: 5.5 })
+            const isMobile = window.innerWidth < 640
+            map.current = new maplibregl.Map({ container: mapContainer.current, style: MAP_STYLE, center: [-119.5, 37.0], zoom: isMobile ? 4.5 : 5.5 })
             map.current.addControl(new maplibregl.NavigationControl(), 'top-right')
             map.current.on('load', () => setIsMapReady(true))
             map.current.on('click', 'counties', (e) => {
@@ -191,7 +192,7 @@ export function EmpiricalBayesPooling() {
                 <div ref={mapContainer} className="w-full h-full" />
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-3 shadow-elevated z-10 w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -215,44 +216,48 @@ export function EmpiricalBayesPooling() {
                     </button>
                 </div>
                 {mapData && legendRange && (
-                    <div className="absolute right-2.5 bottom-24 bg-white/95 p-3 rounded shadow-elevated text-xs z-10">
-                        <div className="font-semibold mb-2 text-foreground">Absolute Movement</div>
-                        <div className="w-44 h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateViridis(0)}, ${d3.interpolateViridis(1)})` }} />
-                        <div className="flex justify-between mt-1 text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
+                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
+                        <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Absolute Movement</div>
+                        <div className="w-28 sm:w-44 h-2 sm:h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateViridis(0)}, ${d3.interpolateViridis(1)})` }} />
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
                     </div>
                 )}
             </div>
             {countyDetail && (
-                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[65%]' : 'h-auto')}>
-                    <div className="px-5 py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
-                        <h3 className="font-semibold text-base">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
+                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
+                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
+                        <h3 className="font-semibold text-sm sm:text-base truncate mr-2">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
                         <div className="flex items-center gap-3">
                             <button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors" onClick={(e) => { e.stopPropagation(); setShowDetailPanel(!showDetailPanel) }}>{showDetailPanel ? 'Collapse' : 'Expand'}</button>
                             <button className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded text-xl leading-none" onClick={(e) => { e.stopPropagation(); setCountyDetail(null); setShowDetailPanel(false) }}>×</button>
                         </div>
                     </div>
                     {showDetailPanel && (
-                        <div className="h-[calc(100%-65px)] overflow-y-auto p-6">
+                        <div className="h-[calc(100%-55px)] sm:h-[calc(100%-65px)] overflow-y-auto p-3 sm:p-6">
                             {countyDetail.by_landcover.map(lc => {
                                 const sorted = [...lc.distributions].sort((a, b) => (b.movement ?? 0) - (a.movement ?? 0))
                                 const maxMov = Math.max(...sorted.map(d => Math.abs(d.movement ?? 0)))
                                 return (
-                                    <div key={lc.lc_type} className="mb-8 p-4 bg-background border border-border rounded">
-                                        <h3 className="mt-0 mb-2 text-xl text-foreground">{lc.lc_type}</h3>
-                                        <p className="text-muted-foreground mb-4">Exposure: {lc.total_exposure.toLocaleString()} | Mean Shrinkage Weight: {lc.mean_shrinkage_weight.toFixed(3)} | Max Movement: {lc.max_abs_movement.toFixed(4)}</p>
+                                    <div key={lc.lc_type} className="mb-6 sm:mb-8 p-3 sm:p-4 bg-background border border-border rounded">
+                                        <h3 className="mt-0 mb-2 text-base sm:text-xl text-foreground">{lc.lc_type}</h3>
+                                        <div className="text-xs sm:text-sm text-muted-foreground mb-4 space-y-0.5 sm:space-y-0">
+                                            <p className="sm:inline">Exposure: {lc.total_exposure.toLocaleString()}<span className="hidden sm:inline"> | </span></p>
+                                            <p className="sm:inline">Mean Shrinkage Weight: {lc.mean_shrinkage_weight.toFixed(3)}<span className="hidden sm:inline"> | </span></p>
+                                            <p className="sm:inline">Max Movement: {lc.max_abs_movement.toFixed(4)}</p>
+                                        </div>
                                         <div className="mb-6">
                                             <h4 className="mb-3 text-base font-semibold text-foreground">Color Distribution (Movement - Signed)</h4>
                                             <div className="space-y-1.5 border border-border rounded-lg p-3 bg-muted/30">
                                                 {sorted.map((dist) => {
                                                     const mv = dist.movement ?? 0; const abs = Math.abs(mv); const bw = maxMov > 0 ? (abs / maxMov) * 100 : 0
                                                     return (
-                                                        <div key={dist.clr} className="flex items-center gap-2 text-sm">
-                                                            <span className="w-24 flex items-center gap-2 truncate">
-                                                                {dist.clr === 'foo' || dist.clr === 'bar' ? <span className="w-4 h-4 rounded-full bg-gray-200" /> : <span className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: COLOR_MAP[dist.clr] || '#ccc' }} />}
-                                                                {dist.clr}
+                                                        <div key={dist.clr} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                                                            <span className="w-16 sm:w-24 flex items-center gap-1 sm:gap-2 truncate">
+                                                                {dist.clr === 'foo' || dist.clr === 'bar' ? <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gray-200 shrink-0" /> : <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-border shrink-0" style={{ backgroundColor: COLOR_MAP[dist.clr] || '#ccc' }} />}
+                                                                <span className="truncate">{dist.clr}</span>
                                                             </span>
-                                                            <div className="flex-1 h-3 bg-muted rounded overflow-hidden"><div className="h-full rounded" style={{ width: `${bw}%`, backgroundColor: mv >= 0 ? '#6b7280' : '#dc2626' }} /></div>
-                                                            <span className="w-20 text-right font-medium text-foreground">{mv.toFixed(4)}</span>
+                                                            <div className="flex-1 h-2.5 sm:h-3 bg-muted rounded overflow-hidden"><div className="h-full rounded" style={{ width: `${bw}%`, backgroundColor: mv >= 0 ? '#6b7280' : '#dc2626' }} /></div>
+                                                            <span className="w-14 sm:w-20 text-right font-medium text-foreground">{mv.toFixed(4)}</span>
                                                         </div>
                                                     )
                                                 })}
@@ -279,8 +284,9 @@ function ComparisonChart({ baseline, stabilized }: { baseline: BaselineDistribut
     const renderChart = useCallback(() => {
         if (!svgRef.current || !containerRef.current || baseline.length === 0 || stabilized.length === 0) return
         const containerWidth = containerRef.current.offsetWidth || 900
-        const margin = { top: 30, right: 40, bottom: 220, left: 70 }
-        const width = Math.max(containerWidth - margin.left - margin.right, 600)
+        const isMobile = containerWidth < 500
+        const margin = { top: 20, right: isMobile ? 10 : 40, bottom: isMobile ? 160 : 220, left: isMobile ? 45 : 70 }
+        const width = Math.max(containerWidth - margin.left - margin.right, 200)
         const height = 400 - margin.top - margin.bottom
         d3.select(svgRef.current).selectAll('*').remove()
         const svg = d3.select(svgRef.current).attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom).append('g').attr('transform', `translate(${margin.left},${margin.top})`)
@@ -290,12 +296,15 @@ function ComparisonChart({ baseline, stabilized }: { baseline: BaselineDistribut
         svg.selectAll('.bar-baseline').data(combined).join('rect').attr('class', 'bar-baseline').attr('x', d => x(d.clr) || 0).attr('width', x.bandwidth() / 3).attr('y', d => y(d.baseline)).attr('height', d => height - y(d.baseline)).attr('fill', chartColors.primary).attr('opacity', 0.7)
         svg.selectAll('.bar-observed').data(combined).join('rect').attr('class', 'bar-observed').attr('x', d => (x(d.clr) || 0) + x.bandwidth() / 3).attr('width', x.bandwidth() / 3).attr('y', d => y(d.observed)).attr('height', d => height - y(d.observed)).attr('fill', '#2166ac').attr('opacity', 0.7)
         svg.selectAll('.bar-stabilized').data(combined).join('rect').attr('class', 'bar-stabilized').attr('x', d => (x(d.clr) || 0) + (2 * x.bandwidth() / 3)).attr('width', x.bandwidth() / 3).attr('y', d => y(d.stabilized)).attr('height', d => height - y(d.stabilized)).attr('fill', '#d4a574').attr('opacity', 0.7)
-        svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x)).attr('color', chartColors.axis).selectAll('text').attr('transform', 'rotate(-45)').attr('text-anchor', 'end').attr('dx', '-0.5em').attr('dy', '0.5em').style('font-size', '0.85rem')
-        svg.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2%'))).attr('color', chartColors.axis)
-        svg.append('text').attr('x', width / 2).attr('y', height + 70).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', '1rem').text('Color Category')
-        svg.append('text').attr('transform', 'rotate(-90)').attr('x', -height / 2).attr('y', -50).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', '1rem').text('Proportion')
-        const legend = svg.append('g').attr('transform', `translate(${width - 150}, 20)`)
-        legend.selectAll('.legend-item').data([{ label: 'Baseline', color: chartColors.primary }, { label: 'Observed', color: '#2166ac' }, { label: 'Stabilized', color: '#d4a574' }]).join('g').attr('class', 'legend-item').attr('transform', (_, i) => `translate(0, ${i * 20})`).each(function(d) { const g = d3.select(this); g.append('rect').attr('width', 15).attr('height', 15).attr('fill', d.color).attr('opacity', 0.7); g.append('text').attr('x', 20).attr('y', 12).attr('fill', chartColors.text.primary).style('font-size', '0.9rem').text(d.label) })
+        const fontSize = isMobile ? '0.65rem' : '0.85rem'
+        const labelSize = isMobile ? '0.75rem' : '1rem'
+        svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x)).attr('color', chartColors.axis).selectAll('text').attr('transform', 'rotate(-45)').attr('text-anchor', 'end').attr('dx', '-0.5em').attr('dy', '0.5em').style('font-size', fontSize)
+        svg.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2%'))).attr('color', chartColors.axis).selectAll('text').style('font-size', fontSize)
+        svg.append('text').attr('x', width / 2).attr('y', height + (isMobile ? 50 : 70)).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Color Category')
+        svg.append('text').attr('transform', 'rotate(-90)').attr('x', -height / 2).attr('y', isMobile ? -30 : -50).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Proportion')
+        const legend = svg.append('g').attr('transform', `translate(${width - (isMobile ? 100 : 150)}, ${isMobile ? -10 : 20})`)
+        const legendSize = isMobile ? 10 : 15
+        legend.selectAll('.legend-item').data([{ label: 'Baseline', color: chartColors.primary }, { label: 'Observed', color: '#2166ac' }, { label: 'Stabilized', color: '#d4a574' }]).join('g').attr('class', 'legend-item').attr('transform', (_, i) => `translate(0, ${i * (legendSize + 5)})`).each(function(d) { const g = d3.select(this); g.append('rect').attr('width', legendSize).attr('height', legendSize).attr('fill', d.color).attr('opacity', 0.7); g.append('text').attr('x', legendSize + 5).attr('y', legendSize - 3).attr('fill', chartColors.text.primary).style('font-size', isMobile ? '0.7rem' : '0.9rem').text(d.label) })
     }, [baseline, stabilized])
     useEffect(() => {
         renderChart()
@@ -305,5 +314,5 @@ function ComparisonChart({ baseline, stabilized }: { baseline: BaselineDistribut
         if (containerRef.current) { obs = new ResizeObserver(() => renderChart()); obs.observe(containerRef.current) }
         return () => { window.removeEventListener('resize', handleResize); if (obs && containerRef.current) obs.unobserve(containerRef.current) }
     }, [renderChart])
-    return <div ref={containerRef} className="w-full"><svg ref={svgRef} className="w-full" style={{ minHeight: '500px' }}></svg></div>
+    return <div ref={containerRef} className="w-full overflow-x-auto"><svg ref={svgRef} className="w-full" style={{ minHeight: '300px' }}></svg></div>
 }
