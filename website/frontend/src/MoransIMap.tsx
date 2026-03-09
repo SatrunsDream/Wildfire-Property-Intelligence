@@ -116,6 +116,7 @@ export function MoransIMap() {
     const detailRef = useRef<HTMLDivElement>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [controlsOpen, setControlsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
     const [landcoverTypes, setLandcoverTypes] = useState<string[]>([])
     const [buildingTypes, setBuildingTypes] = useState<string[]>([])
@@ -225,6 +226,11 @@ export function MoransIMap() {
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading Moran's I data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
                 <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                    <div className="relative pr-4">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground leading-snug text-left">Measures spatial autocorrelation. Positive = similar neighbors (clustering), negative = dissimilar (dispersion).</div>
+                        <button onClick={() => setControlsOpen(v => !v)} className="absolute -top-1 -right-1 text-[9px] text-muted-foreground cursor-pointer hover:text-foreground">{controlsOpen ? '▲' : '▼'}</button>
+                    </div>
+                    {controlsOpen && <>
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -249,6 +255,7 @@ export function MoransIMap() {
                             {buildingTypes.map(bldg => <option key={bldg} value={bldg}>{bldg}</option>)}
                         </select>
                     </div>
+                    </>}
                 </div>
                 {legendRange && (
                     <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">

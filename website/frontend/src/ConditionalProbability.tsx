@@ -125,6 +125,7 @@ export function ConditionalProbability() {
     const [error, setError] = useState<string | null>(null)
     const [legendRange, setLegendRange] = useState<{ min: number; max: number } | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [controlsOpen, setControlsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
     const [isMapReady, setIsMapReady] = useState(false)
     const [dataLoaded, setDataLoaded] = useState(false)
 
@@ -253,8 +254,12 @@ export function ConditionalProbability() {
                 <div ref={mapContainer} className="w-full h-full" />
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-
                 <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                    <div className="relative pr-4">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground leading-snug text-left">Measures how much a county's color distribution deviates from its neighbors' pooled distribution. Higher values = more unusual.</div>
+                        <button onClick={() => setControlsOpen(v => !v)} className="absolute -top-1 -right-1 text-[9px] text-muted-foreground cursor-pointer hover:text-foreground">{controlsOpen ? '▲' : '▼'}</button>
+                    </div>
+                    {controlsOpen && <>
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -280,6 +285,7 @@ export function ConditionalProbability() {
                     <button className="px-3 py-1.5 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[11px] font-medium text-[var(--button-accent)] cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10" onClick={() => setIsFullscreen(!isFullscreen)}>
                         {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
+                    </>}
                 </div>
 
                 {mapData && legendRange && (
@@ -289,6 +295,7 @@ export function ConditionalProbability() {
                         <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
                             <span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span>
                         </div>
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>Typical</span><span>Unusual</span></div>
                     </div>
                 )}
             </div>
@@ -374,7 +381,7 @@ function ComparisonChart({ distributions }: { distributions: ColorDistribution[]
         if (!svgRef.current || !containerRef.current || distributions.length === 0) return
         const containerWidth = containerRef.current.offsetWidth || 900
         const isMobile = containerWidth < 500
-        const margin = { top: 20, right: isMobile ? 10 : 40, bottom: isMobile ? 160 : 220, left: isMobile ? 45 : 70 }
+        const margin = { top: 20, right: isMobile ? 10 : 40, bottom: isMobile ? 90 : 120, left: isMobile ? 60 : 90 }
         const width = Math.max(containerWidth - margin.left - margin.right, 200)
         const height = 400 - margin.top - margin.bottom
         d3.select(svgRef.current).selectAll('*').remove()
@@ -386,10 +393,10 @@ function ComparisonChart({ distributions }: { distributions: ColorDistribution[]
         svg.selectAll('.bar-pool').data(sorted).join('rect').attr('class', 'bar-pool').attr('x', d => (x(d.clr) || 0) + x.bandwidth() / 2).attr('width', x.bandwidth() / 2).attr('y', d => y(d.p_pool)).attr('height', d => height - y(d.p_pool)).attr('fill', chartColors.primary).attr('opacity', 0.7)
         const fontSize = isMobile ? '0.65rem' : '0.85rem'
         const labelSize = isMobile ? '0.75rem' : '1rem'
-        svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x)).attr('color', chartColors.axis).selectAll('text').attr('transform', 'rotate(-45)').attr('text-anchor', 'end').attr('dx', '-0.5em').attr('dy', '0.5em').style('font-size', fontSize)
+        svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x)).attr('color', chartColors.axis).selectAll('text').attr('transform', isMobile ? 'rotate(-90)' : 'rotate(-45)').attr('text-anchor', 'end').attr('dx', isMobile ? '-0.5em' : '-0.5em').attr('dy', isMobile ? '-0.4em' : '0.5em').style('font-size', fontSize)
         svg.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.2%'))).attr('color', chartColors.axis).selectAll('text').style('font-size', fontSize)
-        svg.append('text').attr('x', width / 2).attr('y', height + (isMobile ? 50 : 70)).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Color Category')
-        svg.append('text').attr('transform', 'rotate(-90)').attr('x', -height / 2).attr('y', isMobile ? -30 : -50).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Probability')
+        svg.append('text').attr('x', width / 2).attr('y', height + (isMobile ? 78 : 108)).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Color Category')
+        svg.append('text').attr('transform', 'rotate(-90)').attr('x', -height / 2).attr('y', isMobile ? -48 : -72).attr('text-anchor', 'middle').attr('fill', chartColors.text.muted).style('font-size', labelSize).text('Probability')
         const legendSize = isMobile ? 10 : 15
         const legend = svg.append('g').attr('transform', `translate(${width - (isMobile ? 100 : 150)}, ${isMobile ? -10 : 20})`)
         legend.selectAll('.legend-item').data([{ label: 'County', color: '#2166ac' }, { label: 'Pooled', color: chartColors.primary }]).join('g').attr('class', 'legend-item').attr('transform', (_, i) => `translate(0, ${i * (legendSize + 5)})`).each(function(d) { const g = d3.select(this); g.append('rect').attr('width', legendSize).attr('height', legendSize).attr('fill', d.color).attr('opacity', 0.7); g.append('text').attr('x', legendSize + 5).attr('y', legendSize - 3).attr('fill', chartColors.text.primary).style('font-size', isMobile ? '0.7rem' : '0.9rem').text(d.label) })

@@ -118,6 +118,7 @@ export default function GroupDivergence() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [controlsOpen, setControlsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
 
     // Load all static data on mount
     useEffect(() => {
@@ -255,8 +256,12 @@ export default function GroupDivergence() {
                 <div ref={mapContainer} className="w-full h-full" />
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-
                 <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                    <div className="relative pr-4">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground leading-snug text-left">Compares each county's color distribution to the statewide baseline. Higher divergence = more unusual.</div>
+                        <button onClick={() => setControlsOpen(v => !v)} className="absolute -top-1 -right-1 text-[9px] text-muted-foreground cursor-pointer hover:text-foreground">{controlsOpen ? '▲' : '▼'}</button>
+                    </div>
+                    {controlsOpen && <>
                     {mapData && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -291,6 +296,7 @@ export default function GroupDivergence() {
                     >
                         {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
+                    </>}
                 </div>
 
                 {/* Heat map legend - bottom right (like Conditional Pooling, Neighbor Divergence) */}
@@ -320,6 +326,10 @@ export default function GroupDivergence() {
                                     ? mapData.stats.max_anomalies.toFixed(0)
                                     : mapData.stats.max_divergence.toFixed(3)}
                             </span>
+                        </div>
+                        <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
+                            <span>{metric === 'num_anomalies' ? 'Few' : 'Typical'}</span>
+                            <span>{metric === 'num_anomalies' ? 'Many' : 'Unusual'}</span>
                         </div>
                     </div>
                 )}

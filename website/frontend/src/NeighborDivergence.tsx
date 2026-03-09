@@ -166,6 +166,7 @@ export function NeighborDivergence() {
     const [mergedData, setMergedData] = useState<DivergenceData | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [controlsOpen, setControlsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
     const [showEdges, setShowEdges] = useState(true)
 
     // Selected pair for comparison
@@ -656,7 +657,12 @@ export function NeighborDivergence() {
                     )}
 
                     {/* Map Controls - Top Left */}
-                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 max-w-[calc(100%-5rem)] sm:max-w-none">
+                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-52">
+                        <div className="relative pr-4">
+                            <div className="text-[10px] sm:text-xs text-muted-foreground leading-snug text-left">Compares color distributions between neighboring counties using JSD. 0 = identical, 1 = completely different.</div>
+                            <button onClick={() => setControlsOpen(v => !v)} className="absolute -top-1 -right-1 text-[9px] text-muted-foreground cursor-pointer hover:text-foreground">{controlsOpen ? '▲' : '▼'}</button>
+                        </div>
+                        {controlsOpen && <>
                         {/* Stats Summary */}
                         {data && (
                             <div className="pb-2 mb-1 border-b border-border">
@@ -752,6 +758,7 @@ export function NeighborDivergence() {
                                 Close Comparison
                             </button>
                         )}
+                        </>}
                     </div>
 
                     {/* Stats badge when split view */}
@@ -854,6 +861,10 @@ export function NeighborDivergence() {
                             <div className="flex justify-between mt-1 text-muted-foreground">
                                 <span>0</span>
                                 <span>1</span>
+                            </div>
+                            <div className="flex justify-between mt-1 text-muted-foreground">
+                                <span>Similar</span>
+                                <span>Different</span>
                             </div>
                         </div>
                     </div>

@@ -152,6 +152,7 @@ export function C2STMap() {
     const [lcTypes, setLcTypes] = useState<string[]>([])
     const [selectedLc, setSelectedLc] = useState<string>('')
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [controlsOpen, setControlsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 640)
 
     const [selectedPair, setSelectedPair] = useState<SelectedPair | null>(null)
     const [pairComparison, setPairComparison] = useState<PairComparison | null>(null)
@@ -327,8 +328,12 @@ export function C2STMap() {
                 <div ref={mapContainer} className="w-full h-full" />
                 {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading C2ST data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 max-w-[calc(100%-5rem)] sm:max-w-none">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-52">
+                    <div className="relative pr-4">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground leading-snug text-left">A classifier tries to tell which county a record came from. 50% = counties look the same, 100% = easily separable.</div>
+                        <button onClick={() => setControlsOpen(v => !v)} className="absolute -top-1 -right-1 text-[9px] text-muted-foreground cursor-pointer hover:text-foreground">{controlsOpen ? '▲' : '▼'}</button>
+                    </div>
+                    {controlsOpen && <>
                     {data && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -352,6 +357,7 @@ export function C2STMap() {
                     <button className="px-3 py-1.5 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[11px] font-medium text-[var(--button-accent)] cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10" onClick={() => setIsFullscreen(!isFullscreen)}>
                         {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
+                    </>}
                 </div>
 
                 <div className="absolute bottom-20 sm:bottom-24 right-2.5 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
