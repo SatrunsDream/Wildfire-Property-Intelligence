@@ -1,51 +1,75 @@
-# Backend Setup
+# Archived Export Pipeline
 
-## 1. Install dependencies
+Python export pipeline and supporting code used to generate the static JSON files consumed by `website/frontend`.
 
-**If you're using uv:**
+## What This Folder Is Used For
+
+- reading source CSV data from `data/`
+- generating static JSON outputs for `../../frontend/public/data/`
+
+## Setup
+
+Recommended:
+
 ```bash
 uv sync
 ```
 
-**If you're using pip:**
+Alternative:
+
 ```bash
 pip install fastapi[standard] polars h3 httpx numpy scipy
 ```
 
-## 2. Add data files
+## Source Data
 
-Create a `data/` folder and add:
+Expected inputs live in `data/`, including files such as:
+
 - `Capstone2025_nsi_lvl9_with_landcover_and_color.csv`
 - `ca_county_neighbors.csv`
 - `c2st_results_all_lc.csv`
+- `bayesian_shrinkage_baseline_distributions.csv`
+- `bayesian_shrinkage_stabilized_distributions.csv`
+- `m01_neighbor_pool_county_lc_summary.csv`
+- `m01_neighbor_pool_county_lc_color_detail.csv`
+- `jsd_conditional_county_summary.csv`
+- `jsd_conditional_divergence.csv`
 
-```
-backend/
-├── data/
-│   ├── Capstone2025_nsi_lvl9_with_landcover_and_color.csv
-│   ├── ca_county_neighbors.csv
-│   └── c2st_results_all_lc.csv
-├── main.py
-└── ...
-```
+## Main Export Commands
 
-Or set custom paths via environment variables:
+Run from this directory:
+
 ```bash
-export DATA_PATH="/path/to/your/data.csv"
-export NEIGHBORS_PATH="/path/to/your/neighbors.csv"
-export C2ST_PATH="/path/to/your/c2st_results.csv"
+uv run python export_all.py
+uv run python export_neighbor_divergence.py
+uv run python export_neighbor_divergence_pooled.py
+uv run python export_conditioning_options.py
 ```
 
-## 3. Run
+These scripts write JSON files to:
 
-**Using uv:**
-```bash
-uv run python main.py
+```text
+../../frontend/public/data/
 ```
 
-**Using pip:**
-```bash
-python main.py
-```
+## Output Files
 
-Server runs at http://localhost:8000
+The export pipeline produces frontend-ready files such as:
+
+- `morans-freq.json`
+- `ca-county-neighbors.json`
+- `conditional-pooling-summary.json`
+- `conditional-pooling-detail.json`
+- `bayesian-baseline.json`
+- `bayesian-stabilized.json`
+- `c2st-results.json`
+- `group-divergence.json`
+- `county-colors.json`
+- `county-pair-comparisons.json`
+- `neighbor-divergence-map.json`
+- `neighbor-divergence-map-pooled.json`
+- `conditioning-options.json`
+
+## Notes
+
+- `main.py`, `routes.py`, and related files remain here for archival reference, but they are not required for the current static website workflow.
