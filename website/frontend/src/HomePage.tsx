@@ -430,7 +430,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
 
             <Section title="References">
                 <ol className="list-decimal space-y-2 pl-5 text-xs sm:text-sm leading-relaxed text-muted-foreground">
-                    {REFERENCES.map((ref, index) => (
+                    {REFERENCES.map((ref) => (
                         <li key={ref.id} id={`ref-${ref.id}`}>
                             {ref.citation}{' '}
                             <a

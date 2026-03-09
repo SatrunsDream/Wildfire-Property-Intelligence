@@ -118,6 +118,10 @@ export function VizIntroduction() {
         direction: 'down',
     })
 
+    useEffect(() => {
+        document.title = 'Wildfire Property Intelligence | Case Study'
+    }, [])
+
     const mapApi = useRef<MapApi | null>(null)
     const stateRef = useRef(state)
     stateRef.current = state
