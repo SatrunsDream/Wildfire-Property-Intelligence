@@ -240,3 +240,20 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Responsive KaTeX formulas for mobile */
+@media (max-width: 640px) {
+    .katex-display {
+        font-size: 0.8em;
+    }
+    .katex-display > .katex {
+        white-space: normal;
+    }
+}
+
+/* Responsive table for mobile */
+@media (max-width: 640px) {
+    table {
+        font-size: 0.8rem;
+    }
+}

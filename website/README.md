@@ -1,38 +1,22 @@
-# California Property Anomaly Detection
+# Wildfire Property Intelligence
 
-Web application for visualizing anomaly detection results on California property data.
+Interactive dashboard for visualizing anomaly detection results on California property data.
 
 ## Structure
 
 ```
 website/
-├── backend/     # FastAPI server (Python)
-└── frontend/    # React app (TypeScript)
+├── frontend/        # React app (TypeScript + Vite) — the entire application
+├── _archive/
+│   └── backend/
+└── README.md
 ```
 
-## Quick Start
+The frontend is a fully static app. All data is precomputed and shipped as JSON files in `frontend/public/data/`.
 
-### 1. Start Backend
+---
 
-```bash
-cd backend
-
-# If you're using uv
-uv sync && source .venv/bin/activate
-
-# If you're using pip
-python -m venv .venv && source .venv/bin/activate
-pip install fastapi uvicorn polars httpx scipy h3
-
-# Run
-python main.py
-# or
-uv run main.py
-```
-
-Backend runs at http://localhost:8000
-
-### 2. Start Frontend
+## Quick Start (local dev)
 
 ```bash
 cd frontend
@@ -40,30 +24,60 @@ npm install
 npm run dev
 ```
 
-Frontend runs at http://localhost:5173
+App runs at http://localhost:5173
 
-## Detection Methods
+---
 
-| Page | Description |
+## Regenerating the static JSON data
+
+The JSON files in `frontend/public/data/` are precomputed from the raw CSVs. If you need to regenerate them:
+
+```bash
+cd _archive/backend
+
+# Install dependencies (requires uv or pip)
+uv sync
+# or: pip install fastapi polars httpx numpy scipy h3
+
+# Add the main dataset (gitignored, ~200 MB)
+# Place Capstone2025_nsi_lvl9_with_landcover_and_color.csv in _archive/backend/data/
+
+# Run the export scripts
+python export_all.py
+python export_neighbor_divergence.py
+python export_neighbor_divergence_pooled.py
+```
+
+Outputs are written directly to `frontend/public/data/`.
+
+---
+
+## Static data files
+
+| File | Description |
 |------|-------------|
-| M01: Conditional Probability | Surprisal scoring for property attributes |
-| M02: Empirical Bayes Pooling | Bayesian shrinkage visualization: baseline vs stabilized distributions |
-| M03: Neighbor Divergence | Jensen-Shannon divergence between adjacent counties |
-| M04: C2ST | Classifier two-sample test results |
+| `morans-freq.json` | Relative frequencies by land cover × building type |
+| `ca-county-neighbors.json` | County adjacency list |
+| `conditional-pooling-summary.json` | Neighbor-pooled conditional probability summary |
+| `conditional-pooling-detail.json` | Per-color conditional probability detail |
+| `bayesian-baseline.json` | Statewide baseline color distributions |
+| `bayesian-stabilized.json` | Empirical Bayes stabilized distributions |
+| `c2st-results.json` | C2ST classifier results with county centroids |
+| `group-divergence.json` | Group-level JSD anomaly scores + CA county GeoJSON |
+| `county-colors.json` | Per-county color distributions vs. baseline |
+| `county-pair-comparisons.json` | Adjacent county pair color distributions |
+| `neighbor-divergence-map.json` | Neighbor JSD map data (raw colors) |
+| `neighbor-divergence-map-pooled.json` | Neighbor JSD map data (grouped colors) |
 
-## Tech Stack
+---
 
-**Backend**: FastAPI, Polars, H3, SciPy
-**Frontend**: React 19, TypeScript, Vite, MapLibre GL, D3.js
+## Detection methods
 
-## Data
-
-The backend expects data files in `backend/data/`:
-- `Capstone2025_nsi_lvl9_with_landcover_and_color.csv` (main dataset)
-- `ca_county_neighbors.csv` (county adjacency)
-- `c2st_results_all_lc.csv` (C2ST results)
-- `bayesian_shrinkage_baseline_distributions.csv` (baseline distributions)
-- `bayesian_shrinkage_stabilized_distributions.csv` (stabilized distributions)
-- `bayesian_shrinkage_aggregated_counts.csv` (aggregated counts)
-
-Set custom paths via environment variables `DATA_PATH`, `NEIGHBORS_PATH`, `C2ST_PATH`, `BAYESIAN_BASELINE_PATH`, `BAYESIAN_STABILIZED_PATH`, and `BAYESIAN_COUNTS_PATH`.
+| Page | Method |
+|------|--------|
+| Conditional Pooling | Surprisal scoring conditioned on land cover, with neighbor pooling |
+| Empirical Bayes | Bayesian shrinkage — baseline vs. stabilized distributions |
+| Neighbor Divergence | Jensen–Shannon divergence between adjacent county color distributions |
+| C2ST | Classifier two-sample test accuracy across neighboring county pairs |
+| Moran's I | Local spatial autocorrelation of structural characteristics |
+| Group Divergence | Per-county JSD relative to statewide baseline |

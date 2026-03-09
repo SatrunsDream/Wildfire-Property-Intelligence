@@ -54,6 +54,11 @@ Thumbs.db
 
 # Project-specific
 rules_templet.md
+notebooks/methods/color_groupings/optimization.ipynb
+notebooks/methods/color_groupings/clustering.ipynb
+notebooks/methods/color_groupings/color_pool_improved.ipynb
+notebooks/methods/color_groupings/color_pool_improved_executed.ipynb
 results.md
 notebooks/methods/bayesian_shrinkage_pooling/Bayesian shrinkage.md
 notebooks/methods/bayesian_shrinkage_pooling/CONDITIONAL_PROBABILITY_README.md
+website/MIGRATION_VIZ_PLAN.md

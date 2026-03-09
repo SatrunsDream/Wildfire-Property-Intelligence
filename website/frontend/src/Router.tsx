@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { HomePage } from './HomePage'
 import { ConditionalProbability } from './ConditionalProbability'
 import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
 import { NeighborDivergence } from './NeighborDivergence'
 import { C2STMap } from './C2STMap'
 import { MoransIMap } from './MoransIMap'
 import GroupDivergence from './GroupDivergence'
+import { ColorMap } from './ColorMap'
 import { AppSidebar, type Page } from './components/app-sidebar'
 import { SiteHeader } from './components/site-header'
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
@@ -15,7 +17,9 @@ const pageTitles: Record<Page, string> = {
     'empirical-bayes': 'Empirical Bayes Pooling',
     'neighbor-divergence': 'Neighbor Divergence',
     'c2st': 'C2ST',
+    'morans-i': "Moran's I",
     'group-divergence': 'Group-Level Divergence',
+    'color-map': 'Color Distribution Map',
 }
 
 export function Router() {
@@ -35,8 +39,8 @@ export function Router() {
                 <SiteHeader title={pageTitles[page]} />
                 <div className="flex flex-1 flex-col overflow-hidden">
                     <div className="@container/main flex flex-1 flex-col min-h-0">
-                        <div className={page === 'home' ? 'flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6' : 'hidden'}>
-                            {/* Home page content */}
+                        <div className={page === 'home' ? 'overflow-y-auto px-4 lg:px-8' : 'hidden'}>
+                            <HomePage onPageChange={setPage} />
                         </div>
                         <div className={page === 'conditional-probability' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <ConditionalProbability />
@@ -55,6 +59,9 @@ export function Router() {
                         </div>
                         <div className={page === 'group-divergence' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
                             <GroupDivergence />
+                        </div>
+                        <div className={page === 'color-map' ? 'flex flex-1 flex-col min-h-0' : 'hidden'}>
+                            <ColorMap />
                         </div>
                     </div>
                 </div>

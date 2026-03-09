@@ -1,0 +1,4531 @@
+{
+  "counties": [
+    {
+      "fips": "06025",
+      "name": "Imperial"
+    },
+    {
+      "fips": "06059",
+      "name": "Orange"
+    },
+    {
+      "fips": "06065",
+      "name": "Riverside"
+    },
+    {
+      "fips": "06073",
+      "name": "San Diego"
+    }
+  ],
+  "exposure": {
+    "06059": {
+      "total_exposure": 784918,
+      "median_exposure": 72.0
+    },
+    "06065": {
+      "total_exposure": 684248,
+      "median_exposure": 27.0
+    },
+    "06073": {
+      "total_exposure": 843891,
+      "median_exposure": 25.0
+    },
+    "06025": {
+      "total_exposure": 36183,
+      "median_exposure": 12.0
+    }
+  },
+  "distributions": {
+    "06025": {
+      "name": "Imperial",
+      "by_landcover": {
+        "barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4344,
+            "count": 792
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1157,
+            "count": 211
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1125,
+            "count": 205
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1119,
+            "count": 204
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.1108,
+            "count": 202
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0713,
+            "count": 130
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.017,
+            "count": 31
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0159,
+            "count": 29
+          },
+          {
+            "clr": "yellow",
+            "proportion": 0.0044,
+            "count": 8
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0016,
+            "count": 3
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0016,
+            "count": 3
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0016,
+            "count": 3
+          },
+          {
+            "clr": "auburn",
+            "proportion": 0.0011,
+            "count": 2
+          }
+        ],
+        "crop": [
+          {
+            "clr": "gray",
+            "proportion": 0.3103,
+            "count": 742
+          },
+          {
+            "clr": "cocoa",
+            "proportion": 0.2844,
+            "count": 680
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1175,
+            "count": 281
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.1041,
+            "count": 249
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0753,
+            "count": 180
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0418,
+            "count": 100
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0351,
+            "count": 84
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0134,
+            "count": 32
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.013,
+            "count": 31
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0017,
+            "count": 4
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0017,
+            "count": 4
+          },
+          {
+            "clr": "auburn",
+            "proportion": 0.0008,
+            "count": 2
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0008,
+            "count": 2
+          }
+        ],
+        "forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3542,
+            "count": 17
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.3125,
+            "count": 15
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0833,
+            "count": 4
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.0833,
+            "count": 4
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0417,
+            "count": 2
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0417,
+            "count": 2
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0417,
+            "count": 2
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0208,
+            "count": 1
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0208,
+            "count": 1
+          }
+        ],
+        "shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4286,
+            "count": 9
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.1429,
+            "count": 3
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1429,
+            "count": 3
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1429,
+            "count": 3
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.0952,
+            "count": 2
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0476,
+            "count": 1
+          }
+        ],
+        "urban": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.247,
+            "count": 782
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1526,
+            "count": 483
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.1219,
+            "count": 386
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1027,
+            "count": 325
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.1027,
+            "count": 325
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.0859,
+            "count": 272
+          },
+          {
+            "clr": "yellow",
+            "proportion": 0.0711,
+            "count": 225
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0676,
+            "count": 214
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0253,
+            "count": 80
+          },
+          {
+            "clr": "auburn",
+            "proportion": 0.0063,
+            "count": 20
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0047,
+            "count": 15
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0047,
+            "count": 15
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0041,
+            "count": 13
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0035,
+            "count": 11
+          }
+        ],
+        "urban+barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2456,
+            "count": 416
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.17,
+            "count": 288
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1216,
+            "count": 206
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.1145,
+            "count": 194
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1104,
+            "count": 187
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0862,
+            "count": 146
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0856,
+            "count": 145
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0289,
+            "count": 49
+          },
+          {
+            "clr": "yellow",
+            "proportion": 0.0272,
+            "count": 46
+          },
+          {
+            "clr": "auburn",
+            "proportion": 0.0024,
+            "count": 4
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0024,
+            "count": 4
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0024,
+            "count": 4
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0018,
+            "count": 3
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0012,
+            "count": 2
+          }
+        ],
+        "urban+crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2314,
+            "count": 6232
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1794,
+            "count": 4830
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.1159,
+            "count": 3121
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1159,
+            "count": 3121
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1159,
+            "count": 3120
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0969,
+            "count": 2608
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.078,
+            "count": 2099
+          },
+          {
+            "clr": "yellow",
+            "proportion": 0.0382,
+            "count": 1028
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0172,
+            "count": 463
+          },
+          {
+            "clr": "auburn",
+            "proportion": 0.0027,
+            "count": 74
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0026,
+            "count": 70
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0026,
+            "count": 69
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0019,
+            "count": 52
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0015,
+            "count": 40
+          }
+        ],
+        "urban+forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3542,
+            "count": 17
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.3125,
+            "count": 15
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0625,
+            "count": 3
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0625,
+            "count": 3
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0625,
+            "count": 3
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0625,
+            "count": 3
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.0417,
+            "count": 2
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0208,
+            "count": 1
+          },
+          {
+            "clr": "emerald",
+            "proportion": 0.0208,
+            "count": 1
+          }
+        ],
+        "urban+shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2615,
+            "count": 17
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1846,
+            "count": 12
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.1538,
+            "count": 10
+          },
+          {
+            "clr": "gray",
+            "proportion": 0.1077,
+            "count": 7
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.0923,
+            "count": 6
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0769,
+            "count": 5
+          },
+          {
+            "clr": "aquamarine",
+            "proportion": 0.0615,
+            "count": 4
+          },
+          {
+            "clr": "yellow",
+            "proportion": 0.0615,
+            "count": 4
+          }
+        ]
+      }
+    },
+    "06059": {
+      "name": "Orange",
+      "by_landcover": {
+        "barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3061,
+            "count": 30
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1429,
+            "count": 14
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1429,
+            "count": 14
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1429,
+            "count": 14
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1122,
+            "count": 11
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0714,
+            "count": 7
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0408,
+            "count": 4
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0408,
+            "count": 4
+          }
+        ],
+        "forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4299,
+            "count": 1977
+          },
+          {
+            "clr": "green",
+            "proportion": 0.2479,
+            "count": 1140
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1192,
+            "count": 548
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0774,
+            "count": 356
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.0691,
+            "count": 318
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0487,
+            "count": 224
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0024,
+            "count": 11
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0024,
+            "count": 11
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0022,
+            "count": 10
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0009,
+            "count": 4
+          }
+        ],
+        "grass": [
+          {
+            "clr": "alabaster",
+            "proportion": 0.3026,
+            "count": 46
+          },
+          {
+            "clr": "cocoa",
+            "proportion": 0.2829,
+            "count": 43
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0987,
+            "count": 15
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0789,
+            "count": 12
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.0789,
+            "count": 12
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0526,
+            "count": 8
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0526,
+            "count": 8
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0526,
+            "count": 8
+          }
+        ],
+        "shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3252,
+            "count": 201
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1634,
+            "count": 101
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1553,
+            "count": 96
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1343,
+            "count": 83
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0631,
+            "count": 39
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0631,
+            "count": 39
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0534,
+            "count": 33
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0405,
+            "count": 25
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0016,
+            "count": 1
+          }
+        ],
+        "urban": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2756,
+            "count": 191193
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1987,
+            "count": 137849
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1201,
+            "count": 83290
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1057,
+            "count": 73332
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.099,
+            "count": 68649
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0867,
+            "count": 60177
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0867,
+            "count": 60163
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0196,
+            "count": 13607
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0028,
+            "count": 1922
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0026,
+            "count": 1789
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0026,
+            "count": 1778
+          }
+        ],
+        "urban+barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2747,
+            "count": 1451
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1997,
+            "count": 1055
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1412,
+            "count": 746
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0988,
+            "count": 522
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0984,
+            "count": 520
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0886,
+            "count": 468
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0795,
+            "count": 420
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0172,
+            "count": 91
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0006,
+            "count": 3
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0006,
+            "count": 3
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0006,
+            "count": 3
+          }
+        ],
+        "urban+crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2864,
+            "count": 59
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1602,
+            "count": 33
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1408,
+            "count": 29
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1019,
+            "count": 21
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0971,
+            "count": 20
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0728,
+            "count": 15
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0728,
+            "count": 15
+          },
+          {
+            "clr": "green",
+            "proportion": 0.068,
+            "count": 14
+          }
+        ],
+        "urban+forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3873,
+            "count": 20086
+          },
+          {
+            "clr": "green",
+            "proportion": 0.1807,
+            "count": 9369
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.121,
+            "count": 6274
+          },
+          {
+            "clr": "red",
+            "proportion": 0.121,
+            "count": 6274
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0708,
+            "count": 3670
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0501,
+            "count": 2600
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0501,
+            "count": 2600
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0186,
+            "count": 964
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0002,
+            "count": 12
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0001,
+            "count": 6
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0001,
+            "count": 6
+          }
+        ],
+        "urban+grass": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.25,
+            "count": 4798
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1603,
+            "count": 3077
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1505,
+            "count": 2889
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1171,
+            "count": 2248
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1066,
+            "count": 2045
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0783,
+            "count": 1503
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0704,
+            "count": 1351
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0598,
+            "count": 1148
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0031,
+            "count": 59
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0021,
+            "count": 40
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0017,
+            "count": 32
+          }
+        ],
+        "urban+other": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2102,
+            "count": 37
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1932,
+            "count": 34
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1534,
+            "count": 27
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.142,
+            "count": 25
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1307,
+            "count": 23
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0739,
+            "count": 13
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0739,
+            "count": 13
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0227,
+            "count": 4
+          }
+        ],
+        "urban+shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2579,
+            "count": 2318
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1854,
+            "count": 1666
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1075,
+            "count": 966
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1073,
+            "count": 964
+          },
+          {
+            "clr": "red",
+            "proportion": 0.107,
+            "count": 962
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1066,
+            "count": 958
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0914,
+            "count": 821
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0362,
+            "count": 325
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0003,
+            "count": 3
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0002,
+            "count": 2
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0002,
+            "count": 2
+          }
+        ]
+      }
+    },
+    "06065": {
+      "name": "Riverside",
+      "by_landcover": {
+        "barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3365,
+            "count": 2303
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1566,
+            "count": 1072
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1524,
+            "count": 1043
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1118,
+            "count": 765
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.09,
+            "count": 616
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0681,
+            "count": 466
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0605,
+            "count": 414
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0095,
+            "count": 65
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0072,
+            "count": 49
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0045,
+            "count": 31
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0029,
+            "count": 20
+          }
+        ],
+        "crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2994,
+            "count": 524
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.2703,
+            "count": 473
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1263,
+            "count": 221
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1189,
+            "count": 208
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0389,
+            "count": 68
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0389,
+            "count": 68
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0389,
+            "count": 68
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0389,
+            "count": 68
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0269,
+            "count": 47
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0029,
+            "count": 5
+          }
+        ],
+        "forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4082,
+            "count": 3589
+          },
+          {
+            "clr": "green",
+            "proportion": 0.2602,
+            "count": 2288
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0913,
+            "count": 803
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0913,
+            "count": 803
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.0627,
+            "count": 551
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0315,
+            "count": 277
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.024,
+            "count": 211
+          },
+          {
+            "clr": "red",
+            "proportion": 0.024,
+            "count": 211
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0031,
+            "count": 27
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0031,
+            "count": 27
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0006,
+            "count": 5
+          }
+        ],
+        "grass": [
+          {
+            "clr": "alabaster",
+            "proportion": 0.3029,
+            "count": 756
+          },
+          {
+            "clr": "cocoa",
+            "proportion": 0.2989,
+            "count": 746
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1354,
+            "count": 338
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0946,
+            "count": 236
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0709,
+            "count": 177
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0481,
+            "count": 120
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0268,
+            "count": 67
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0108,
+            "count": 27
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.008,
+            "count": 20
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0024,
+            "count": 6
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0012,
+            "count": 3
+          }
+        ],
+        "shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3598,
+            "count": 7409
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1523,
+            "count": 3137
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1497,
+            "count": 3083
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1107,
+            "count": 2280
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1084,
+            "count": 2232
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0542,
+            "count": 1117
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0537,
+            "count": 1106
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0068,
+            "count": 140
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0021,
+            "count": 44
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0016,
+            "count": 32
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0005,
+            "count": 11
+          }
+        ],
+        "urban": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2318,
+            "count": 63879
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1895,
+            "count": 52226
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1265,
+            "count": 34859
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1265,
+            "count": 34850
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1197,
+            "count": 32987
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0995,
+            "count": 27422
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0688,
+            "count": 18966
+          },
+          {
+            "clr": "green",
+            "proportion": 0.03,
+            "count": 8253
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0033,
+            "count": 911
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0033,
+            "count": 905
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0011,
+            "count": 295
+          }
+        ],
+        "urban+barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2412,
+            "count": 36011
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1899,
+            "count": 28359
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1601,
+            "count": 23913
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1151,
+            "count": 17190
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1053,
+            "count": 15720
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0867,
+            "count": 12947
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0598,
+            "count": 8932
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0294,
+            "count": 4386
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0051,
+            "count": 763
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0039,
+            "count": 584
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0034,
+            "count": 514
+          }
+        ],
+        "urban+crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2858,
+            "count": 1374
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1693,
+            "count": 814
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1042,
+            "count": 501
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1032,
+            "count": 496
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0984,
+            "count": 473
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0849,
+            "count": 408
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0842,
+            "count": 405
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0572,
+            "count": 275
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0046,
+            "count": 22
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0044,
+            "count": 21
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.004,
+            "count": 19
+          }
+        ],
+        "urban+forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3899,
+            "count": 9217
+          },
+          {
+            "clr": "green",
+            "proportion": 0.1628,
+            "count": 3849
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1394,
+            "count": 3296
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0694,
+            "count": 1641
+          },
+          {
+            "clr": "red",
+            "proportion": 0.0694,
+            "count": 1641
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.069,
+            "count": 1630
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.0495,
+            "count": 1169
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0495,
+            "count": 1169
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0005,
+            "count": 11
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0003,
+            "count": 8
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0003,
+            "count": 8
+          }
+        ],
+        "urban+grass": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2112,
+            "count": 23822
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.1929,
+            "count": 21757
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1403,
+            "count": 15822
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1316,
+            "count": 14839
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.1001,
+            "count": 11286
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1,
+            "count": 11275
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.0914,
+            "count": 10309
+          },
+          {
+            "clr": "green",
+            "proportion": 0.0294,
+            "count": 3310
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0014,
+            "count": 155
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0009,
+            "count": 99
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0009,
+            "count": 97
+          }
+        ],
+        "urban+shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2166,
+            "count": 16829
+          },
+          {
+            "clr": "orange",
+            "proportion": 0.2007,
+            "count": 15592
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.1378,
+            "count": 10703
+          },
+          {
+            "clr": "red",
+            "proportion": 0.1226,
+            "count": 9521
+          },
+          {
+            "clr": "alabaster",
+            "proportion": 0.1064,
+            "count": 8263
+          },
+          {
+            "clr": "purple",
+            "proportion": 0.1008,
+            "count": 7827
+          },
+          {
+            "clr": "navy",
+            "proportion": 0.0886,
+            "count": 6881
+          },
+          {
+            "clr": "green",
+            "proportion": 0.017,
+            "count": 1324
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.004,
+            "count": 314
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.003,
+            "count": 231
+          },
+          {
+            "clr": "indigo",
+            "proportion": 0.0026,
+            "count": 200
+          }
+        ]
+      }
+    },
+    "06073": {
+      "name": "San Diego",
+      "by_landcover": {
+        "barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4944,
+            "count": 350
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.1624,
+            "count": 115
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1624,
+            "count": 115
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0791,
+            "count": 56
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0311,
+            "count": 22
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0268,
+            "count": 19
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0184,
+            "count": 13
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0169,
+            "count": 12
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0085,
+            "count": 6
+          }
+        ],
+        "crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3846,
+            "count": 5
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.3846,
+            "count": 5
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1538,
+            "count": 2
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0769,
+            "count": 1
+          }
+        ],
+        "forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4858,
+            "count": 10493
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.3122,
+            "count": 6742
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0834,
+            "count": 1802
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0834,
+            "count": 1802
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0137,
+            "count": 296
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0109,
+            "count": 235
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0043,
+            "count": 92
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0043,
+            "count": 92
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.001,
+            "count": 22
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.001,
+            "count": 22
+          }
+        ],
+        "grass": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3548,
+            "count": 22
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.3226,
+            "count": 20
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1613,
+            "count": 10
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0645,
+            "count": 4
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0323,
+            "count": 2
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0323,
+            "count": 2
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0323,
+            "count": 2
+          }
+        ],
+        "shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4418,
+            "count": 5466
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.1216,
+            "count": 1504
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0933,
+            "count": 1154
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.0933,
+            "count": 1154
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.0933,
+            "count": 1154
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0462,
+            "count": 571
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0242,
+            "count": 300
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0181,
+            "count": 224
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0181,
+            "count": 224
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0154,
+            "count": 190
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0154,
+            "count": 190
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0154,
+            "count": 190
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0019,
+            "count": 23
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0011,
+            "count": 14
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0011,
+            "count": 14
+          }
+        ],
+        "urban": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3017,
+            "count": 184726
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1643,
+            "count": 100574
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.1255,
+            "count": 76857
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.1058,
+            "count": 64765
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1058,
+            "count": 64765
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0772,
+            "count": 47253
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0488,
+            "count": 29878
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0298,
+            "count": 18224
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0205,
+            "count": 12534
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0069,
+            "count": 4232
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0047,
+            "count": 2904
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.003,
+            "count": 1828
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.003,
+            "count": 1828
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0021,
+            "count": 1294
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0009,
+            "count": 570
+          }
+        ],
+        "urban+barren": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3093,
+            "count": 2333
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1687,
+            "count": 1273
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.1284,
+            "count": 969
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.1046,
+            "count": 789
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.0871,
+            "count": 657
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0765,
+            "count": 577
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0471,
+            "count": 355
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0463,
+            "count": 349
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0175,
+            "count": 132
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0049,
+            "count": 37
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0034,
+            "count": 26
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0021,
+            "count": 16
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.002,
+            "count": 15
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0013,
+            "count": 10
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0008,
+            "count": 6
+          }
+        ],
+        "urban+crop": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.3125,
+            "count": 45
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1736,
+            "count": 25
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.1181,
+            "count": 17
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1042,
+            "count": 15
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0833,
+            "count": 12
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0833,
+            "count": 12
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0556,
+            "count": 8
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0556,
+            "count": 8
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0139,
+            "count": 2
+          }
+        ],
+        "urban+forest": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.4291,
+            "count": 52627
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.2364,
+            "count": 28997
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1572,
+            "count": 19282
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0786,
+            "count": 9642
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0378,
+            "count": 4635
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.017,
+            "count": 2084
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.017,
+            "count": 2084
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0128,
+            "count": 1575
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0091,
+            "count": 1119
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0034,
+            "count": 416
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0012,
+            "count": 148
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0002,
+            "count": 30
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0,
+            "count": 5
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0,
+            "count": 5
+          }
+        ],
+        "urban+grass": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2964,
+            "count": 3871
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1695,
+            "count": 2214
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1376,
+            "count": 1797
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.1073,
+            "count": 1401
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.1073,
+            "count": 1401
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0889,
+            "count": 1161
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0697,
+            "count": 910
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0124,
+            "count": 162
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0048,
+            "count": 63
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0022,
+            "count": 29
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0012,
+            "count": 16
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0012,
+            "count": 16
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0012,
+            "count": 16
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0002,
+            "count": 2
+          }
+        ],
+        "urban+other": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2805,
+            "count": 23
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1707,
+            "count": 14
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.122,
+            "count": 10
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.1098,
+            "count": 9
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.0854,
+            "count": 7
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.0854,
+            "count": 7
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0732,
+            "count": 6
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0122,
+            "count": 1
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0122,
+            "count": 1
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0122,
+            "count": 1
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0122,
+            "count": 1
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0122,
+            "count": 1
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0122,
+            "count": 1
+          }
+        ],
+        "urban+shrub": [
+          {
+            "clr": "cocoa",
+            "proportion": 0.2828,
+            "count": 15110
+          },
+          {
+            "clr": "terracotta",
+            "proportion": 0.1862,
+            "count": 9950
+          },
+          {
+            "clr": "olive",
+            "proportion": 0.1275,
+            "count": 6812
+          },
+          {
+            "clr": "lemon",
+            "proportion": 0.1178,
+            "count": 6293
+          },
+          {
+            "clr": "lilac",
+            "proportion": 0.1056,
+            "count": 5641
+          },
+          {
+            "clr": "ivory",
+            "proportion": 0.0887,
+            "count": 4738
+          },
+          {
+            "clr": "foo",
+            "proportion": 0.0581,
+            "count": 3105
+          },
+          {
+            "clr": "beige",
+            "proportion": 0.0163,
+            "count": 871
+          },
+          {
+            "clr": "blue",
+            "proportion": 0.0048,
+            "count": 256
+          },
+          {
+            "clr": "sienna",
+            "proportion": 0.0043,
+            "count": 231
+          },
+          {
+            "clr": "sage",
+            "proportion": 0.0023,
+            "count": 123
+          },
+          {
+            "clr": "amber",
+            "proportion": 0.0022,
+            "count": 118
+          },
+          {
+            "clr": "grey",
+            "proportion": 0.0014,
+            "count": 76
+          },
+          {
+            "clr": "lavender",
+            "proportion": 0.0014,
+            "count": 74
+          },
+          {
+            "clr": "maroon",
+            "proportion": 0.0006,
+            "count": 30
+          }
+        ]
+      }
+    }
+  },
+  "conditional_probability": {
+    "summary": [
+      {
+        "fips": 6025,
+        "lc_type": "barren",
+        "n_county": 1823,
+        "n_pool": 9375,
+        "num_neighbors": 2,
+        "kl_div": 0.8702189773001582,
+        "l1_distance": 0.2801774478948106,
+        "top_color": "gray",
+        "top_contrib": 0.1794311732350476
+      },
+      {
+        "fips": 6025,
+        "lc_type": "crop",
+        "n_county": 2391,
+        "n_pool": 4154,
+        "num_neighbors": 2,
+        "kl_div": 0.3442209750680723,
+        "l1_distance": 0.1697327183617799,
+        "top_color": "gray",
+        "top_contrib": 0.1669221221366975
+      },
+      {
+        "fips": 6025,
+        "lc_type": "forest",
+        "n_county": 48,
+        "n_pool": 30438,
+        "num_neighbors": 2,
+        "kl_div": 1.0444170033638338,
+        "l1_distance": 0.2691939062991236,
+        "top_color": "aquamarine",
+        "top_contrib": 0.3412992715894995
+      },
+      {
+        "fips": 6025,
+        "lc_type": "shrub",
+        "n_county": 21,
+        "n_pool": 32984,
+        "num_neighbors": 2,
+        "kl_div": 0.8619667502993227,
+        "l1_distance": 0.2311771607834119,
+        "top_color": "gray",
+        "top_contrib": 0.4289757180397328
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban",
+        "n_county": 3166,
+        "n_pool": 890951,
+        "num_neighbors": 2,
+        "kl_div": 2.0631148495740463,
+        "l1_distance": 0.4023130080523839,
+        "top_color": "gray",
+        "top_contrib": 0.5726297906111388
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+barren",
+        "n_county": 1694,
+        "n_pool": 158557,
+        "num_neighbors": 2,
+        "kl_div": 2.400133032252253,
+        "l1_distance": 0.3877846690267386,
+        "top_color": "gray",
+        "top_contrib": 0.4903062764837892
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+crop",
+        "n_county": 26927,
+        "n_pool": 31879,
+        "num_neighbors": 2,
+        "kl_div": 0.09700890182048,
+        "l1_distance": 0.0616245696286424,
+        "top_color": "gray",
+        "top_contrib": 0.0195203503755924
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+forest",
+        "n_county": 48,
+        "n_pool": 146336,
+        "num_neighbors": 2,
+        "kl_div": 0.8881894830828321,
+        "l1_distance": 0.226863186720478,
+        "top_color": "aquamarine",
+        "top_contrib": 0.3460266499002536
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+shrub",
+        "n_county": 65,
+        "n_pool": 131178,
+        "num_neighbors": 2,
+        "kl_div": 1.66701788508459,
+        "l1_distance": 0.2326806359750113,
+        "top_color": "gray",
+        "top_contrib": 0.5553297950327423
+      },
+      {
+        "fips": 6059,
+        "lc_type": "barren",
+        "n_county": 98,
+        "n_pool": 19292,
+        "num_neighbors": 4,
+        "kl_div": -0.101008958092432,
+        "l1_distance": 0.1472474970329569,
+        "top_color": "purple",
+        "top_contrib": 0.057435672535109
+      },
+      {
+        "fips": 6059,
+        "lc_type": "forest",
+        "n_county": 4599,
+        "n_pool": 81507,
+        "num_neighbors": 4,
+        "kl_div": 0.3227414524433619,
+        "l1_distance": 0.1414517305446479,
+        "top_color": "green",
+        "top_contrib": 0.1873203494251958
+      },
+      {
+        "fips": 6059,
+        "lc_type": "grass",
+        "n_county": 152,
+        "n_pool": 9346,
+        "num_neighbors": 4,
+        "kl_div": 0.0746581130710731,
+        "l1_distance": 0.114339076591735,
+        "top_color": "green",
+        "top_contrib": 0.0801471792727805
+      },
+      {
+        "fips": 6059,
+        "lc_type": "shrub",
+        "n_county": 618,
+        "n_pool": 54933,
+        "num_neighbors": 4,
+        "kl_div": 0.3852342761613142,
+        "l1_distance": 0.1959852251364466,
+        "top_color": "purple",
+        "top_contrib": 0.1694964413352876
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban",
+        "n_county": 693749,
+        "n_pool": 3816225,
+        "num_neighbors": 4,
+        "kl_div": 0.7328809078788726,
+        "l1_distance": 0.2726158461184417,
+        "top_color": "orange",
+        "top_contrib": 0.2241109371711772
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+barren",
+        "n_county": 5282,
+        "n_pool": 246857,
+        "num_neighbors": 4,
+        "kl_div": 0.0533529844455886,
+        "l1_distance": 0.072987784600528,
+        "top_color": "cocoa",
+        "top_contrib": 0.0310160825371939
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+crop",
+        "n_county": 206,
+        "n_pool": 6149,
+        "num_neighbors": 4,
+        "kl_div": -0.0686297583564951,
+        "l1_distance": 0.0715593510454231,
+        "top_color": "red",
+        "top_contrib": 0.0141500980278131
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+forest",
+        "n_county": 51861,
+        "n_pool": 337561,
+        "num_neighbors": 4,
+        "kl_div": 0.7727093769242617,
+        "l1_distance": 0.250401204696579,
+        "top_color": "green",
+        "top_contrib": 0.2367292034237069
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+grass",
+        "n_county": 19190,
+        "n_pool": 288904,
+        "num_neighbors": 4,
+        "kl_div": 0.3762561016351649,
+        "l1_distance": 0.1775658700438759,
+        "top_color": "red",
+        "top_contrib": 0.0917215244986567
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+other",
+        "n_county": 176,
+        "n_pool": 383,
+        "num_neighbors": 4,
+        "kl_div": 0.4071837657498678,
+        "l1_distance": 0.1953293227073945,
+        "top_color": "orange",
+        "top_contrib": 0.1106681712762548
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+shrub",
+        "n_county": 8987,
+        "n_pool": 223890,
+        "num_neighbors": 4,
+        "kl_div": 0.4645480332262562,
+        "l1_distance": 0.2008858555742739,
+        "top_color": "orange",
+        "top_contrib": 0.1175006966372334
+      },
+      {
+        "fips": 6065,
+        "lc_type": "barren",
+        "n_county": 6844,
+        "n_pool": 21071,
+        "num_neighbors": 4,
+        "kl_div": 0.1063593830056214,
+        "l1_distance": 0.1457535614984891,
+        "top_color": "alabaster",
+        "top_contrib": 0.0675498080823209
+      },
+      {
+        "fips": 6065,
+        "lc_type": "crop",
+        "n_county": 1750,
+        "n_pool": 4178,
+        "num_neighbors": 4,
+        "kl_div": 0.5372861695985304,
+        "l1_distance": 0.1980054145494525,
+        "top_color": "alabaster",
+        "top_contrib": 0.2213186498469169
+      },
+      {
+        "fips": 6065,
+        "lc_type": "forest",
+        "n_county": 8792,
+        "n_pool": 67942,
+        "num_neighbors": 4,
+        "kl_div": 0.2373614614049721,
+        "l1_distance": 0.1279567269968484,
+        "top_color": "green",
+        "top_contrib": 0.1636899544051314
+      },
+      {
+        "fips": 6065,
+        "lc_type": "grass",
+        "n_county": 2496,
+        "n_pool": 7237,
+        "num_neighbors": 4,
+        "kl_div": 0.0157716856093622,
+        "l1_distance": 0.0533188227731715,
+        "top_color": "red",
+        "top_contrib": 0.0362544348311382
+      },
+      {
+        "fips": 6065,
+        "lc_type": "shrub",
+        "n_county": 20591,
+        "n_pool": 45528,
+        "num_neighbors": 4,
+        "kl_div": 0.1918222359297231,
+        "l1_distance": 0.1265491049588369,
+        "top_color": "orange",
+        "top_contrib": 0.0803418115750503
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban",
+        "n_county": 275553,
+        "n_pool": 1927835,
+        "num_neighbors": 4,
+        "kl_div": 0.2827518789932264,
+        "l1_distance": 0.172406616491054,
+        "top_color": "amber",
+        "top_contrib": 0.078291139194069
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+barren",
+        "n_county": 149319,
+        "n_pool": 240887,
+        "num_neighbors": 4,
+        "kl_div": 0.0234963116064627,
+        "l1_distance": 0.0212913523033174,
+        "top_color": "orange",
+        "top_contrib": 0.0111809255776705
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+crop",
+        "n_county": 4808,
+        "n_pool": 33029,
+        "num_neighbors": 4,
+        "kl_div": 1.0141560478138885,
+        "l1_distance": 0.2984416380399823,
+        "top_color": "orange",
+        "top_contrib": 0.2900861425150417
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+forest",
+        "n_county": 23639,
+        "n_pool": 216866,
+        "num_neighbors": 4,
+        "kl_div": 0.502357918300908,
+        "l1_distance": 0.2025627402096834,
+        "top_color": "orange",
+        "top_contrib": 0.1285232246924183
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+grass",
+        "n_county": 112771,
+        "n_pool": 181421,
+        "num_neighbors": 4,
+        "kl_div": 0.0531028126253082,
+        "l1_distance": 0.0498090312523063,
+        "top_color": "amber",
+        "top_contrib": 0.0214937469095637
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+shrub",
+        "n_county": 77685,
+        "n_pool": 169663,
+        "num_neighbors": 4,
+        "kl_div": 0.2749625706910856,
+        "l1_distance": 0.165938815825745,
+        "top_color": "orange",
+        "top_contrib": 0.0885741924818287
+      },
+      {
+        "fips": 6073,
+        "lc_type": "barren",
+        "n_county": 708,
+        "n_pool": 9473,
+        "num_neighbors": 3,
+        "kl_div": 1.122492784461132,
+        "l1_distance": 0.2582940509408747,
+        "top_color": "ivory",
+        "top_contrib": 0.3918413759138355
+      },
+      {
+        "fips": 6073,
+        "lc_type": "crop",
+        "n_county": 13,
+        "n_pool": 4154,
+        "num_neighbors": 3,
+        "kl_div": 0.3333880728810948,
+        "l1_distance": 0.1633831013321359,
+        "top_color": "ivory",
+        "top_contrib": 0.301562459150379
+      },
+      {
+        "fips": 6073,
+        "lc_type": "forest",
+        "n_county": 21598,
+        "n_pool": 35037,
+        "num_neighbors": 3,
+        "kl_div": 0.2735256430216763,
+        "l1_distance": 0.11153293783084,
+        "top_color": "olive",
+        "top_contrib": 0.1498780950685817
+      },
+      {
+        "fips": 6073,
+        "lc_type": "grass",
+        "n_county": 62,
+        "n_pool": 2710,
+        "num_neighbors": 3,
+        "kl_div": 1.3766929656942613,
+        "l1_distance": 0.2489155749636099,
+        "top_color": "ivory",
+        "top_contrib": 0.6958262781443711
+      },
+      {
+        "fips": 6073,
+        "lc_type": "shrub",
+        "n_county": 12372,
+        "n_pool": 33602,
+        "num_neighbors": 3,
+        "kl_div": 0.6019716916059368,
+        "l1_distance": 0.2170530914139473,
+        "top_color": "beige",
+        "top_contrib": 0.1209352070920055
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban",
+        "n_county": 612232,
+        "n_pool": 1584700,
+        "num_neighbors": 3,
+        "kl_div": 0.6632387010802772,
+        "l1_distance": 0.2511126288072027,
+        "top_color": "terracotta",
+        "top_contrib": 0.156192411561815
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+barren",
+        "n_county": 7544,
+        "n_pool": 163839,
+        "num_neighbors": 3,
+        "kl_div": 2.024158634714785,
+        "l1_distance": 0.4055994773357395,
+        "top_color": "terracotta",
+        "top_contrib": 0.5160165625725646
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+crop",
+        "n_county": 144,
+        "n_pool": 32085,
+        "num_neighbors": 3,
+        "kl_div": 1.7616961263192696,
+        "l1_distance": 0.2499533044858823,
+        "top_color": "terracotta",
+        "top_contrib": 0.6059660960526296
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+forest",
+        "n_county": 122649,
+        "n_pool": 198197,
+        "num_neighbors": 3,
+        "kl_div": 0.2853734984835734,
+        "l1_distance": 0.1254686132839179,
+        "top_color": "olive",
+        "top_contrib": 0.113286097263332
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+grass",
+        "n_county": 13059,
+        "n_pool": 145020,
+        "num_neighbors": 3,
+        "kl_div": 1.7454671367766132,
+        "l1_distance": 0.4145673156991702,
+        "top_color": "terracotta",
+        "top_contrib": 0.4066978913033227
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+other",
+        "n_county": 82,
+        "n_pool": 258,
+        "num_neighbors": 3,
+        "kl_div": 0.4848281034482817,
+        "l1_distance": 0.2112612612612612,
+        "top_color": "terracotta",
+        "top_contrib": 0.1128584639427517
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+shrub",
+        "n_county": 53428,
+        "n_pool": 140165,
+        "num_neighbors": 3,
+        "kl_div": 0.7137511142859024,
+        "l1_distance": 0.2797934153409699,
+        "top_color": "terracotta",
+        "top_contrib": 0.179426478862575
+      }
+    ],
+    "mean_kl_by_county": {
+      "06025": 1.1373653175383989,
+      "06059": 0.31090239046243945,
+      "06065": 0.2944934977799172,
+      "06073": 0.9488820393977336
+    },
+    "mean_l1_by_county": {
+      "06025": 0.2512830336380423,
+      "06059": 0.16730625128111842,
+      "06065": 0.1420030749908079,
+      "06073": 0.24474456439129597
+    }
+  },
+  "surprisal": {
+    "06025": 5.258877628301911,
+    "06059": 3.282439694136575,
+    "06065": 3.621090650380097,
+    "06073": 4.769505994622364
+  },
+  "group_level_divergence": {
+    "by_county_lc": [
+      {
+        "fips": 6025,
+        "lc_type": "barren",
+        "divergence": 0.5386231836006953,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "crop",
+        "divergence": 0.6099324020957565,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "forest",
+        "divergence": 0.6219485327134713,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "shrub",
+        "divergence": 0.6214782444718924,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban",
+        "divergence": 0.5882137711165519,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+barren",
+        "divergence": 0.6427012835920927,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+crop",
+        "divergence": 0.6241917468654045,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+forest",
+        "divergence": 0.6198739388513439,
+        "anomalous": false
+      },
+      {
+        "fips": 6025,
+        "lc_type": "urban+shrub",
+        "divergence": 0.6079181998936759,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "barren",
+        "divergence": 0.2167175808783507,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "forest",
+        "divergence": 0.5568728842118895,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "grass",
+        "divergence": 0.3652157145496393,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "shrub",
+        "divergence": 0.4451449101502002,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban",
+        "divergence": 0.4055533158437319,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+barren",
+        "divergence": 0.1596463628219347,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+crop",
+        "divergence": 0.5431833125149612,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+forest",
+        "divergence": 0.5205038120937899,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+grass",
+        "divergence": 0.4652855315684212,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+other",
+        "divergence": 0.4102497130265782,
+        "anomalous": false
+      },
+      {
+        "fips": 6059,
+        "lc_type": "urban+shrub",
+        "divergence": 0.3987694527122982,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "barren",
+        "divergence": 0.2036105863308898,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "crop",
+        "divergence": 0.4718705683533502,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "forest",
+        "divergence": 0.5520614409203407,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "grass",
+        "divergence": 0.3415490645307913,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "shrub",
+        "divergence": 0.4355363722863735,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban",
+        "divergence": 0.4104024902523639,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+barren",
+        "divergence": 0.1403499838765313,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+crop",
+        "divergence": 0.5318333866224075,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+forest",
+        "divergence": 0.5246346884397296,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+grass",
+        "divergence": 0.4715470534418052,
+        "anomalous": false
+      },
+      {
+        "fips": 6065,
+        "lc_type": "urban+shrub",
+        "divergence": 0.395671889297424,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "barren",
+        "divergence": 0.5558294797652057,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "crop",
+        "divergence": 0.6810383127358635,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "forest",
+        "divergence": 0.581494985757395,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "grass",
+        "divergence": 0.5673751015868759,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "shrub",
+        "divergence": 0.5136250956896491,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban",
+        "divergence": 0.4252590449239998,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+barren",
+        "divergence": 0.6333805492681905,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+crop",
+        "divergence": 0.6465732914885441,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+forest",
+        "divergence": 0.5294002200476592,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+grass",
+        "divergence": 0.5939747203476597,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+other",
+        "divergence": 0.4076914613818581,
+        "anomalous": false
+      },
+      {
+        "fips": 6073,
+        "lc_type": "urban+shrub",
+        "divergence": 0.4543889350758321,
+        "anomalous": false
+      }
+    ],
+    "county_summary": [
+      {
+        "fips": 6025,
+        "num_anomalies": 0.0,
+        "avg_divergence": 0.6083201448000983
+      },
+      {
+        "fips": 6059,
+        "num_anomalies": 0.0,
+        "avg_divergence": 0.4079220536701632
+      },
+      {
+        "fips": 6065,
+        "num_anomalies": 0.0,
+        "avg_divergence": 0.4071879567592733
+      },
+      {
+        "fips": 6073,
+        "num_anomalies": 0.0,
+        "avg_divergence": 0.5491692665057277
+      }
+    ],
+    "avg_divergence_by_county": {
+      "06025": 0.6083201448000983,
+      "06059": 0.4079220536701632,
+      "06065": 0.4071879567592733,
+      "06073": 0.5491692665057277
+    }
+  },
+  "sd_vs_neighbors": {
+    "06073-06025": {
+      "county_a": {
+        "fips": "06025",
+        "name": "Imperial",
+        "total_count": 36183,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 8962,
+              "proportion": 0.24768537711079788,
+              "unique": false
+            },
+            {
+              "value": "terracotta",
+              "count": 60,
+              "proportion": 0.0016582372937567365,
+              "unique": false
+            },
+            {
+              "value": "olive",
+              "count": 4121,
+              "proportion": 0.11389326479285852,
+              "unique": false
+            },
+            {
+              "value": "lemon",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "ivory",
+              "count": 123,
+              "proportion": 0.00339938645220131,
+              "unique": false
+            },
+            {
+              "value": "lilac",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "foo",
+              "count": 3949,
+              "proportion": 0.10913965121742254,
+              "unique": false
+            },
+            {
+              "value": "blue",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "beige",
+              "count": 655,
+              "proportion": 0.018102423790177707,
+              "unique": false
+            },
+            {
+              "value": "sienna",
+              "count": 2693,
+              "proportion": 0.0744272172014482,
+              "unique": false
+            },
+            {
+              "value": "purple",
+              "count": 6011,
+              "proportion": 0.16612773954619572,
+              "unique": true
+            },
+            {
+              "value": "gray",
+              "count": 4596,
+              "proportion": 0.12702097670176601,
+              "unique": true
+            },
+            {
+              "value": "sage",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "aquamarine",
+              "count": 3431,
+              "proportion": 0.09482353591465606,
+              "unique": true
+            },
+            {
+              "value": "amber",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "grey",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lavender",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "yellow",
+              "count": 1311,
+              "proportion": 0.03623248486858469,
+              "unique": true
+            },
+            {
+              "value": "maroon",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "auburn",
+              "count": 102,
+              "proportion": 0.0028190033993864523,
+              "unique": true
+            },
+            {
+              "value": "emerald",
+              "count": 97,
+              "proportion": 0.0026808169582400575,
+              "unique": true
+            },
+            {
+              "value": "navy",
+              "count": 72,
+              "proportion": 0.001989884752508084,
+              "unique": true
+            }
+          ],
+          "vocab_size": 14
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 16890,
+              "proportion": 0.46679379819252137,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 15435,
+              "proportion": 0.4265815438189205,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 2888,
+              "proportion": 0.07981648840615758,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 562,
+              "proportion": 0.015532155984854766,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 408,
+              "proportion": 0.01127601359754581,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 34878,
+              "proportion": 0.963933338860791,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 1149,
+              "proportion": 0.031755244175441504,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 65,
+              "proportion": 0.0017964237349031313,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 91,
+              "proportion": 0.0025149932288643837,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "county_b": {
+        "fips": "06073",
+        "name": "San Diego",
+        "total_count": 843891,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 275071,
+              "proportion": 0.32595560327103856,
+              "unique": false
+            },
+            {
+              "value": "terracotta",
+              "count": 136349,
+              "proportion": 0.1615718143693913,
+              "unique": false
+            },
+            {
+              "value": "olive",
+              "count": 111076,
+              "proportion": 0.13162363385792714,
+              "unique": false
+            },
+            {
+              "value": "lemon",
+              "count": 95526,
+              "proportion": 0.11319708350960017,
+              "unique": true
+            },
+            {
+              "value": "ivory",
+              "count": 79445,
+              "proportion": 0.09414130497896055,
+              "unique": false
+            },
+            {
+              "value": "lilac",
+              "count": 57041,
+              "proportion": 0.06759285263144174,
+              "unique": true
+            },
+            {
+              "value": "foo",
+              "count": 36577,
+              "proportion": 0.043343275375611306,
+              "unique": false
+            },
+            {
+              "value": "blue",
+              "count": 19519,
+              "proportion": 0.023129764389002844,
+              "unique": true
+            },
+            {
+              "value": "beige",
+              "count": 17096,
+              "proportion": 0.020258540498713697,
+              "unique": false
+            },
+            {
+              "value": "sienna",
+              "count": 5192,
+              "proportion": 0.006152453338168081,
+              "unique": false
+            },
+            {
+              "value": "purple",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "gray",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "sage",
+              "count": 3540,
+              "proportion": 0.004194854548750964,
+              "unique": true
+            },
+            {
+              "value": "aquamarine",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "amber",
+              "count": 3227,
+              "proportion": 0.0038239535674630966,
+              "unique": true
+            },
+            {
+              "value": "grey",
+              "count": 2181,
+              "proportion": 0.002584456997408433,
+              "unique": true
+            },
+            {
+              "value": "lavender",
+              "count": 1423,
+              "proportion": 0.0016862367296250345,
+              "unique": true
+            },
+            {
+              "value": "yellow",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "maroon",
+              "count": 628,
+              "proportion": 0.0007441719368970637,
+              "unique": true
+            },
+            {
+              "value": "auburn",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "emerald",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "navy",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            }
+          ],
+          "vocab_size": 15
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 419679,
+              "proportion": 0.4973142266003548,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 370907,
+              "proportion": 0.4395200328004446,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 28203,
+              "proportion": 0.033420192892210016,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 16467,
+              "proportion": 0.01951318357465597,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 8635,
+              "proportion": 0.010232364132334627,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 810358,
+              "proportion": 0.9602638255414503,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 23061,
+              "proportion": 0.027326988912075138,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 7470,
+              "proportion": 0.008851854090160934,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 3002,
+              "proportion": 0.003557331456313671,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "jsd": {
+        "original": 0.5742742106311892,
+        "pooled": {
+          "weighted_jsd": 0.226186,
+          "mean_jsd": 0.272443
+        }
+      }
+    },
+    "06073-06059": {
+      "county_a": {
+        "fips": "06059",
+        "name": "Orange",
+        "total_count": 784918,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 222193,
+              "proportion": 0.2830779775721795,
+              "unique": false
+            },
+            {
+              "value": "orange",
+              "count": 150433,
+              "proportion": 0.19165441485607415,
+              "unique": true
+            },
+            {
+              "value": "terracotta",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "olive",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lemon",
+              "count": 1841,
+              "proportion": 0.0023454679342300726,
+              "unique": false
+            },
+            {
+              "value": "red",
+              "count": 94499,
+              "proportion": 0.12039346785269289,
+              "unique": true
+            },
+            {
+              "value": "ivory",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "navy",
+              "count": 79436,
+              "proportion": 0.10120292820396526,
+              "unique": true
+            },
+            {
+              "value": "purple",
+              "count": 72440,
+              "proportion": 0.09228989525020448,
+              "unique": true
+            },
+            {
+              "value": "amber",
+              "count": 66327,
+              "proportion": 0.08450182057234004,
+              "unique": false
+            },
+            {
+              "value": "alabaster",
+              "count": 68165,
+              "proportion": 0.08684346645127261,
+              "unique": true
+            },
+            {
+              "value": "lilac",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "foo",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "green",
+              "count": 25750,
+              "proportion": 0.03280597463684105,
+              "unique": true
+            },
+            {
+              "value": "blue",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "beige",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "sienna",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "grey",
+              "count": 1864,
+              "proportion": 0.0023747703581775423,
+              "unique": false
+            },
+            {
+              "value": "sage",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "indigo",
+              "count": 1970,
+              "proportion": 0.0025098163120224025,
+              "unique": true
+            },
+            {
+              "value": "lavender",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "maroon",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            }
+          ],
+          "vocab_size": 11
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 392678,
+              "proportion": 0.5002790100367173,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 354394,
+              "proportion": 0.4515044883669377,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 16914,
+              "proportion": 0.021548747767282696,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 15473,
+              "proportion": 0.019712887206052097,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 5459,
+              "proportion": 0.006954866623010302,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 753679,
+              "proportion": 0.9602009381871737,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 25856,
+              "proportion": 0.032941020590685904,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 5235,
+              "proportion": 0.006669486494130597,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 148,
+              "proportion": 0.00018855472800980485,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "county_b": {
+        "fips": "06073",
+        "name": "San Diego",
+        "total_count": 843891,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 275071,
+              "proportion": 0.32595560327103856,
+              "unique": false
+            },
+            {
+              "value": "orange",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "terracotta",
+              "count": 136349,
+              "proportion": 0.1615718143693913,
+              "unique": true
+            },
+            {
+              "value": "olive",
+              "count": 111076,
+              "proportion": 0.13162363385792714,
+              "unique": true
+            },
+            {
+              "value": "lemon",
+              "count": 95526,
+              "proportion": 0.11319708350960017,
+              "unique": false
+            },
+            {
+              "value": "red",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "ivory",
+              "count": 79445,
+              "proportion": 0.09414130497896055,
+              "unique": true
+            },
+            {
+              "value": "navy",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "purple",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "amber",
+              "count": 3227,
+              "proportion": 0.0038239535674630966,
+              "unique": false
+            },
+            {
+              "value": "alabaster",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lilac",
+              "count": 57041,
+              "proportion": 0.06759285263144174,
+              "unique": true
+            },
+            {
+              "value": "foo",
+              "count": 36577,
+              "proportion": 0.043343275375611306,
+              "unique": true
+            },
+            {
+              "value": "green",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "blue",
+              "count": 19519,
+              "proportion": 0.023129764389002844,
+              "unique": true
+            },
+            {
+              "value": "beige",
+              "count": 17096,
+              "proportion": 0.020258540498713697,
+              "unique": true
+            },
+            {
+              "value": "sienna",
+              "count": 5192,
+              "proportion": 0.006152453338168081,
+              "unique": true
+            },
+            {
+              "value": "grey",
+              "count": 2181,
+              "proportion": 0.002584456997408433,
+              "unique": false
+            },
+            {
+              "value": "sage",
+              "count": 3540,
+              "proportion": 0.004194854548750964,
+              "unique": true
+            },
+            {
+              "value": "indigo",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lavender",
+              "count": 1423,
+              "proportion": 0.0016862367296250345,
+              "unique": true
+            },
+            {
+              "value": "maroon",
+              "count": 628,
+              "proportion": 0.0007441719368970637,
+              "unique": true
+            }
+          ],
+          "vocab_size": 15
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 419679,
+              "proportion": 0.4973142266003548,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 370907,
+              "proportion": 0.4395200328004446,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 28203,
+              "proportion": 0.033420192892210016,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 16467,
+              "proportion": 0.01951318357465597,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 8635,
+              "proportion": 0.010232364132334627,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 810358,
+              "proportion": 0.9602638255414503,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 23061,
+              "proportion": 0.027326988912075138,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 3002,
+              "proportion": 0.003557331456313671,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 7470,
+              "proportion": 0.008851854090160934,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "jsd": {
+        "original": 0.6836548456234984,
+        "pooled": {
+          "weighted_jsd": 0.199373,
+          "mean_jsd": 0.207237
+        }
+      }
+    },
+    "06073-06065": {
+      "county_a": {
+        "fips": "06065",
+        "name": "Riverside",
+        "total_count": 684248,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 165703,
+              "proportion": 0.24216804433480257,
+              "unique": false
+            },
+            {
+              "value": "terracotta",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "orange",
+              "count": 127267,
+              "proportion": 0.18599542855806667,
+              "unique": true
+            },
+            {
+              "value": "olive",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lemon",
+              "count": 2206,
+              "proportion": 0.003223977271398674,
+              "unique": false
+            },
+            {
+              "value": "red",
+              "count": 86903,
+              "proportion": 0.12700512095029873,
+              "unique": true
+            },
+            {
+              "value": "amber",
+              "count": 82188,
+              "proportion": 0.12011434450667009,
+              "unique": false
+            },
+            {
+              "value": "ivory",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "alabaster",
+              "count": 74313,
+              "proportion": 0.10860535946031263,
+              "unique": true
+            },
+            {
+              "value": "navy",
+              "count": 59901,
+              "proportion": 0.08754282073166454,
+              "unique": true
+            },
+            {
+              "value": "purple",
+              "count": 57115,
+              "proportion": 0.08347119757748653,
+              "unique": true
+            },
+            {
+              "value": "lilac",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "foo",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "green",
+              "count": 25351,
+              "proportion": 0.037049432369550224,
+              "unique": true
+            },
+            {
+              "value": "blue",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "beige",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "sienna",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "grey",
+              "count": 1980,
+              "proportion": 0.0028936876687984474,
+              "unique": false
+            },
+            {
+              "value": "sage",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lavender",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "indigo",
+              "count": 1321,
+              "proportion": 0.0019305865709508833,
+              "unique": true
+            },
+            {
+              "value": "maroon",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            }
+          ],
+          "vocab_size": 11
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 314330,
+              "proportion": 0.45938022471384643,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 290176,
+              "proportion": 0.42408015807134253,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 66641,
+              "proportion": 0.09739305047292794,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 8770,
+              "proportion": 0.012816990330991103,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 4331,
+              "proportion": 0.0063295764108919576,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 662534,
+              "proportion": 0.9682658918988437,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 17859,
+              "proportion": 0.026100185897510845,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 3458,
+              "proportion": 0.005053723211467187,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 397,
+              "proportion": 0.0005801989921782745,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "county_b": {
+        "fips": "06073",
+        "name": "San Diego",
+        "total_count": 843891,
+        "clr": {
+          "distribution": [
+            {
+              "value": "cocoa",
+              "count": 275071,
+              "proportion": 0.32595560327103856,
+              "unique": false
+            },
+            {
+              "value": "terracotta",
+              "count": 136349,
+              "proportion": 0.1615718143693913,
+              "unique": true
+            },
+            {
+              "value": "orange",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "olive",
+              "count": 111076,
+              "proportion": 0.13162363385792714,
+              "unique": true
+            },
+            {
+              "value": "lemon",
+              "count": 95526,
+              "proportion": 0.11319708350960017,
+              "unique": false
+            },
+            {
+              "value": "red",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "amber",
+              "count": 3227,
+              "proportion": 0.0038239535674630966,
+              "unique": false
+            },
+            {
+              "value": "ivory",
+              "count": 79445,
+              "proportion": 0.09414130497896055,
+              "unique": true
+            },
+            {
+              "value": "alabaster",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "navy",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "purple",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "lilac",
+              "count": 57041,
+              "proportion": 0.06759285263144174,
+              "unique": true
+            },
+            {
+              "value": "foo",
+              "count": 36577,
+              "proportion": 0.043343275375611306,
+              "unique": true
+            },
+            {
+              "value": "green",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "blue",
+              "count": 19519,
+              "proportion": 0.023129764389002844,
+              "unique": true
+            },
+            {
+              "value": "beige",
+              "count": 17096,
+              "proportion": 0.020258540498713697,
+              "unique": true
+            },
+            {
+              "value": "sienna",
+              "count": 5192,
+              "proportion": 0.006152453338168081,
+              "unique": true
+            },
+            {
+              "value": "grey",
+              "count": 2181,
+              "proportion": 0.002584456997408433,
+              "unique": false
+            },
+            {
+              "value": "sage",
+              "count": 3540,
+              "proportion": 0.004194854548750964,
+              "unique": true
+            },
+            {
+              "value": "lavender",
+              "count": 1423,
+              "proportion": 0.0016862367296250345,
+              "unique": true
+            },
+            {
+              "value": "indigo",
+              "count": 0,
+              "proportion": 0.0,
+              "unique": false
+            },
+            {
+              "value": "maroon",
+              "count": 628,
+              "proportion": 0.0007441719368970637,
+              "unique": true
+            }
+          ],
+          "vocab_size": 15
+        },
+        "bldgtype": {
+          "distribution": [
+            {
+              "value": "W",
+              "count": 419679,
+              "proportion": 0.4973142266003548,
+              "unique": false
+            },
+            {
+              "value": "M",
+              "count": 370907,
+              "proportion": 0.4395200328004446,
+              "unique": false
+            },
+            {
+              "value": "H",
+              "count": 28203,
+              "proportion": 0.033420192892210016,
+              "unique": false
+            },
+            {
+              "value": "C",
+              "count": 16467,
+              "proportion": 0.01951318357465597,
+              "unique": false
+            },
+            {
+              "value": "S",
+              "count": 8635,
+              "proportion": 0.010232364132334627,
+              "unique": false
+            }
+          ],
+          "vocab_size": 5
+        },
+        "st_damcat": {
+          "distribution": [
+            {
+              "value": "RES",
+              "count": 810358,
+              "proportion": 0.9602638255414503,
+              "unique": false
+            },
+            {
+              "value": "COM",
+              "count": 23061,
+              "proportion": 0.027326988912075138,
+              "unique": false
+            },
+            {
+              "value": "PUB",
+              "count": 7470,
+              "proportion": 0.008851854090160934,
+              "unique": false
+            },
+            {
+              "value": "IND",
+              "count": 3002,
+              "proportion": 0.003557331456313671,
+              "unique": false
+            }
+          ],
+          "vocab_size": 4
+        }
+      },
+      "jsd": {
+        "original": 0.6938442743749804,
+        "pooled": {
+          "weighted_jsd": 0.195987,
+          "mean_jsd": 0.218597
+        }
+      }
+    }
+  },
+  "pair_keys": [
+    "06073-06025",
+    "06073-06059",
+    "06073-06065"
+  ]
+}
