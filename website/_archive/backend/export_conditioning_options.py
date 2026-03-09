@@ -4,7 +4,7 @@ Export static JSON for /conditioning-options.
 Run from the backend/ directory:
     python export_conditioning_options.py
 
-Output: ../frontend/public/data/conditioning-options.json
+Output: ../../frontend/public/data/conditioning-options.json
 """
 
 import json
@@ -13,7 +13,7 @@ from pathlib import Path
 import polars as pl
 
 DATA_DIR = Path(__file__).parent / "data"
-OUT_PATH = Path(__file__).parent.parent / "frontend" / "public" / "data" / "conditioning-options.json"
+OUT_PATH = Path(__file__).parent.parent.parent / "frontend" / "public" / "data" / "conditioning-options.json"
 
 
 def main():

@@ -4,7 +4,7 @@ Export static JSON for /map/neighbor-divergence-merged with preset color groups.
 Run from the backend/ directory:
     python export_neighbor_divergence_pooled.py
 
-Output: ../frontend/public/data/neighbor-divergence-map-pooled.json
+Output: ../../frontend/public/data/neighbor-divergence-map-pooled.json
 """
 
 import json
@@ -18,7 +18,7 @@ from scipy.spatial.distance import jensenshannon
 from constants import COUNTY_NAME_TO_FIPS, FIPS_TO_COUNTY_NAME, COUNTY_CENTROIDS, CA_COUNTIES_GEOJSON_URL
 
 DATA_DIR = Path(__file__).parent / "data"
-OUT_PATH = Path(__file__).parent.parent / "frontend" / "public" / "data" / "neighbor-divergence-map-pooled.json"
+OUT_PATH = Path(__file__).parent.parent.parent / "frontend" / "public" / "data" / "neighbor-divergence-map-pooled.json"
 
 LAPLACE_PSEUDOCOUNT = 1
 MIN_SUPPORT = 30
