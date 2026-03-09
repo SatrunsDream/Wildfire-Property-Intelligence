@@ -24,11 +24,13 @@ LAPLACE_PSEUDOCOUNT = 1
 MIN_SUPPORT = 30
 
 COLOR_GROUPS = [
-    {"name": "browns", "colors": ["brown", "sienna", "cocoa", "coffee", "tan", "terracotta", "auburn"]},
-    {"name": "reds", "colors": ["red", "scarlet", "crimson", "maroon"]},
-    {"name": "greens", "colors": ["green", "sage", "verde", "emerald", "olive"]},
-    {"name": "blues_purples", "colors": ["blue", "indigo", "navy", "purple", "lavender", "lilac"]},
-    {"name": "grays", "colors": ["gray", "grey"]},
+    {"name": "red", "colors": ["azure", "blue", "crimson", "foo", "indigo", "purple", "red", "scarlet"]},
+    {"name": "navy", "colors": ["aqua", "aquamarine", "lavender", "lilac", "navy"]},
+    {"name": "alabaster", "colors": ["alabaster", "gray", "grey", "ivory"]},
+    {"name": "amber", "colors": ["amber", "gold", "lemon", "yellow"]},
+    {"name": "cocoa", "colors": ["beige", "brown", "cocoa", "coffee"]},
+    {"name": "olive", "colors": ["green", "olive", "sage", "verde"]},
+    {"name": "orange", "colors": ["orange", "sienna", "terracotta"]},
 ]
 
 
