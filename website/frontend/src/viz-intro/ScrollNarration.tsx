@@ -115,18 +115,17 @@ export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData,
                     <div className="flex min-h-[130vh] items-center px-6 md:px-16">
                         <NarrationCard>
                             <h2
+                                className="text-foreground font-medium"
                                 style={{
                                     fontFamily: 'Georgia, "Times New Roman", serif',
                                     fontSize: 'clamp(1.25rem, 3vw, 1.625rem)',
-                                    fontWeight: 400,
                                     lineHeight: 1.3,
-                                    color: '#282828',
                                     margin: 0,
                                 }}
                             >
                                 58 counties report this data independently.
                             </h2>
-                            <p style={{ fontSize: '0.95rem', lineHeight: 1.7, color: '#555', marginTop: '0.75rem' }}>
+                            <p className="text-foreground text-[0.95rem] leading-[1.7] mt-3">
                                 Each county records structural characteristics using its own conventions.
                                 The map shows <strong>maximum neighbor divergence</strong>: how much each
                                 county's color distribution differs from adjacent counties. Scroll to zoom
