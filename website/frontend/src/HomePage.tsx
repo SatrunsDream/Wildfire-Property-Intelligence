@@ -202,6 +202,23 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                                 </p>
                             </div>
                         </Dropdown>
+
+                        <div className="pl-4 sm:pl-6 border-l-2 border-muted space-y-2 mt-4">
+                            <MethodLink title="Kullback Leibler Divergence" page="conditional-probability" onPageChange={onPageChange} />
+                            <P>
+                                To quantify how much a county&apos;s color distribution deviates from the neighbor-pooled regional norm, we compute Kullback Leibler divergence. KL measures the information loss when approximating the county distribution with the pooled distribution. Each color contributes to the total KL; positive differences (county uses a color more than the pool) and negative differences (county uses it less) both show up in the per-color bar chart. This reveals which colors are over- or under-represented locally.
+                            </P>
+                            <Dropdown title="See the math">
+                                <div className="space-y-2">
+                                    <div className="overflow-x-auto">
+                                        <BlockMath>{String.raw`\mathrm{KL}(p_c \,\|\, p^{\mathrm{pool}}) = \sum_{k} p_{ck}\,\log\frac{p_{ck}}{p_k^{\mathrm{pool}}}`}</BlockMath>
+                                    </div>
+                                    <p className="text-muted-foreground">
+                                        where <InlineMath>{String.raw`p_{ck}`}</InlineMath> is the county&apos;s proportion for color <InlineMath>{String.raw`k`}</InlineMath> and <InlineMath>{String.raw`p_k^{\text{pool}}`}</InlineMath> is the neighbor-pooled proportion. Colors with <InlineMath>{String.raw`p_{ck} > p_k^{\text{pool}}`}</InlineMath> contribute positively (over-represented); colors with <InlineMath>{String.raw`p_{ck} < p_k^{\text{pool}}`}</InlineMath> contribute negatively (under-represented).
+                                    </p>
+                                </div>
+                            </Dropdown>
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <MethodLink title="Jensen Shannon Neighbor Divergence" page="neighbor-divergence" onPageChange={onPageChange} />

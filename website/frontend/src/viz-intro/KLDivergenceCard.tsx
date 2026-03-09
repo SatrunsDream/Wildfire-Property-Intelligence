@@ -130,16 +130,20 @@ export function KLDivergenceCard({ countyDetail, visible }: KLDivergenceCardProp
     return (
         <div className="pointer-events-auto max-w-[26rem] max-h-[70vh] overflow-y-auto p-6 bg-card/95 border-r-4 border-[#3b528b]">
             <h2 className="font-serif text-[1.35rem] font-normal leading-snug text-foreground m-0">
-                {countyDetail.county_name} — Deviation from Regional Norm
+                {countyDetail.county_name} Deviation from Regional Norm
             </h2>
-            <p className="text-[0.8rem] text-muted-foreground mt-1.5 leading-normal">
-                {allLc.lc_type}. County color distribution vs. neighbor-pooled. Red = over-represented, blue = under-represented.
+            <p className="text-[0.85rem] text-muted-foreground mt-1.5 leading-normal">
+                How does {countyDetail.county_name}&apos;s color distribution compare to its neighbors? The regional norm
+                pools adjacent counties in the San Diego region to show what the area typically reports.
+                <strong> Click a county</strong> on the map to switch. Red bars = this county uses that color more often;
+                blue = less often than the regional norm.
             </p>
             <div style={{ marginTop: '1rem' }}>
                 <DeviationTable distributions={allLc.distributions} />
             </div>
-            <p className="text-[0.75rem] text-muted-foreground mt-4 leading-normal">
-                Click another county (Orange, Riverside, Imperial) on the map to compare.
+            <p className="text-[0.8rem] text-muted-foreground mt-4 leading-relaxed">
+                {allLc.lc_type}. Divergence often reflects naming choices (e.g. &quot;cocoa&quot; vs &quot;brown&quot;) rather than
+                real structural differences.
             </p>
         </div>
     )

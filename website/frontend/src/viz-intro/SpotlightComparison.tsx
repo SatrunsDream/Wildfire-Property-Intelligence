@@ -60,7 +60,7 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
                 />
             </div>
 
-            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '1rem', lineHeight: 1.6 }}>
+            <p className="text-[0.8rem] text-muted-foreground mt-4 leading-relaxed">
                 The top colors differ between counties. Pooling similar labels (e.g. cocoa, olive,
                 red, navy) reduces mean neighbor JSD from ~0.62 to ~0.21 statewide, evidence that
                 much observed divergence is labeling convention, not structural difference.
@@ -84,8 +84,8 @@ function CountyBars({
 }) {
     return (
         <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#282828' }}>{name}</div>
-            <div style={{ fontSize: '0.7rem', color: '#999', marginBottom: '0.5rem' }}>
+            <div className="text-[0.85rem] font-bold text-foreground">{name}</div>
+            <div className="text-[0.7rem] text-muted-foreground mb-2">
                 {count.toLocaleString()} structures
             </div>
             {entries.map((d) => (
@@ -98,17 +98,10 @@ function CountyBars({
                             fontSize: '0.7rem',
                         }}
                     >
-                        <span style={{ width: '4.5rem', color: '#555', flexShrink: 0 }}>
+                        <span className="w-[4.5rem] shrink-0 text-foreground">
                             {d.value}
                         </span>
-                        <div
-                            style={{
-                                flex: 1,
-                                height: '10px',
-                                background: '#eee',
-                                position: 'relative',
-                            }}
-                        >
+                        <div className="flex-1 h-2.5 relative bg-muted">
                             <div
                                 style={{
                                     position: 'absolute',
@@ -121,15 +114,7 @@ function CountyBars({
                                 }}
                             />
                         </div>
-                        <span
-                            style={{
-                                width: '2.5rem',
-                                textAlign: 'right',
-                                color: '#888',
-                                fontSize: '0.65rem',
-                                flexShrink: 0,
-                            }}
-                        >
+                        <span className="w-[2.5rem] text-right text-muted-foreground text-[0.65rem] shrink-0">
                             {(d.proportion * 100).toFixed(1)}%
                         </span>
                     </div>
