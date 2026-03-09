@@ -53,6 +53,30 @@ function NarrationCard({ children, accent = '#21918c' }: { children: React.React
     )
 }
 
+function ConclusionCard({ visible: _visible }: { visible: boolean }) {
+    return (
+        <div
+            className="pointer-events-auto w-full max-w-4xl"
+            style={{ opacity: 1, transform: 'translateX(0)' }}
+        >
+            <div className="py-7 px-8 bg-card/97 border-l-4 border-[var(--button-accent)] rounded-r-xl shadow-lg">
+                <h2 className="font-serif text-2xl font-semibold text-foreground m-0">
+                    Conclusion
+                </h2>
+                <p className="text-[0.9rem] text-muted-foreground mt-3 leading-relaxed">
+                    The analytical methods used throughout this study rely on concepts from information theory to quantify differences in categorical distributions across regions. Measures such as conditional probability, KL, surprisals, and Jensen–Shannon divergence provide a measurable way to evaluate how unexpected a particular categorical observation is relative to a broader distribution. We relied heavily on Dirichlet-based smoothing throughout our analysis and quantified the &quot;distance&quot; between two distributions in terms of the information required to distinguish them.
+                </p>
+                <p className="text-[0.9rem] text-muted-foreground mt-3 leading-relaxed">
+                    Labels produce artificial divergence even though the underlying structures are similar. Many of our methods indicate that anomalies can occur due to similar categories being reported differently and that color is an important feature to cluster. While all methods can detect outliers, Jensen–Shannon divergence performs best for anomaly detection across county lines. Our greedy iterative merging algorithm converged on seven dominant color groups, lowering mean neighbor JSD from approximately 0.62 to 0.21, evidence that much observed divergence is driven by inconsistent labeling conventions rather than differences in structural characteristics.
+                </p>
+                <p className="text-[0.9rem] text-muted-foreground mt-3 leading-relaxed">
+                    This work provides both methodological insights and practical tools for improving the quality of large-scale structure datasets. By identifying sources of apparent anomalies, evaluating detection methods, and proposing strategies for scalable analysis, we contribute to the broader effort of strengthening the data foundations that support disaster risk modeling and resilience planning.
+                </p>
+            </div>
+        </div>
+    )
+}
+
 function SolutionCard({ visible: _visible }: { visible: boolean }) {
     return (
         <div
@@ -172,6 +196,13 @@ export function ScrollNarration({ onSceneEnter, onSceneProgress, comparisonData,
                             }
                             visible={activeScene === 'postPooling'}
                         />
+                    </div>
+                </Step>
+
+                {/* Scene 6: Conclusion — centered box from report sections 4-6 */}
+                <Step data="conclusion">
+                    <div className="flex min-h-[120vh] items-center justify-center px-6 md:px-16">
+                        <ConclusionCard visible={activeScene === 'conclusion'} />
                     </div>
                 </Step>
             </Scrollama>

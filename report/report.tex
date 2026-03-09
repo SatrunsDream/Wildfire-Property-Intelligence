@@ -40,7 +40,7 @@ Finding Outliers Before Fire Finds Them First}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{abstract}
-This capstone project explores approaches for improving the consistency and reliability of large scale geospatial property datasets used in nationwide risk assessment. Using aggregated NSI data, the projects examines how to visualize regional differences in property attributes affected by sparsity and heterogeneity. The work focuses on exploratory analysis and the development of exposure aware statistical frameworks to support scalable anomaly detection and data quality assessment.
+This capstone project explores approaches for improving the consistency and reliability of large scale geospatial property datasets used in nationwide wildfire risk assessment. Using aggregated NSI data, the project examines how to visualize regional differences in property attributes affected by sparsity and heterogeneity. The work focuses on exploratory analysis and the development of exposure aware statistical frameworks to support scalable anomaly detection and data quality assessment.
 \end{abstract}
 
 \begin{center}
@@ -58,15 +58,15 @@ Code Repository: \url{https://github.com/SatrunsDream/Wildfire-Property-Intellig
 
 % added from the Q1 project proposal
 
-Wildfires are one of the most disruptive and costly natural disasters in California. The largest wildfire recorded in the state burned down nearly one million acres of land, and resulted in 16 billion dollars of property damage. California Department of Insurance, wildfire related insured losses have totaled tens of billions of dollars over the past decade, reshaping insurance markets and underwriting practices statewide \citep{calfire_augustcomplex_2020}. This issue involves many stakeholders, including insurers, planners, and policymakers who all rely on predictive risk models to estimate potential structural damage, allocate emergency resources, and price insurance coverage. Adam B. Pollack et al \citep{pollacknsi} shows the importance of having accurate data in risk assessment models. It brings attention to how inaccurate data can impact risk assessment models. The findings conclude that the NSI data without refinements can lead to distortion of damage estimates and by extension problems with resource allocation for flood mitigation and prevention. Refinements that could significantly improve results include fixing misclassifications in the presence of the story and the basement, misplacement of the location of the property, etc. The study suggests that completing even small refinements can significantly improve the assessment models.
+Wildfires are one of the most disruptive and costly natural disasters in California. The largest wildfire recorded in the state burned down nearly one million acres of land, and resulted in 16 billion dollars of property damage. California Department of Insurance, wildfire related insured losses have totaled tens of billions of dollars over the past decade, reshaping insurance markets and underwriting practices statewide \citep{calfire_augustcomplex_2020}. This issue involves many stakeholders, including insurers, planners, and policymakers who all rely on predictive risk models to estimate potential structural damage, allocate emergency resources, and price insurance coverage. Adam B. Pollack et al \citep{pollacknsi} show the importance of having accurate data in risk assessment models. It brings attention to how inaccurate data can impact risk assessment models. The findings conclude that the NSI data without refinements can lead to distortion of damage estimates and by extension problems with resource allocation for flood mitigation and prevention. Refinements that could significantly improve results include fixing misclassifications in the apartment and basement features, misplacement of the location of the property, etc. The study suggests that completing even small refinements can significantly improve the assessment models.
 
-While the \cite{pollacknsi} study focuses primarily on flood risk, the same issues apply to other natural disasters, namely our topic of interest: wildfires. In our project we will examine property data to explore the following question: How can we detect erroneous property characteristic data, and correct data that is not consistent throughout the dataset? It is evident just how crucial data accuracy is for disaster modeling, so we focus on effectively spotting errors and improving data quality.
+Although the \cite{pollacknsi} study focuses primarily on flood risk, the same issues apply to other natural disasters, namely our topic of interest: wildfires. In our project we will examine property data to explore the following question: How can we detect erroneous property characteristic data, and correct data that is not consistent throughout the dataset? It is evident just how crucial data accuracy is for disaster modeling, so we focus on effectively spotting errors and improving data quality.
 
 \subsection{Data}
 
 This challenge is tackled using a representative dataset derived from the National Structure Inventory \citep{nsi_usace} and aggregated into H3 \citep{uberh3} level 9 hexagon cells approximately $0.1\,\text{km}^2$, or roughly 350–400 meters across, imagine a few city blocks for a better visualization. This dataset was modeled after Cotality's proprietary data. Each H3 cell contains counts of structures stratified by occupancy category and building material, and is joined to a dominant land cover classification from \cite{OvertureMaps}. Most regions are forested, urban, or at least one of the above combined with another landcover type. Sometimes, multiple landcover types overlap, so they might be combined (i.e. urban + forest). Hence land cover assignment is handled in a way that can reflect real world spatial overlap. This process results in thirteen distinct landcover categories introducing realistic heterogeneity. 
 
-The dataset used Table~\ref{tab:features}, while synthetic, is still analogous to the real world NSI data. The differences are in categorical attributes. Our categorical attributes will be labeled as “color" along with their own unique identifiers designed to mimic the county-to-county reporting discrepancies commonly observed in real property characteristics. A simple example is building occupancy categories. Duplex and a small multi-family building coded under different labels due to assessor/county conventions, even though they occupy similar urban parcels, while it may seem insignificant it can have implication when used to train CAT models can influence vulnerability to hazard events. Going forward, it will be important to view the color labels as a stand in for any categorical property field whose distribution may vary systematically across regions due to reporting practices.
+The dataset used (Table~\ref{tab:features}), while synthetic, is still analogous to the real world NSI data. The differences are in categorical attributes. Our categorical attributes will be labeled as “color" along with their own unique identifiers designed to mimic the county-to-county reporting discrepancies commonly observed in real property characteristics. A simple example is building occupancy categories. Duplex and a small multi-family building coded under different labels due to assessor/county conventions, even though they occupy similar urban parcels, It can have implication when used to train CAT models can influence vulnerability to hazard events. Going forward, it will be important to view the color labels as a stand in for any categorical property field whose distribution may vary systematically across regions due to reporting practices.
 
 
 \begin{table}[htbp]
@@ -81,18 +81,18 @@ The dataset used Table~\ref{tab:features}, while synthetic, is still analogous t
 
 To identify and correct inconsistencies in the dataset, it is necessary to develop a strong understanding of the data. In order to do this, we performed the following exploratory data analysis (EDA). 
 
-Since our dataset is primarily categorical data, we first get the mode of every county for each categorical feature, since other summary statistics like median and mean would not apply, to understand dominant structural patterns.
+Since our dataset is primarily categorical data, we first get the mode of every county for each categorical feature, since other summary statistics like median and mean would not apply, to understand most common category across counties.
 
 \begin{table}[htbp]
 \caption{Modes of Categorical Features by County (first 5 rows)}
-\resizebox{0.9\linewidth}{!}{\input{table/modes}}
+\resizebox{0.65\linewidth}{!}{\input{table/modes}}
 \end{table}
 
-The most commonly occurring modes can inform our understanding of the general structure of the dataset. The feature \texttt{st\_damcat} stands for ``structure damage category". These categories are Residential, Commercial, Industrial, or Public. The most common mode for this feature is Residential, so we know that at least a plurality of houses in each county are residential buildings. This dominance suggests that subsequent anomaly detection will largely focus on variation within residential contexts, as well as landcovers rather than across occupancy types.
+The most commonly occurring modes can inform our understanding of the general structure of the dataset. The feature \texttt{st\_damcat} stands for ``structure damage category". These categories are Residential, Commercial, Industrial, or Public. The most common mode for this feature is Residential, so we know that at least a plurality of houses in each county are residential buildings. This suggests that subsequent anomaly detection will largely focus on variation within residential contexts and landcovers rather than across occupancy types.
 
 The \texttt{bldgtype} feature describes the material a structure is made from, with M = Masonry, W = Wood, H = Manufactured, S= Steel. Notably, most structures are built from wood, which is important in the state of California because wood can better withstand earthquakes over a prolonged period of time. A repercussion is these are the most susceptible to the spread of wildfire.
 
-The \texttt{lc\_type} feature, short for land cover type, describes the environment. For this dataset, the landcover types are sourced from \cite{OvertureMaps}. Since there is a wide variety of possible landcover types, it might be useful for some analysis methods to bin similar land cover types together. 
+The \texttt{lc\_type} feature, short for landcover type, describes the environment. For this dataset, the landcover types are sourced from \cite{OvertureMaps}. Since there is a wide variety of possible landcover types, it might be useful for some analysis methods to bin similar landcover types together. 
 
 \begin{figure}[H]
     \centering
@@ -107,7 +107,7 @@ Importantly, many color labels represent semantically similar tones but are reco
 
 \subsection{Exposure, Density, and Sparsity Patterns}
 
-As our data set table~\ref{tab:features} is aggregated to cells of H3 level 9, the number of structures per cell (“exposure”) determines the statistical stability of any categorical proportions calculated within that cell. Understanding the distribution of structural exposure across space is essential before testing anomaly detection.
+As our dataset (table~\ref{tab:features}) is aggregated to cells of H3 level 9, the number of structures per cell (“exposure”) determines the statistical stability of any categorical proportions calculated within that cell. Understanding the distribution of structural exposure across space is essential before testing anomaly detection.
 
 Across all 221,108 unique H3 cells, exposure ranges from 2 to 2,195 structures per cell, with a median of 21 and a mean of approximately 44. The distribution is strongly right skewed, as shown in the plot below. Although a small number of cells contain high structure counts, the majority contain relatively few structures. This uneven distribution immediately raises concerns about the sparsity driven instability in categorical frequencies.
 
@@ -119,7 +119,7 @@ Across all 221,108 unique H3 cells, exposure ranges from 2 to 2,195 structures p
 
 To better visualize this imbalance, we group the H3 cells into sparsity bins. On the low end, 26\% of cells have fewer than 5 structures and together contain only 1.5\% of total structures; at the high end, one-third of cells (those with 50–200 structures) contain 73\% of all structures. Although low exposure cells dominate in count, they represent a relatively small fraction of total structures. This asymmetry implies that naive anomaly detection may overemphasize rare cells that contain fewer data points. In other words, many rural cells are guaranteed to look unusual under proportion-based metrics
 
-To get a better understanding of this we can see these observations through spatial patterns (see Figure~\ref{fig:exposure_by_county}). The county level median exposure map shows that high median exposure is concentrated in major metropolitan counties, while northern and rural counties exhibit substantially lower medians. Similarly, the sparsity map demonstrates that many inland and northern counties have over 60\% of H3 cells classified as sparse (<10 structures). Circling back such counties are therefore statistically more vulnerable to extreme categorical proportions driven by sample sizes.
+To get a better understanding of this we can see these observations through spatial patterns (see Figure~\ref{fig:exposure_by_county}). The county level median exposure map shows that high median exposure is concentrated in major metropolitan counties, while northern and rural counties exhibit substantially lower medians. Similarly, the sparsity map demonstrates that many inland and northern counties have over 60\% of H3 cells classified as sparse (<10 structures). Circling back, such counties are therefore statistically more vulnerable to extreme categorical proportions driven by sample sizes.
 
 \begin{figure}[H]
     \centering
@@ -233,7 +233,7 @@ First, we observed the correlation of colors and landcover types across the whol
     \label{fig:statewide_color_heatmap}
 \end{figure}
 
-County level heatmaps (Figures~\ref{fig:sd_color_heatmap}, \ref{fig:la_color_heatmap}, and~\ref{fig:al_color_heatmap}) were standardized to show all colors and land cover types even if they were not represented in the county, and we sorted the values alphabetically. This was done for an easier visual comparison. San Diego and Los Angeles counties are both large mostly urban counties, and this is reflected in their similar color distributions. Meanwhile, Alpine County is a small rural mountain county, and has a substantially different representation of colors. Notably, Alpine County’s heatmap reveals spikes of “tan” for forest and shrub landcover types, while “terracotta” seems to be more popular across other counties and California as a whole. This divergence may reflect county level construction or reporting conventions. However, circling back to exposure and its importance Alpine has relatively low total structural exposure, extreme conditional proportions may partly reflect sampling variability rather than systematic differences.
+County level heatmaps (Figures~\ref{fig:sd_color_heatmap}, \ref{fig:la_color_heatmap}, and~\ref{fig:al_color_heatmap}) were standardized to show all colors and land cover types even if they were not represented in the county, and we sorted the values alphabetically. This was done for an easier visual comparison. San Diego and Los Angeles counties are both large mostly urban counties, and this is reflected in their similar color distributions. Meanwhile, Alpine County is a small rural mountain county, and has a substantially different representation of colors. Notably, Alpine County’s heatmap reveals spikes of “tan” for forest and shrub landcover types, while “terracotta” seems to be more popular across other counties and California as a whole. This divergence may reflect county level construction or reporting conventions. However, circling back to exposure and its importance, Alpine has relatively low total structural exposure, extreme conditional proportions may partly reflect sampling variability rather than systematic differences.
 
 \begin{figure}[H]
     \centering
@@ -252,7 +252,7 @@ County level heatmaps (Figures~\ref{fig:sd_color_heatmap}, \ref{fig:la_color_hea
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{figure/heatmaps/Alpine_county_heatmap.png}
-    \caption{Color distribution by land cover type for Alpine County.}
+    \caption{Color distribution by land cover type for Alpine County (FIPS 6003).}
     \label{fig:al_color_heatmap}
 \end{figure}
 
@@ -309,11 +309,11 @@ We tested whether color was independent of land cover type using a \texttt{clr\_
 \end{subtable}
 \end{table}
 
-The standardized residuals identify specific color-landcover combinations that occur more or less frequently than expected under independence. For example, forest and mixed urban land-cover classes have very high standardized positive residuals for colors coffee, brown, and verde, while urban classes have a negative standardized residual for brown, coffee, and lavender.
+The standardized residuals identify specific color-landcover combinations that occur more or less frequently than expected under independence. For example, forest and mixed urban landcover classes have very high standardized positive residuals for colors coffee, brown, and verde, while urban classes have a negative standardized residual for brown, coffee, and lavender.
 
 \subsection{Preliminary Findings}
 
-The exploratory analyses reveal that structural characteristics in the dataset are neither uniformly distributed nor spatially homogeneous. Color usage varies systematically across landcover types, and county level distributions exhibit meaningful heterogeneity. At the same time, structural exposure is highly uneven across space on a country level, with many rural and forest dominated counties exhibiting sparse H3 cells that may inflate apparent divergence through sampling variability, it is important to note however that the variability is not on a cell level but county level, this distinction is very important. Naming conventions differences and conditional distribution shifts further suggest that some observed discrepancies may stem from reporting conventions country to county rather than true structural differences.
+The exploratory analyses reveal that structural characteristics in the dataset are neither uniformly distributed nor spatially homogeneous. Color usage varies systematically across landcover types, and county level distributions exhibit meaningful heterogeneity. At the same time, structural exposure is highly uneven across space on a county level, with many rural and forest dominated counties exhibiting sparse H3 cells that may inflate apparent divergence through sampling variability, it is important to note however that the variability is not on a cell level but county level, this distinction is very important. Naming conventions differences and conditional distribution shifts further suggest that some observed discrepancies may stem from reporting conventions country to county rather than true structural differences.
 
 \section{Methods}
 
@@ -321,11 +321,11 @@ Given the finding above, naive comparisons of relative frequencies are insuffici
 
 \subsection{Empirical Bayes Shrinkage}
 
-One major challenge in the dataset is that some county × land cover combinations contain very few structures. In these cases, a single observation can dramatically change the observed color proportions. This leads to artificially extreme values that may appear anomalous but are due to the small sample size.
+One major challenge in the dataset is that some county × landcover combinations contain very few structures. In these cases, a single observation can dramatically change the observed color proportions. This leads to artificially extreme values that may appear anomalous but are due to the small sample size.
 
-To reduce this instability, we applied an empirical Bayes shrinkage approach. The idea is to partially pull each county’s color distribution toward a broader land cover baseline distribution. Instead of relying entirely on the observed proportions within a single county, we combine the county level distribution with the overall distribution of that land cover type across the state.
+To reduce this instability, we applied an empirical Bayes shrinkage approach. The idea is to partially pull each county’s color distribution toward a broader landcover baseline distribution. Instead of relying entirely on the observed proportions within a single county, we combine the county level distribution with the overall distribution of that landcover type across the state.
 
-Let $c$ index counties, $\ell$ index land cover types, and $k$ index colors. We define
+Let $c$ index counties, $\ell$ index landcover types, and $k$ index colors. We define
 \[
 n_{c\ell k}
 =
@@ -351,7 +351,7 @@ w_{c\ell} = \frac{N_{c\ell}}{N_{c\ell} + \alpha}.
 
 The amount of shrinkage depends on exposure. Here $\alpha > 0$ controls the strength of shrinkage. When $N_{c\ell}$ is small, $w_{c\ell}$ is near
 zero and $\tilde{p}_{c\ell k}$ is pulled strongly toward the baseline; when $N_{c\ell}$ is large,
-$w_{c\ell}$ approaches one and the stabilized estimate remains close to the observed proportion. The method trusts large samples and stabilizes small ones. This serves as a sanity check for to reduces false positives caused by sampling variability while preserving meaningful deviations.
+$w_{c\ell}$ approaches one and the stabilized estimate remains close to the observed proportion. The method trusts large samples and stabilizes small ones. This serves as a validation check to reduce false positives caused by sampling variability while preserving meaningful deviations.
 
 \begin{figure}[H]
     \centering
@@ -428,7 +428,7 @@ where \(P_k\) represents the probability of observing color \(k\) in a given cou
     \begin{subfigure}[t]{0.65\linewidth}
         \centering
         \includegraphics[width=\linewidth]{figure/county_mean_surprisal_map.png}
-        \caption{County level mean surprisal (averaged over land cover types).}
+        \caption{County level mean surprisal (averaged over landcover types).}
         \label{fig:county_mean_surprisal_map}
     \end{subfigure}
 
@@ -471,8 +471,7 @@ $S_0$ is the sum of the non zero spatial weights, but since the spatial units ar
 There is additionally a Local Moran's I value, which will calculate a Moran's I statistic for each county, which can be useful for comparison and visualization. The formula is as follows (referenced from \cite{anselingeoda}):
 \[I_i = \frac{\sum_j z_i\cdot z_j\cdot w_{ij}}{\sum_i z_i^2}\]
 
-Larger Moran’s I values indicate that the counties are closely correlated with each other, and smaller values indicate that counties are less correlated. However, Moran’s I values tend to have more extreme values when counties have more extreme outliers. This tends to reveal patterns that are most obvious, which could also be easily detected by simpler methods like analyzing the modes of each county. This makes it harder to interpret Moran’s I values that are smaller, since it could just be that these values are much closer to the mean, or that they are unusually uncorrelated with each other. Additionally, given the scope of the state of California, it is not necessarily true that adjacent counties will be similar, since population density and climate can differ drastically across neighboring counties. Overall, the Moran's I method has multiple issues and is generally a poor fit for this specific task.
-
+Larger Moran’s I values indicate that the counties are closely correlated with each other, and smaller values indicate that counties are less correlated. However, Moran’s I values tend to have more extreme values when counties have more extreme outliers. This tends to reveal patterns that are most obvious, which could also be easily detected by simpler methods like analyzing the modes of each county. This makes it harder to interpret Moran’s I values that are smaller, since it could just be that these values are much closer to the mean, or that they are unusually uncorrelated with each other. For some features, like the color and land cover features, anomalies may occur due to differences in reporting of similar features. However, since Moran's I is a univariate statistic, it is difficult to measure how clustering multiple colors or landcover types might improve the results. Additionally, given the scope of the state of California, it is not necessarily true that adjacent counties will be similar, since population density and climate can differ drastically across neighboring counties. Overall, the Moran's I method has multiple issues and is generally a poor fit for this specific task. 
 
 \begin{figure}[H]
     \centering
@@ -493,10 +492,10 @@ Larger Moran’s I values indicate that the counties are closely correlated with
 
 \subsection{Jensen Shannon Neighbor Divergence}
 
-Another method that we used to identify differences in how counties report structural data is a neighbor divergence metric between a county and its neighbors using Jensen Shannon divergence (Jensen–Shannon divergence). For each county and land cover type, we calculate color (\texttt{clr}) counts by summing the structure totals (\texttt{clr\_cc}) and convert the result into a probability distribution \citep{scipy_jensenshannon}.
+Another method that we used to identify differences in how counties report structural data is a neighbor divergence metric between a county and its neighbors using Jensen Shannon divergence (JSD). For each county and landcover type, we calculate color (\texttt{clr}) counts by summing the structure totals (\texttt{clr\_cc}) and convert the result into a probability distribution \citep{scipy_jensenshannon}.
 
-Similarly to spatial pooling let $c$ index counties, $\ell$ index land cover types, and $k$ index colors. Let
-$y_{c\ell k}$ denote the number of structures of color $k$ in county $c$ within land cover $\ell$, and
+Similarly to spatial pooling let $c$ index counties, $\ell$ index landcover types, and $k$ index colors. Let
+$y_{c\ell k}$ denote the number of structures of color $k$ in county $c$ within landcover $\ell$, and
 let $n_{c\ell}=\sum_k y_{c\ell k}$ be the corresponding exposure.
 
 We convert counts to a probability distribution using Laplace smoothing to avoid zero probabilities:
@@ -510,19 +509,19 @@ where $K$ is the number of color categories and $\lambda>0$ is the Laplace smoot
 
 
 
-For each adjacent county pair, we compute Jensen–Shannon divergence \citep{scipy_jensenshannon} between the smoothed color distributions separately within each land cover type, and only include land cover types where both counties have at least 30 observations. We then aggregate the land cover specific Jensen–Shannon divergence values into one edge score using a weighted average across land cover types.
+For each adjacent county pair, we compute Jensen–Shannon divergence \citep{scipy_jensenshannon} between the smoothed color distributions separately within each land cover type, and only include landcover types where both counties have at least 30 observations. We then aggregate the landcover specific Jensen–Shannon divergence values into one edge score using a weighted average across landcover types.
 
 For each adjacent county pair $(c,c')$ and each land cover type $\ell$, we compute
 \[
 d_{cc'\ell} = \text{Jensen–Shannon divergence}\!\left(p_{c\ell},\,p_{c'\ell}\right),
 \]
-but only for land cover types where both counties have sufficient support:
+but only for landcover types where both counties have sufficient support:
 \[
 n_{c\ell} \ge 30 \quad \text{and} \quad n_{c'\ell} \ge 30.
 \]
 
 
-Each land cover type is weighted using the smaller of the two counties' sample sizes in that land cover type. 
+Each landcover type is weighted using the smaller of the two counties' sample sizes in that landcover type. 
 
 \[
 D_{cc'}
@@ -533,24 +532,24 @@ D_{cc'}
 w_{cc'\ell} = \min(n_{c\ell},\,n_{c'\ell}),
 \]
 
-Weighting by $\min(n_{c\ell},n_{c'\ell})$ prioritizes land cover types where both counties have reliable
+Weighting by $\min(n_{c\ell},n_{c'\ell})$ prioritizes landcover types where both counties have reliable
 support.
 
-Let $\mathcal{E}$ denote the set of adjacent county pairs with at least one valid land-cover comparison, and let $D_{cc'}$ be the weighted edge score above. The statewide summary is the mean across edges:
+Let $\mathcal{E}$ denote the set of adjacent county pairs with at least one valid landcover comparison, and let $D_{cc'}$ be the weighted edge score above. The statewide summary is the mean across edges:
 \[
 \bar{D}_{\mathrm{edge}}
 =
 \frac{1}{|\mathcal{E}|}\sum_{(c,c')\in\mathcal{E}} D_{cc'}.
 \]
 
-We computed a divergence score for each neighboring county pair (edge), then took the average across all 144 edges. The mean edge score was 0.634. During our analysis, we found that county to county differences appeared to come from inconsistent naming of similar colors. For example, within the urban+forest land cover type, San Francisco uses the color coffee, but San Mateo would use brown. 
+We computed a divergence score for each neighboring county pair (edge), then took the average across all 144 edges. The mean edge score was 0.634. During our analysis, we found that county to county differences appeared to come from inconsistent naming of similar colors. For example, within the urban+forest landcover type, San Francisco uses the color coffee, but San Mateo would use brown. 
 
 This finding helped us explore color pooling, where we manually merged labels into broader groups (browns, reds, greens, blues/purples, grays; all other colors left unchanged) and reran the neighbor divergence calculation on pooled categories. Pooling reduced the statewide edge-mean score from 0.634 to 0.365. We used pooling as a robustness check: if divergence remains elevated after pooling, differences are less likely to be only a naming artifact.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.4\linewidth]{figure/county_mean_neighbor_jsd_map.png}
-    \caption{County-level maximum incident neighbor Jensen--Shannon divergence (Jensen–Shannon divergence). For each county, the mapped value is the maximum edge score among its adjacent county pairs.}
+    \caption{County-level maximum incident neighbor Jensen--Shannon divergence (JSD). For each county, the mapped value is the mean edge score among its adjacent county pairs.}
     \label{fig:county_neighbor_Jensen–Shannon_divergence}
 \end{figure}
 
@@ -558,12 +557,12 @@ This finding helped us explore color pooling, where we manually merged labels in
 
 
 Figure~\ref{fig:county_neighbor_Jensen–Shannon_divergence} highlights spatial heterogeneity in reporting consistency. 
-Counties with elevated county divergence scores (defined here as each county's maximum adjacent-edge Jensen–Shannon divergence) exhibit color distributions that differ substantially from adjacent counties within the same landcover types, suggesting potential inconsistencies 
+Counties with elevated county divergence scores (defined here as each county's mean adjacent-edge Jensen–Shannon divergence) exhibit color distributions that differ substantially from adjacent counties within the same landcover types, suggesting potential inconsistencies 
 in labeling or classification practices.
 
 \subsection{Classifier Two Sample Test}
 
-Classifier Two Sample Test \citep{eum2025c2st} is another method we used to identify neighboring county to county differences. For each pair and each land cover type, we trained a binary classifier to predict whether a record came from county A or county B using the categorical features occupancy, building type, and color, we excluded land cover type as we condition on it \citep{lopezpaz20evisiting}.
+Classifier Two Sample Test \citep{eum2025c2st} is another method we used to identify neighboring county to county differences. For each pair and each landcover type, we trained a binary classifier to predict whether a record came from county A or county B using the categorical features occupancy, building type, and color, we excluded landcover type as we condition on it \citep{lopezpaz20evisiting}.
 
 $c_a$ and $c_b$ denote two neighboring counties and let $\ell$ index a land cover type. For each structure $i$ in county $c \in \{c_a, c_b\}$ and land cover $\ell$, define the categorical feature vector
 
@@ -595,10 +594,10 @@ Let $\widehat{\text{Acc}}_\ell(c_a, c_b)$ denote the cross-validated classificat
 \right),
 \]
 
-where $N_\ell$ is the number of records in land cover $\ell$ across both counties
+where $N_\ell$ is the number of records in landcover $\ell$ across both counties
 
 
-We filtered to make sure both counties being compared had at least 50 records for a given land cover type, then calculated a single score using a weighted average across land cover types between the counties. 
+We filtered to make sure both counties being compared had at least 50 records for a given landcover type, then calculated a single score using a weighted average across landcover types between the counties. 
 
 \[
 \text{C2ST}(c_a, c_b)
@@ -617,14 +616,14 @@ w_\ell
 \]
 
 
-Across California, we found a mean accuracy of 92.2\%, which meant that for most neighboring county pairs, the recorded data are very separable under this test. From this, we also looked into the feature importance of the classifier to see which features were most important in distinguishing between the two counties, and found that in general, color was the most important feature.
+Across California, we found a mean accuracy of 92.1\%, which meant that for most neighboring county pairs, the recorded data are very separable under this test. From this, we also looked into the feature importance of the classifier to see which features were most important in distinguishing between the two counties, and found that in general, color was the most important feature.
 
 \subsection{Group Level Distributional Anomaly Detection}
 For this method we compared counties’ color distributions to the state wide baseline using Jensen Shannon divergence \citep{scipy_jensenshannon}. Color distributions were calculated for all county + landcover type combinations, and the proportions were taken on the county level. 
 
-Following the same framing as Jensen–Shannon divergence  $c$ index counties, $\ell$ index land cover types, and $k$ index colors.  
+Following the same framing as Jensen–Shannon divergence  $c$ index counties, $\ell$ index landcover types, and $k$ index colors.  
 Let $y_{c\ell k}$ denote the number of structures of color $k$ in county $c$
-within land cover type $\ell$.
+within landcover type $\ell$.
 
 The total number of structures in county $c$ is
 
@@ -668,7 +667,7 @@ The Jensen  Shannon divergence is
 \frac{1}{2}\mathrm{KL}(p^{(0)} \,\|\, m_c).
 \]
 
-The mean JS divergence was calculated at 0.57 (Figure~\ref{fig:state_Jensen–Shannon divergence_distribution_exposure}), ranging from 0 to 0.81. The majority of counties have a divergence in the 0.55 0.75 range. This suggests that most counties’ color distributions noticeably diverge from the state wide distribution.
+The mean JS divergence was calculated at 0.57 (Figure~\ref{fig:state_Jensen–Shannon divergence_distribution_exposure}), ranging from 0 to 0.81. The majority of counties have a divergence in the 0.55-0.75 range. This suggests that most counties’ color distributions noticeably diverge from the state wide distribution.
 One of the findings of this method was the fact that some counties used different color names for similar colors in somewhat similar contexts. Further analysis revealed that there is a number of counties that will use one color from a “similar” pair but not the other. For example, “alabaster” is a common color used for California structures, however some counties will exclusively use “ivory” and have 0 “alabaster” structures. This suggests a labeling inconsistency, which can be solved by clustering “similar” colors.
 
 \begin{figure}[H]
@@ -761,7 +760,11 @@ Gray   & alabaster, gray, grey, ivory \\
 \caption{Manual grouping of color labels based on semantic similarity and inspection of distributional patterns. Provides a reference baseline to compare against the data-driven greedy merging algorithm.}
 \end{table}
 
-\subsection{Limitations and Future Work}
+\section{Discussion}
+
+Many of our methods seem to indicate that anomalies can occur due to similar categories being reported differently and that color is an important feature to cluster. Overall, we fo used Jenson-Shannon divergence methods as the primary regularization and measure for evaluation of our results. It was a tuned measure of distribution similarity, it allowed us to directly quantify the effect of color pooling on cross-county divergence. Allowing us to easily quantify the effects of color pooling. Through our experiments with clustering, we were able to reduce Jensen-Shannon divergence that resulted from differences in color reporting. 
+
+\subsection{Limitations and Future Work} \label{Future Work}
 
 Despite our reduction in mean neighbor Jensen–Shannon divergence, the greedy algorithm was not as good as the manual semantic group we made. This suggests that there are core limitations in the greedy algorithm design, while each round aggregates votes globally across California county pairs, the merges themselves are irreversible. When two color labels are combined together, that decision affects all future rounds and can't be undone. So, an early merge could have prevented a better grouping later into the process.
 
@@ -769,21 +772,29 @@ Our algorithm also used hyperparameters that were not formally tuned, but were i
 
 Another consideration would be to run the algorithm separately for each property characteristic (damage category, building type, and land cover). Running it within each characteristic independently might help find groupings that are more consistent within each structural context. The results could then be compared across strata, and a merge would only be applied globally if it is consistent across all of them.
 
-Our current greedy algorithm also only considers geographically adjacent counties as evidence for merging labels. Another direction could be to incorporate non-neighboring counties that share similar structural, land-cover and building type distributions as another voting weight. This can help find labels that are interchangeable across similar regions even when they're not spatially adjacent to one another, which might produce more robust and generalizable groupings.
+Our current greedy algorithm also only considers geographically adjacent counties as evidence for merging labels. Another direction could be to incorporate non-neighboring counties that share similar structural, landcover and building type distributions as another voting weight. This can help find labels that are interchangeable across similar regions even when they're not spatially adjacent to one another, which might produce more robust and generalizable groupings.
 
 \section{Conclusion}
+
+Our work is representative of an ongoing issue with implications for a variety of interest groups: insurance and property industries, policy makers, and homeowners. The NSI, as the national standard for structure datasets, is significant for many applications of disaster modeling, especially our focus on wildfire risk assessment. Despite the vast scope of this problem, even refinements to the dataset can improve risk assessment, as demonstrated in the \cite{pollacknsi} paper. Additionally, we found multiple areas of improvement, which we have analyzed in depth and are open to future research and development. Our contributions include evaluation of effective ways to find outliers, tested and proposed clustering strategies, and visualizations and dashboards to illustrate key issues. 
+
+By studying statistical, information theory, and machine learning methods, we investigated a range of analytical approaches for identifying anomalies within the dataset. While all of these methods are able to detect outliers, we find that Jensen-Shannon performs best for anomaly detection across county lines. We discovered that frequently, anomalies in the dataset are a product of differences in reporting. This finding underscores a key challenge in working with large-scale aggregated datasets: distinguishing between genuine inconsistencies and variation introduced by data sources. This is a significant issue that should be accounted for in future work similar to this task.
+
+While our analysis was performed on a dataset limited to California with only a few features, due to data and computation limitations, we expect that these methods will be applicable to a larger dataset. Future work may consist of performing this analysis on a national scale. Additionally, as covered in \ref{Future Work} Limitations and Future Work, our best clustering solution was a manual grouping, which is inherently not scalable, so we propose methods that could lead to better results and scalability.
+
+Overall, this work provides both methodological insights and practical tools for improving the quality of large-scale structure datasets. By identifying sources of apparent anomalies, evaluating detection methods, and proposing strategies for scalable analysis, we contribute to the broader effort of strengthening the data foundations that support disaster risk modeling and resilience planning.
 
 \newpage 
 
 \section{Contributions}
 
-Angela Shen: Exploratory Data Analysis (modes, homogeneity, relative frequencies), Moran's I analysis, report editor.
+Angela Shen: Exploratory Data Analysis (modes, homogeneity, relative frequencies), Moran's I analysis, Conclusion 
 
 Nathaphat Taleongpong: Worked on the color EDA, Jensen Divergence and C2ST methods, Results.
 
 Tatiana Samokhvalova: Exploratory Data Analysis (Conditional Distributions), Group Level Distributional Anomaly Detection.
 
-Sardor Sobirov: Exploratory Data Analysis(Density, and Sparsity Patterns), Empirical Bayes Shrinkage and Conditional Probability and Spatial Pooling, Results.
+Sardor Sobirov: Exploratory Data Analysis (Density, and Sparsity Patterns), Empirical Bayes Shrinkage and Conditional Probability and Spatial Pooling, Results.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -802,5 +813,5 @@ Sardor Sobirov: Exploratory Data Analysis(Density, and Sparsity Patterns), Empir
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \clearpage
-\makeappendix
+% \makeappendix
 \end{document}

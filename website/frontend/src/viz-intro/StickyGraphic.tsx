@@ -489,8 +489,8 @@ export function StickyGraphic({ scene, progress, onReady, onEdgeSelect, comparis
         spotlightCountiesRef.current()
     }, [])
 
-    // Keep map zoomed to SD region for spotlight, distributions, solution, postPooling
-    const sdScenes: SceneId[] = ['spotlight', 'distributions', 'solution', 'postPooling']
+    // Keep map zoomed to SD region for spotlight, distributions, solution, postPooling, conclusion
+    const sdScenes: SceneId[] = ['spotlight', 'distributions', 'solution', 'postPooling', 'conclusion']
     useEffect(() => {
         if (map.current && layersAdded.current && sdScenes.includes(scene)) {
             map.current.flyTo({ center: SPOTLIGHT_CENTER, zoom: SPOTLIGHT_ZOOM, duration: 600 })

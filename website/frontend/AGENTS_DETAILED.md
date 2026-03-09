@@ -38,7 +38,7 @@
 
 ### `src/main.tsx`
 - Single entry: mounts React root into `#root`
-- **ThemeProvider** (next-themes) wraps the app: `attribute="class"`, `defaultTheme="system"`, `enableSystem`
+- **ThemeProvider** (next-themes) wraps the app: `attribute="class"`, **`defaultTheme="dark"`** (site loads in dark mode by default), `enableSystem`
 - **Path-based split**: If path is `/viz`, renders `VizIntroduction` (scrollytelling); otherwise renders `Router`
 - **Hash handling**: `Router` and `HomePage` sync `#poster` / `#paper` → `PdfViewerModal` opens; Router switches to home if on another page
 - No React Router — uses custom `useState`-based page switching
@@ -79,6 +79,7 @@
 
 ### `src/components/ThemeToggle.tsx`
 - Sun/Moon icons (lucide-react); toggles dark/light via `useTheme()` from next-themes
+- **Styling**: `text-[var(--button-accent)]` — icons are **green** in light mode, **orange** in dark mode; `hover:bg-[var(--button-accent)]/10`
 - Rendered in site header (dashboard) and fixed top-right on `/viz` page
 
 ### `src/components/PdfViewerModal.tsx`
@@ -151,15 +152,16 @@ All map views share:
 - **About section**: Three centered buttons — Report, Poster, GitHub (FileText, Presentation, Github icons from lucide-react). Report and Poster open `PdfViewerModal`; GitHub links to repo. Uses `--button-accent` for styling.
 - **PdfViewerModal**: Rendered when `pdfModalTarget` is 'poster' or 'paper'; state synced with URL hash (`#poster`, `#paper`).
 - Uses `react-katex` `BlockMath` and `InlineMath` for formulas
-- **Methods section** documents:
-  - Empirical Bayes shrinkage
-  - Conditional probability & spatial pooling
-  - Moran's I
+- **Methods section** documents (each `MethodLink` navigates to page on click):
+  - Empirical Bayes shrinkage (with "See the math" — shrinkage formula)
+  - **Conditional Probability & Spatial Pooling** (with "See the math" — pooled counts, surprisal formula)
+  - **Kullback Leibler Divergence** — nested subsection (indented, `border-l-2 border-muted`). Own explanation: KL measures county vs neighbor-pooled deviation; per-color contributions; over/under-represented. "See the math": \(\mathrm{KL}(p_c \| p^{\mathrm{pool}}) = \sum_k p_{ck}\log(p_{ck}/p_k^{\mathrm{pool}})\). Both Conditional Probability and KL link to `conditional-probability` page.
   - Jensen–Shannon neighbor divergence
-  - C2ST (Classifier Two-Sample Test)
   - Group-level divergence
+  - C2ST (Classifier Two-Sample Test)
+  - Moran's I
 - Results summary cards: mean neighbor JSD raw vs pooled
-- Uses `Section`, `P`, `Legend` helper components
+- Uses `Section`, `P`, `Legend`, `Dropdown` helper components
 
 ### 7.2 ConditionalProbability (`src/ConditionalProbability.tsx`)
 **Concept**: Conditional probability with neighbor pooling — county color distribution vs. pooled (county + adjacent counties). KL divergence and L1 distance measure anomaly.
@@ -281,9 +283,9 @@ All map views share:
 | Scene | Step | Content | Map / Legend |
 |-------|------|---------|--------------|
 | `hero` | — | HeroSection | — |
-| `counties` | 130vh | "58 counties report..." | `revealChoropleth(progress)` — Max Divergence choropleth (full state). Legend: "Max Divergence" + gradient Low/High |
-| `spotlight` | 140vh | `SpotlightComparison` — "Same border. Different data." | `spotlightCounties` — gray fill, SD edges. Legend: county names (teal/purple swatches) |
-| `distributions` | 120vh | `KLDivergenceCard` — "Deviation from Regional Norm" | `showKLChoropleth(klByFips)` — 4 SD counties colored by mean KL, rest gray. Legend: "KL Divergence". **Layout**: Card on **right** (`justify-end`), legend bottom-right |
+| `counties` | 130vh | NarrationCard — "58 counties report this data independently." | Text: `text-foreground font-medium` (heading), `text-foreground` (paragraph) — readable in dark mode. `revealChoropleth(progress)` — Max Divergence choropleth (full state). Legend: "Max Divergence" + gradient Low/High |
+| `spotlight` | 140vh | `SpotlightComparison` — "Same border. Different data." | County names **bold** `text-foreground`; structure count, color labels, percentages `text-muted-foreground`/`text-foreground`; bar track `bg-muted`. All theme-aware for dark mode. `spotlightCounties` — gray fill, SD edges. Legend: county names (teal/purple swatches) |
+| `distributions` | 120vh | `KLDivergenceCard` — "{County} Deviation from Regional Norm" (no em dash) | Title format without "—". Expanded intro (regional norm, red/blue bars, click county). Closing: land cover, divergence as naming convention. **Removed** "Click another county on the map...". `showKLChoropleth(klByFips)` — 4 SD counties colored by mean KL, rest gray. Legend: "KL Divergence". **Layout**: Card on **right** (`justify-end`), legend bottom-right |
 | `solution` | 120vh | `SolutionCard` — greedy pooling, ColorPoolDendrogram | `spotlightCounties` — zoomed to SD region. **Layout**: Card **centered** (`justify-center`) |
 | `postPooling` | 140vh | `PostPoolingScoresCard` + map choropleth | `showPostPoolingChoropleth(jsdByFips)` — 4 SD counties by pooled JSD (green scale), rest gray. Legend: "Post-pooling JSD" |
 
@@ -341,8 +343,11 @@ All map views share:
 
 ### 8.5 KLDivergenceCard — Deviation from Regional Norm
 
-- **Layout**: Positioned on **right** (`justify-end`); `borderRight` accent (not left).
-- **Dark mode**: Uses `bg-card/95`, `text-muted-foreground`, `bg-muted/30` for DeviationTable.
+- **Title**: `{countyDetail.county_name} Deviation from Regional Norm` (no em dash "—").
+- **Intro paragraph**: Explains regional norm (pools adjacent counties in SD region); "Click a county on the map to switch"; red bars = over-represented, blue = under.
+- **Closing paragraph**: `{allLc.lc_type}`; divergence reflects naming choices (e.g. "cocoa" vs "brown"). **Removed** "Click another county on the map to compare Imperial, Orange, or Riverside."
+- **Layout**: Positioned on **right** (`justify-end`); `border-r-4` accent (right border).
+- **Dark mode**: Uses `bg-card/95`, `text-muted-foreground`, `text-foreground`, `bg-muted/30` for DeviationTable.
 - **Scope**: SD region only. **All land cover types** aggregated (no per-landcover breakdown).
 - **Default**: San Diego (06073) on enter; click another county to switch.
 - **Data**: `countyKlDetail` from `buildCountyDetailAllLandcover(fipsNum, cpDetailRef.current, geoFeaturesRef.current)`
@@ -460,6 +465,8 @@ StickyGraphic
 
 ### 10.3 `src/index.css` — Theme and Dark Mode
 
+**Default theme**: `ThemeProvider` in `main.tsx` uses `defaultTheme="dark"` — site loads in dark mode. `enableSystem` allows toggle to follow system preference.
+
 **Light mode** (`:root`):
 - `--brand-orange`: oklch(0.6 0.18 45)
 - `--button-accent`: oklch(0.5 0.12 145) — green for buttons, nav, titles
@@ -519,9 +526,9 @@ StickyGraphic
 | `src/VizIntroduction.tsx` | Scrollytelling orchestrator (HeroSection, StickyGraphic, ScrollNarration) |
 | `src/viz-intro/HeroSection.tsx` | Editorial intro (no map) |
 | `src/viz-intro/StickyGraphic.tsx` | Sticky map, SD edges, edge click → selectedPair |
-| `src/viz-intro/ScrollNarration.tsx` | Scrollama steps, SpotlightComparison, KLDivergenceCard, SolutionCard, PostPoolingScoresCard |
-| `src/viz-intro/SpotlightComparison.tsx` | County A vs B bars, JSD original + pooled |
-| `src/viz-intro/KLDivergenceCard.tsx` | Deviation from Regional Norm (All land cover types) |
+| `src/viz-intro/ScrollNarration.tsx` | Scrollama steps; NarrationCard (counties) uses `text-foreground font-medium` for heading; SpotlightComparison, KLDivergenceCard, SolutionCard, PostPoolingScoresCard |
+| `src/viz-intro/SpotlightComparison.tsx` | County A vs B bars, JSD original + pooled. Theme-aware: county names bold `text-foreground`; structure count, color labels, percentages, footer use `text-foreground`/`text-muted-foreground`; bar track `bg-muted` (no hardcoded grays) |
+| `src/viz-intro/KLDivergenceCard.tsx` | Deviation from Regional Norm (All land cover types). Title without em dash; expanded intro and closing; removed "Click another county..." |
 | `src/viz-intro/PostPoolingScoresCard.tsx` | Post-pooling JSD scores SD vs neighbors |
 | `src/viz-intro/ColorPoolDendrogram.tsx` | Interactive D3 dendrogram (initialScale 0.65) |
 | `src/viz-intro/constants.ts` | MAP_CENTER, SPOTLIGHT_CENTER, SPOTLIGHT_ZOOM, SceneId, DIVERGENCE_STOPS |
@@ -633,3 +640,7 @@ npm run preview # Preview production build
 
 - **Cause**: Hardcoded `bg-white` or `bg-gray-50` in components.
 - **Fix**: Use `bg-card`, `bg-card/95`, `bg-muted`, `text-muted-foreground` instead. Method pages (EmpiricalBayesPooling, ConditionalProbability, etc.) and GroupDivergence county cards should all use theme-aware classes.
+
+### HomePage KL formula not rendering (KaTeX)
+
+- **Cause**: Extra `}` in denominator breaks parsing. Correct formula: `\mathrm{KL}(p_c \,\|\, p^{\mathrm{pool}}) = \sum_{k} p_{ck}\,\log\frac{p_{ck}}{p_k^{\mathrm{pool}}}` (two closing braces in `p_k^{\mathrm{pool}}`, not three).

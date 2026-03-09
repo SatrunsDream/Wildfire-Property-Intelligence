@@ -102,6 +102,9 @@ function applyScene(
                 api.spotlightCounties()
             }
             break
+        case 'conclusion':
+            api.spotlightCounties()
+            break
     }
 }
 
@@ -285,6 +288,9 @@ export function VizIntroduction() {
                     } else {
                         api.spotlightCounties()
                     }
+                    break
+                case 'conclusion':
+                    api.spotlightCounties()
                     break
             }
         },
