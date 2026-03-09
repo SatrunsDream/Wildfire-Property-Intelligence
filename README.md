@@ -54,7 +54,6 @@ The archived website export/backend dependencies are defined in `website/_archiv
 
 The primary dataset is available in the repo `dataset/` directory:
 
-- `dataset/Capstone2025_nsi_lvl9_with_landcover_and_color.csv`
 - `dataset/Capstone2025_nsi_lvl9_with_landcover_and_color.csv.gz`
 - `dataset/ca_county_neighbors.csv`
 - `dataset/ca-county-neighbors.json`
