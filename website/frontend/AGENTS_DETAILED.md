@@ -29,6 +29,7 @@
 | Charts | D3.js (direct DOM/SVG), Recharts (via components) |
 | Math | KaTeX (react-katex) for formulas |
 | Icons | Tabler Icons, Lucide React |
+| Theme | next-themes (dark/light mode) |
 | Utilities | clsx + tailwind-merge (via `cn()`), Zod |
 
 ---
@@ -37,7 +38,9 @@
 
 ### `src/main.tsx`
 - Single entry: mounts React root into `#root`
+- **ThemeProvider** (next-themes) wraps the app: `attribute="class"`, `defaultTheme="system"`, `enableSystem`
 - **Path-based split**: If path is `/viz`, renders `VizIntroduction` (scrollytelling); otherwise renders `Router`
+- **Hash handling**: `Router` and `HomePage` sync `#poster` / `#paper` → `PdfViewerModal` opens; Router switches to home if on another page
 - No React Router — uses custom `useState`-based page switching
 
 ### `src/Router.tsx`
@@ -51,6 +54,7 @@
   - `c2st` → `C2STMap`
   - `morans-i` → `MoransIMap`
   - `group-divergence` → `GroupDivergence`
+  - `color-map` → `ColorMap`
 - All map pages use `flex flex-1 flex-col min-h-0` for proper fill; home uses `overflow-y-auto` for scrolling content
 
 ---
@@ -58,8 +62,9 @@
 ## 4. Layout Components
 
 ### `src/components/app-sidebar.tsx`
-- Defines `Page` type and `navItems` (title, id, icon)
-- Renders `Sidebar` with header ("Wildfire Intel" + flame icon) and `NavMain`
+- Defines `Page` type and `navItems` (title, id, icon, optional href for external links like Case Study → `/viz`)
+- Renders `Sidebar` with header ("Wildfire Property Intelligence: Finding Outliers..." + flame icon) and `NavMain`
+- Header and all nav items use `--button-accent` (green light / orange dark)
 - Receives `currentPage` and `onPageChange` — controlled by `Router`
 
 ### `src/components/nav-main.tsx`
@@ -68,9 +73,20 @@
 - Highlights active page
 
 ### `src/components/site-header.tsx`
-- Fixed header with `SidebarTrigger`, separator, and page title
+- Fixed header with `SidebarTrigger`, separator, page title, and **ThemeToggle** (top-right)
 - Height from CSS var `--header-height` (set in Router)
-- Title comes from `pageTitles` map in Router
+- Title comes from `pageTitles` map in Router; uses `--button-accent` (green light / orange dark)
+
+### `src/components/ThemeToggle.tsx`
+- Sun/Moon icons (lucide-react); toggles dark/light via `useTheme()` from next-themes
+- Rendered in site header (dashboard) and fixed top-right on `/viz` page
+
+### `src/components/PdfViewerModal.tsx`
+- Full-viewport modal for PDF display (poster, paper)
+- **Props**: `target: 'poster' | 'paper' | null`, `onClose`
+- **URL hash**: `#poster` or `#paper` opens modal; closing clears hash
+- **PDF paths**: Poster = `/images/capstone_poster.pdf`, Paper = `/images/capstone_paper.pdf`
+- **Export**: `getPdfTargetFromHash()` — reads hash for initial/open state
 
 ---
 
@@ -132,6 +148,8 @@ All map views share:
 
 ### 7.1 HomePage (`src/HomePage.tsx`)
 - Static content: authors, mentors, intro, methods
+- **About section**: Three centered buttons — Report, Poster, GitHub (FileText, Presentation, Github icons from lucide-react). Report and Poster open `PdfViewerModal`; GitHub links to repo. Uses `--button-accent` for styling.
+- **PdfViewerModal**: Rendered when `pdfModalTarget` is 'poster' or 'paper'; state synced with URL hash (`#poster`, `#paper`).
 - Uses `react-katex` `BlockMath` and `InlineMath` for formulas
 - **Methods section** documents:
   - Empirical Bayes shrinkage
@@ -253,6 +271,7 @@ All map views share:
 
 ### 8.1 Structure
 
+- **ThemeToggle**: Fixed top-right on viz page (alongside "Back to Dashboard" top-left). Same Sun/Moon toggle as dashboard.
 - **HeroSection**: Editorial intro (stakes, data, exposure, sample table). No map, no scrollama.
 - **StickyGraphic**: Map fixed in viewport; zoom to **SD region only** (Imperial, Orange, Riverside, San Diego) for `spotlight`, `distributions`, `solution`, `postPooling`; draws SD–neighbor edges; legends in bottom-right per scene.
 - **ScrollNarration**: react-scrollama drives **six** scroll steps; each triggers `onSceneEnter`/`onSceneProgress` → `activeScene`.
@@ -264,8 +283,8 @@ All map views share:
 | `hero` | — | HeroSection | — |
 | `counties` | 130vh | "58 counties report..." | `revealChoropleth(progress)` — Max Divergence choropleth (full state). Legend: "Max Divergence" + gradient Low/High |
 | `spotlight` | 140vh | `SpotlightComparison` — "Same border. Different data." | `spotlightCounties` — gray fill, SD edges. Legend: county names (teal/purple swatches) |
-| `distributions` | 120vh | `KLDivergenceCard` — "Deviation from Regional Norm" | `showKLChoropleth(klByFips)` — 4 SD counties colored by mean KL, rest gray. Legend: "KL Divergence" |
-| `solution` | 120vh | `SolutionCard` — greedy pooling, ColorPoolDendrogram | `spotlightCounties` — zoomed to SD region |
+| `distributions` | 120vh | `KLDivergenceCard` — "Deviation from Regional Norm" | `showKLChoropleth(klByFips)` — 4 SD counties colored by mean KL, rest gray. Legend: "KL Divergence". **Layout**: Card on **right** (`justify-end`), legend bottom-right |
+| `solution` | 120vh | `SolutionCard` — greedy pooling, ColorPoolDendrogram | `spotlightCounties` — zoomed to SD region. **Layout**: Card **centered** (`justify-center`) |
 | `postPooling` | 140vh | `PostPoolingScoresCard` + map choropleth | `showPostPoolingChoropleth(jsdByFips)` — 4 SD counties by pooled JSD (green scale), rest gray. Legend: "Post-pooling JSD" |
 
 ### 8.3 Data Flow (VizIntroduction)
@@ -318,9 +337,12 @@ All map views share:
 - counties / distributions: "Max Divergence" or "KL Divergence" + Viridis gradient + Low/High
 - spotlight: county names + teal/purple swatches (from `comparisonData`)
 - postPooling: "Post-pooling JSD" + same Viridis gradient
+- **Dark mode**: Legends use `bg-card/95`, `text-muted-foreground`
 
 ### 8.5 KLDivergenceCard — Deviation from Regional Norm
 
+- **Layout**: Positioned on **right** (`justify-end`); `borderRight` accent (not left).
+- **Dark mode**: Uses `bg-card/95`, `text-muted-foreground`, `bg-muted/30` for DeviationTable.
 - **Scope**: SD region only. **All land cover types** aggregated (no per-landcover breakdown).
 - **Default**: San Diego (06073) on enter; click another county to switch.
 - **Data**: `countyKlDetail` from `buildCountyDetailAllLandcover(fipsNum, cpDetailRef.current, geoFeaturesRef.current)`
@@ -328,6 +350,7 @@ All map views share:
 
 ### 8.6 PostPoolingScoresCard
 
+- **Dark mode**: Uses `bg-card/95`, `bg-background` for pair rows, `text-muted-foreground`.
 - **Data**: `caseStudyData.sd_vs_neighbors` — keys `06073-06025`, `06073-06059`, `06073-06065`
 - **Display**: SD vs Imperial, Orange, Riverside — original JSD → pooled JSD per pair
 - **Legend**: Original (navy) / Pooled (green) swatches
@@ -435,11 +458,29 @@ StickyGraphic
 - `chartColors`: Primary (sage), gradient, anomaly, sequential, diverging, categorical, text, axis
 - `viridisColors`, `surprisalColors`: Legacy scales
 
-### 10.3 `src/index.css`
+### 10.3 `src/index.css` — Theme and Dark Mode
+
+**Light mode** (`:root`):
+- `--brand-orange`: oklch(0.6 0.18 45)
+- `--button-accent`: oklch(0.5 0.12 145) — green for buttons, nav, titles
+
+**Dark mode** (`.dark`):
+- `--brand-orange`, `--heading-accent`: fire orange
+- `--button-accent`: same as `--brand-orange` — orange for buttons, nav, titles
+
+**Headings** (h1–h6): `color: var(--button-accent)` — green in light, orange in dark
+
+**Dark mode overrides**:
+- `.dark svg text`: fill = foreground (chart labels readable)
+- `.dark svg .domain`, `.dark svg .tick line`: stroke = foreground
+- MapLibre popups/controls: dark background, light text
+- Cards, legends, control panels: use `bg-card`, `bg-card/95` (not `bg-white`)
+
+**Other**:
 - Tailwind imports + tw-animate-css
 - Geist font (variable)
 - Custom theme: sage palette, semantic tokens (background, foreground, muted, border)
-- MapLibre popup/control overrides (styling to match app)
+- MapLibre popup/control overrides (styling to match app; dark variants for .dark)
 - Radix/shadcn CSS variables (radius, colors)
 
 ### 10.4 `src/components/ui/*`
@@ -473,7 +514,8 @@ StickyGraphic
 | `src/NeighborDivergence.tsx` | Neighbor JSD edges + dual map + comparison panel |
 | `src/C2STMap.tsx` | C2ST edges + pair comparison panel |
 | `src/MoransIMap.tsx` | Moran's I choropleth + detail panel |
-| `src/GroupDivergence.tsx` | Group-level JSD choropleth + county panel |
+| `src/GroupDivergence.tsx` | Group-level JSD choropleth + county panel (theme-aware cards) |
+| `src/ColorMap.tsx` | Color distribution map |
 | `src/VizIntroduction.tsx` | Scrollytelling orchestrator (HeroSection, StickyGraphic, ScrollNarration) |
 | `src/viz-intro/HeroSection.tsx` | Editorial intro (no map) |
 | `src/viz-intro/StickyGraphic.tsx` | Sticky map, SD edges, edge click → selectedPair |
@@ -486,7 +528,9 @@ StickyGraphic
 | `src/lib/conditionalPooling.ts` | buildCountyDetail, buildCountyDetailAllLandcover, SummaryRow, DetailRow, CountyDetail |
 | `src/components/app-sidebar.tsx` | Sidebar + nav definition |
 | `src/components/nav-main.tsx` | Nav menu renderer |
-| `src/components/site-header.tsx` | Header bar |
+| `src/components/site-header.tsx` | Header bar + ThemeToggle |
+| `src/components/ThemeToggle.tsx` | Sun/Moon theme switch |
+| `src/components/PdfViewerModal.tsx` | Full-screen PDF viewer (poster, paper) |
 | `src/lib/utils.ts` | `cn()` helper |
 | `src/lib/chart-colors.ts` | Chart color tokens |
 | `src/index.css` | Theme, base styles, MapLibre overrides |
@@ -579,3 +623,13 @@ npm run preview # Preview production build
 
 - **Cause**: JSON files missing from `public/data/`.
 - **Fix**: Run notebooks in order (see 9.5 Dependency Graph). All 6 viz data files must exist.
+
+### PDF modal not opening from hash
+
+- **Cause**: `PdfViewerModal` only renders when `page === 'home'` (inside HomePage). Hash `#poster` / `#paper` triggers `Router` to switch to home and `HomePage` to open modal.
+- **Fix**: Ensure `Router` useEffect listens for hash; `HomePage` syncs `pdfModalTarget` from hash. Poster file must exist at `public/images/capstone_poster.pdf`. Paper at `public/images/capstone_paper.pdf` (add when ready).
+
+### Dark mode: cards/legends still white
+
+- **Cause**: Hardcoded `bg-white` or `bg-gray-50` in components.
+- **Fix**: Use `bg-card`, `bg-card/95`, `bg-muted`, `text-muted-foreground` instead. Method pages (EmpiricalBayesPooling, ConditionalProbability, etc.) and GroupDivergence county cards should all use theme-aware classes.

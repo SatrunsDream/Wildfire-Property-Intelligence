@@ -73,6 +73,7 @@
     h5,
     h6 {
         font-weight: 500;
+        color: var(--button-accent);
     }
 
     a {
@@ -102,6 +103,15 @@
     border-top-color: rgba(255, 255, 255, 0.95) !important;
 }
 
+.dark .maplibregl-popup-content {
+    background: oklch(0.205 0 0 / 0.95) !important;
+    color: oklch(0.985 0 0) !important;
+}
+
+.dark .maplibregl-popup-tip {
+    border-top-color: oklch(0.205 0 0 / 0.95) !important;
+}
+
 .maplibregl-ctrl-group {
     background: rgba(255, 255, 255, 0.95) !important;
     border: 1px solid var(--color-border) !important;
@@ -119,6 +129,14 @@
 
 .maplibregl-ctrl-group button span {
     filter: invert(0) !important;
+}
+
+.dark .maplibregl-ctrl-group {
+    background: oklch(0.205 0 0 / 0.95) !important;
+}
+
+.dark .maplibregl-ctrl-group button span {
+    filter: invert(1) !important;
 }
 
 @theme inline {
@@ -164,6 +182,8 @@
 
 :root {
     --radius: 0.625rem;
+    --brand-orange: oklch(0.6 0.18 45);
+    --button-accent: oklch(0.5 0.12 145);
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -200,6 +220,9 @@
 .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
+    --heading-accent: oklch(0.72 0.17 45);
+    --brand-orange: var(--heading-accent);
+    --button-accent: var(--brand-orange);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
@@ -239,6 +262,15 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Dark mode: SVG/chart text and axes use foreground color */
+.dark svg text {
+    fill: var(--foreground) !important;
+}
+.dark svg .domain,
+.dark svg .tick line {
+    stroke: var(--foreground) !important;
 }
 
 /* Responsive KaTeX formulas for mobile */

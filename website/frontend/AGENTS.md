@@ -14,12 +14,15 @@ React + TypeScript frontend for California county geospatial analysis dashboards
 - MapLibre GL
 - D3.js
 - react-scrollama (viz only)
+- next-themes (dark/light mode)
 
 ## Routing
 
 `src/main.tsx`:
+- Wraps app in `ThemeProvider` (next-themes) for dark/light mode
 - `pathname === '/viz'` → `VizIntroduction` (scrollytelling)
 - else → `Router` (dashboard)
+- Hash `#poster` or `#paper` → Router switches to home; `PdfViewerModal` opens for PDF viewer
 
 ## Project Structure
 
@@ -50,8 +53,8 @@ Key files:
 3. **ScrollNarration** (react-scrollama): Six scroll-triggered steps drive `activeScene`:
    - **counties** (130vh): "58 counties report this data independently" — Max Divergence choropleth (full state), legend bottom-right
    - **spotlight** (140vh): `SpotlightComparison` — "Same border. Different data." SD vs neighbor color bars, JSD original → pooled; legend (county names) bottom-right
-   - **distributions** (120vh): `KLDivergenceCard` — "Deviation from Regional Norm" (KL divergence). SD region only; 4 counties colored by mean KL; non-SD gray. **All land cover types** aggregated (colors only). Click county → per-color deviation table. Legend "KL Divergence" bottom-right
-   - **solution** (120vh): `SolutionCard` — greedy color pooling, **ColorPoolDendrogram** (zoom 0.65), post-pooling impact
+   - **distributions** (120vh): `KLDivergenceCard` — "Deviation from Regional Norm" (KL divergence). SD region only; 4 counties colored by mean KL; non-SD gray. **All land cover types** aggregated (colors only). Click county → per-color deviation table. Legend "KL Divergence" bottom-right. **Layout**: Card on **right** side (`justify-end`), legend bottom-right.
+   - **solution** (120vh): `SolutionCard` — greedy color pooling, **ColorPoolDendrogram** (zoom 0.65), post-pooling impact. **Layout**: Card **centered** over map (`justify-center`).
    - **postPooling** (140vh): `PostPoolingScoresCard` — post-pooling JSD scores SD vs each neighbor. Map: **showPostPoolingChoropleth** — 4 SD counties colored by pooled JSD (green scale), rest gray. Legend "Post-pooling JSD" bottom-right
 4. **Data** (all fetched on mount): `county-pair-comparisons.json`, `case_study_sd_region.json`, `conditional-pooling-summary.json`, `conditional-pooling-detail.json`, `group-divergence.json`, `neighbor-jsd-pooled-greedy.json`. Case study `sd_vs_neighbors` includes `jsd.pooled`. `comparisonData` prefers `sd_vs_neighbors`. `klByFips` from conditional-pooling (SD region only). `jsdByFips` from neighbor-jsd-pooled-greedy (max pooled JSD per county).
 
@@ -75,7 +78,16 @@ Key files:
 
 ## Active Pages (Dashboard)
 
-Router pages: `home`, `conditional-probability`, `empirical-bayes`, `neighbor-divergence`, `c2st`, `morans-i`, `group-divergence`
+Router pages: `home`, `conditional-probability`, `empirical-bayes`, `neighbor-divergence`, `c2st`, `morans-i`, `group-divergence`, `color-map`
+
+## Theme and Styling
+
+- **Dark/Light mode**: `ThemeProvider` (next-themes), `ThemeToggle` (Sun/Moon icons from lucide-react) in site header and viz page top-right.
+- **Accent colors** (`src/index.css`): `--button-accent` (green in light, orange in dark); `--brand-orange` (orange, used for branding).
+- **Headings** (h1–h6): Use `--button-accent` (green light / orange dark).
+- **Nav, buttons, titles**: All use `--button-accent` for consistent theme-aware coloring.
+- **Dark mode**: Cards, legends, control panels use `bg-card`, `bg-card/95`; method pages and viz cards are theme-aware. GroupDivergence county cards use `bg-card`; anomalous cards use `bg-red-500/10` (light) / `bg-red-500/20` (dark).
+- **PDF modal**: `PdfViewerModal` — full viewport; URL hash `#poster` / `#paper`; close via X or backdrop click.
 
 ## Conventions
 
@@ -93,5 +105,10 @@ npm run build   # TypeScript + build
 npm run lint    # ESLint
 npm run preview # Preview production build
 ```
+
+**HomePage About section**:
+- Three centered buttons: Report, Poster, GitHub (icons: FileText, Presentation, Github from lucide-react).
+- Report and Poster open `PdfViewerModal` with PDF; Poster uses `public/images/capstone_poster.pdf`; Paper uses `public/images/capstone_paper.pdf`.
+- URL hash `#poster` / `#paper` opens modal and is shareable.
 
 For full docs: see `AGENTS_DETAILED.md`.

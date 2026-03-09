@@ -30,29 +30,13 @@ export function SpotlightComparison({ data, visible }: SpotlightComparisonProps)
 
     return (
         <div
-            className="pointer-events-auto"
-            style={{
-                maxWidth: '26rem',
-                padding: '1.5rem',
-                background: 'rgba(252, 251, 248, 0.95)',
-                borderLeft: '3px solid #3b528b',
-                opacity: visible ? 1 : 0,
-                transition: 'opacity 0.5s',
-            }}
+            className="pointer-events-auto max-w-[26rem] p-6 bg-card/95 border-l-4 border-[#3b528b] transition-opacity duration-500"
+            style={{ opacity: visible ? 1 : 0 }}
         >
-            <h2
-                style={{
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontSize: '1.35rem',
-                    fontWeight: 400,
-                    lineHeight: 1.3,
-                    color: '#282828',
-                    margin: 0,
-                }}
-            >
+            <h2 className="font-serif text-[1.35rem] font-normal leading-snug text-foreground m-0">
                 Same border. Different data.
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
+            <p className="text-[0.85rem] text-muted-foreground mt-1.5 leading-normal">
                 Paths show JSD between San Diego and each neighbor. <strong>Click a path</strong> to compare.
                 {data.county_a.name}–{data.county_b.name}: JSD <strong>{data.jsd.original.toFixed(3)}</strong>
                 {data.jsd.pooled != null && <> → <strong>{data.jsd.pooled.weighted_jsd.toFixed(3)}</strong> after pooling</>}.

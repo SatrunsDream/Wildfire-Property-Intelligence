@@ -85,7 +85,7 @@ export function AppSidebar({ currentPage, onPageChange, ...props }: AppSidebarPr
                     <SidebarMenuItem>
                         <SidebarMenuButton
                             asChild
-                            className="data-[slot=sidebar-menu-button]:!p-1.5"
+                            className="data-[slot=sidebar-menu-button]:!p-1.5 [&_span]:text-[var(--button-accent)] [&_svg]:text-[var(--button-accent)]"
                         >
                             <a href="#">
                                 <IconFlame className="!size-5" />

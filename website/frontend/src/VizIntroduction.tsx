@@ -1,5 +1,6 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react'
 import { IconArrowLeft } from '@tabler/icons-react'
+import { ThemeToggle } from './components/ThemeToggle'
 import { HeroSection } from './viz-intro/HeroSection'
 import { StickyGraphic, type MapApi, type SelectedPair } from './viz-intro/StickyGraphic'
 import { ScrollNarration } from './viz-intro/ScrollNarration'
@@ -316,7 +317,7 @@ export function VizIntroduction() {
     }, [])
 
     return (
-        <div style={{ background: '#fcfbf8' }}>
+        <div className="bg-background min-h-screen">
             {/* Exit button — fixed top-left, always visible */}
             <a
                 href="/"
@@ -324,13 +325,17 @@ export function VizIntroduction() {
                     e.preventDefault()
                     goToDashboard()
                 }}
-                className="fixed left-4 top-4 z-[100] flex items-center gap-2 rounded-lg border border-gray-200 bg-white/95 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-md transition-colors hover:bg-gray-50 hover:text-gray-900"
+                className="fixed left-4 top-4 z-[100] flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground shadow-md transition-colors hover:bg-accent"
                 style={{ textDecoration: 'none' }}
             >
                 <IconArrowLeft size={18} stroke={2} />
                 <span>Back to Dashboard</span>
-                <span className="ml-1 text-xs text-gray-400">(Esc)</span>
+                <span className="ml-1 text-xs text-muted-foreground">(Esc)</span>
             </a>
+            {/* Theme toggle — fixed top-right */}
+            <div className="fixed right-4 top-4 z-[100] rounded-lg border border-border bg-card p-1 shadow-md">
+                <ThemeToggle />
+            </div>
             {/* Part 1: Editorial intro — no map */}
             <HeroSection />
 

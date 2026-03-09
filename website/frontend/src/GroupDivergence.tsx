@@ -67,7 +67,7 @@ function SwatchStrip({ colors, freqKey, onHover }: {
     onHover: (label: string | null) => void
 }) {
     const total = colors.reduce((s, c) => s + c[freqKey], 0)
-    if (total === 0) return <div className="h-5 bg-gray-100 rounded text-xs text-gray-400 flex items-center px-1">no data</div>
+    if (total === 0) return <div className="h-5 bg-muted rounded text-xs text-muted-foreground flex items-center px-1">no data</div>
     return (
         <div className="flex h-5 rounded overflow-hidden">
             {colors.filter(c => c[freqKey] > 0).map(c => (
@@ -87,18 +87,18 @@ function ColorStrips({ colorData }: { colorData: LandcoverColors }) {
     return (
         <div className="space-y-1">
             <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 w-16 shrink-0">County</span>
+                <span className="text-xs text-muted-foreground w-16 shrink-0">County</span>
                 <div className="flex-1">
                     <SwatchStrip colors={colorData.colors} freqKey="county_freq" onHover={setHoverLabel} />
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 w-16 shrink-0">Statewide</span>
+                <span className="text-xs text-muted-foreground w-16 shrink-0">Statewide</span>
                 <div className="flex-1">
                     <SwatchStrip colors={colorData.colors} freqKey="baseline_freq" onHover={setHoverLabel} />
                 </div>
             </div>
-            <div className="h-4 text-xs text-gray-500 italic">
+            <div className="h-4 text-xs text-muted-foreground italic">
                 {hoverLabel ?? ''}
             </div>
         </div>
@@ -250,13 +250,13 @@ export default function GroupDivergence() {
     }
 
     return (
-        <div className={cn('relative flex-1 min-h-0', isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white')}>
+        <div className={cn('relative flex-1 min-h-0', isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-background')}>
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
-                {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading map data...</div>}
+                {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
 
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {mapData && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -279,14 +279,14 @@ export default function GroupDivergence() {
                         <select
                             value={metric}
                             onChange={(e) => setMetric(e.target.value as 'num_anomalies' | 'avg_divergence')}
-                            className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
+                            className="px-3 py-1.5 text-xs border border-border rounded bg-background cursor-pointer focus:outline-none focus:border-sage-400"
                         >
                             <option value="num_anomalies">Number of Anomalies</option>
                             <option value="avg_divergence">Average Divergence</option>
                         </select>
                     </div>
                     <button
-                        className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                        className="px-3 py-1.5 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[11px] font-medium text-[var(--button-accent)] cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10"
                         onClick={() => setIsFullscreen(!isFullscreen)}
                     >
                         {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
@@ -297,7 +297,7 @@ export default function GroupDivergence() {
                 {mapData && (
                     <div
                         className={cn(
-                            'absolute right-2.5 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
+                            'absolute right-2.5 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
                             selectedDivergences ? 'bottom-32' : 'bottom-20 sm:bottom-24'
                         )}
                     >
@@ -326,7 +326,7 @@ export default function GroupDivergence() {
             </div>
 
             {selectedDivergences && (
-                <div className="absolute bottom-0 left-0 right-0 sm:bottom-auto sm:left-auto sm:top-2.5 sm:right-2.5 w-full sm:w-96 max-h-[75vh] sm:max-h-[calc(100vh-5rem)] bg-white/95 rounded-t-xl sm:rounded shadow-elevated p-3 sm:p-4 overflow-y-auto z-10">
+                <div className="absolute bottom-0 left-0 right-0 sm:bottom-auto sm:left-auto sm:top-2.5 sm:right-2.5 w-full sm:w-96 max-h-[75vh] sm:max-h-[calc(100vh-5rem)] bg-card rounded-t-xl sm:rounded shadow-elevated p-3 sm:p-4 overflow-y-auto z-10">
                     <div className="mb-3 sm:mb-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-base sm:text-lg font-semibold">County {selectedFips}</h3>
@@ -336,12 +336,12 @@ export default function GroupDivergence() {
                                     setSelectedFips(null)
                                     setCountyColors(null)
                                 }}
-                                className="text-sm text-gray-500 hover:text-gray-700"
+                                className="text-sm text-muted-foreground hover:text-foreground"
                             >
                                 ✕
                             </button>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                             Divergence scores by landcover type
                         </p>
                     </div>
@@ -357,14 +357,14 @@ export default function GroupDivergence() {
                                         className={cn(
                                             'p-3 rounded-lg border',
                                             lc.anomalous
-                                                ? 'bg-red-50 border-red-300'
-                                                : 'bg-gray-50 border-gray-200'
+                                                ? 'bg-red-500/10 dark:bg-red-500/20 border-red-400 dark:border-red-500/50'
+                                                : 'bg-card border-border'
                                         )}
                                     >
                                         <div className="flex items-center justify-between mb-1">
                                             <span className="font-medium text-sm">{lc.lc_type}</span>
                                             {lc.anomalous && (
-                                                <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">
+                                                <span className="text-xs bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-0.5 rounded">
                                                     Anomalous
                                                 </span>
                                             )}
@@ -372,14 +372,14 @@ export default function GroupDivergence() {
                                         <div className="flex items-baseline gap-2 sm:gap-3 mb-2">
                                             <div className="text-xl sm:text-2xl font-bold">{lc.divergence.toFixed(3)}</div>
                                             {colorData && (
-                                                <div className="text-xs text-gray-500">{colorData.county_total.toLocaleString()} structures</div>
+                                                <div className="text-xs text-muted-foreground">{colorData.county_total.toLocaleString()} structures</div>
                                             )}
                                         </div>
 
                                         {colorData ? (
                                             <ColorStrips colorData={colorData} />
                                         ) : (
-                                            <div className="h-5 bg-gray-100 rounded" />
+                                            <div className="h-5 bg-muted rounded" />
                                         )}
 
                                         <div className="text-xs text-gray-500 mt-2">
@@ -390,7 +390,7 @@ export default function GroupDivergence() {
                             })}
                     </div>
 
-                    <div className="mt-6 p-3 bg-blue-50 rounded-lg text-xs text-gray-700">
+                    <div className="mt-6 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
                         <strong>Note:</strong> Divergence measures how different this county's color distribution
                         is from the statewide baseline for each landcover type. Higher = more unusual.
                         Hover swatches to see color names and percentages.

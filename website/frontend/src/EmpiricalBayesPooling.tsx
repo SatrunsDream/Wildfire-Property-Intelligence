@@ -187,12 +187,12 @@ export function EmpiricalBayesPooling() {
     const stats = mapData ? { mean_abs_movement: mapData.stats.mean_value, max_abs_movement: mapData.stats.max_value } : null
 
     return (
-        <div className={cn('relative flex-1 min-h-0', isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white')}>
+        <div className={cn('relative flex-1 min-h-0', isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-background')}>
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
-                {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading map data...</div>}
+                {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading map data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -206,17 +206,17 @@ export function EmpiricalBayesPooling() {
                     )}
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Display</span>
-                        <select value={selectedLandcover} onChange={(e) => { setSelectedLandcover(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400">
+                        <select value={selectedLandcover} onChange={(e) => { setSelectedLandcover(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-background cursor-pointer focus:outline-none focus:border-sage-400">
                             <option value="">All Landcover Types</option>
                             {landcoverTypes.map(lc => <option key={lc} value={lc}>{lc}</option>)}
                         </select>
                     </div>
-                    <button className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300" onClick={() => setIsFullscreen(!isFullscreen)}>
+                    <button className="px-3 py-1.5 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[11px] font-medium text-[var(--button-accent)] cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10" onClick={() => setIsFullscreen(!isFullscreen)}>
                         {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                     </button>
                 </div>
                 {mapData && legendRange && (
-                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
                         <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Absolute Movement</div>
                         <div className="w-28 sm:w-44 h-2 sm:h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateViridis(0)}, ${d3.interpolateViridis(1)})` }} />
                         <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
@@ -224,7 +224,7 @@ export function EmpiricalBayesPooling() {
                 )}
             </div>
             {countyDetail && (
-                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
+                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-card shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
                     <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
                         <h3 className="font-semibold text-sm sm:text-base truncate mr-2">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
                         <div className="flex items-center gap-3">
@@ -253,7 +253,7 @@ export function EmpiricalBayesPooling() {
                                                     return (
                                                         <div key={dist.clr} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                                                             <span className="w-16 sm:w-24 flex items-center gap-1 sm:gap-2 truncate">
-                                                                {dist.clr === 'foo' || dist.clr === 'bar' ? <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gray-200 shrink-0" /> : <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-border shrink-0" style={{ backgroundColor: COLOR_MAP[dist.clr] || '#ccc' }} />}
+                                                                {dist.clr === 'foo' || dist.clr === 'bar' ? <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-muted shrink-0" /> : <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-border shrink-0" style={{ backgroundColor: COLOR_MAP[dist.clr] || '#ccc' }} />}
                                                                 <span className="truncate">{dist.clr}</span>
                                                             </span>
                                                             <div className="flex-1 h-2.5 sm:h-3 bg-muted rounded overflow-hidden"><div className="h-full rounded" style={{ width: `${bw}%`, backgroundColor: mv >= 0 ? '#6b7280' : '#dc2626' }} /></div>

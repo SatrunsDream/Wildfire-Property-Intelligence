@@ -622,7 +622,7 @@ export function NeighborDivergence() {
     return (
         <div className={cn(
             'relative flex-1 min-h-0',
-            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-white'
+            isFullscreen && 'fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] bg-background'
         )}>
             {/* Maps Container - 50/50 split when merged map is shown */}
             <div className={cn(
@@ -638,7 +638,7 @@ export function NeighborDivergence() {
 
                     {/* Loading/Error overlays */}
                     {loading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
                             Loading divergence data...
                         </div>
                     )}
@@ -650,13 +650,13 @@ export function NeighborDivergence() {
 
                     {/* Map Label when split view */}
                     {showMergedMap && (
-                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-white/95 rounded shadow-elevated text-xs font-semibold uppercase tracking-wide z-10">
+                        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-card/95 rounded shadow-elevated text-xs font-semibold uppercase tracking-wide z-10">
                             Original
                         </div>
                     )}
 
                     {/* Map Controls - Top Left */}
-                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 max-w-[calc(100%-5rem)] sm:max-w-none">
+                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 max-w-[calc(100%-5rem)] sm:max-w-none">
                         {/* Stats Summary */}
                         {data && (
                             <div className="pb-2 mb-1 border-b border-border">
@@ -677,8 +677,8 @@ export function NeighborDivergence() {
                                 <button
                                     className={cn(
                                         'px-3 py-1.5 border-none bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150',
-                                        'hover:bg-sage-100 hover:text-foreground',
-                                        showEdges && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
+                                        'hover:bg-[var(--button-accent)]/10 hover:text-[var(--button-accent)]',
+                                        showEdges && 'bg-[var(--button-accent)] text-white hover:opacity-90'
                                     )}
                                     onClick={() => setShowEdges(true)}
                                 >
@@ -687,8 +687,8 @@ export function NeighborDivergence() {
                                 <button
                                     className={cn(
                                         'px-3 py-1.5 border-none border-l border-border bg-muted text-xs font-medium text-muted-foreground cursor-pointer transition-all duration-150',
-                                        'hover:bg-sage-100 hover:text-foreground',
-                                        !showEdges && 'bg-sage-500 text-white hover:bg-sage-600 hover:text-white'
+                                        'hover:bg-[var(--button-accent)]/10 hover:text-[var(--button-accent)]',
+                                        !showEdges && 'bg-[var(--button-accent)] text-white hover:opacity-90'
                                     )}
                                     onClick={() => setShowEdges(false)}
                                 >
@@ -701,22 +701,22 @@ export function NeighborDivergence() {
                                 className={cn(
                                     'px-3 py-1.5 border rounded-sm text-[11px] font-medium cursor-pointer uppercase tracking-wide transition-all duration-150',
                                     usePooled
-                                        ? 'border-sage-400 bg-sage-500 text-white hover:bg-sage-600'
-                                        : 'border-border bg-muted text-muted-foreground hover:bg-sage-100 hover:text-foreground hover:border-sage-300'
+                                        ? 'border-[var(--button-accent)] bg-[var(--button-accent)] text-white hover:opacity-90'
+                                        : 'border-[var(--button-accent)] bg-muted/50 text-[var(--button-accent)] hover:bg-[var(--button-accent)]/10'
                                 )}
                                 onClick={() => setUsePooled(p => !p)}
                             >
                                 {usePooled ? 'Pooled Colors' : 'Raw Colors'}
                             </button>
                             <button
-                                className="px-3 py-1 border border-border rounded-sm bg-muted text-[10px] font-medium text-muted-foreground cursor-pointer tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground flex items-center justify-between gap-2"
+                                className="px-3 py-1 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[10px] font-medium text-[var(--button-accent)] cursor-pointer tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10 flex items-center justify-between gap-2"
                                 onClick={() => setShowColorGroups(v => !v)}
                             >
                                 <span>Color Groups</span>
                                 <span>{showColorGroups ? '▲' : '▼'}</span>
                             </button>
                             {showColorGroups && (
-                                <div className="bg-white border border-border rounded p-2 space-y-1.5 text-[11px]">
+                                <div className="bg-card border border-border rounded p-2 space-y-1.5 text-[11px]">
                                     {[
                                         { name: 'Red', members: 'azure, blue, crimson, foo, indigo, purple, red, scarlet', color: '#FF0000' },
                                         { name: 'Navy', members: 'aqua, aquamarine, lavender, lilac, navy', color: '#000080' },
@@ -739,7 +739,7 @@ export function NeighborDivergence() {
                             )}
                         </div>
                         <button
-                            className="px-3 py-1.5 border border-border rounded-sm bg-muted text-[11px] font-medium text-muted-foreground cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-sage-100 hover:text-foreground hover:border-sage-300"
+                            className="px-3 py-1.5 border border-[var(--button-accent)] rounded-sm bg-muted/50 text-[11px] font-medium text-[var(--button-accent)] cursor-pointer uppercase tracking-wide transition-all duration-150 hover:bg-[var(--button-accent)]/10"
                             onClick={toggleFullscreen}
                         >
                             {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
@@ -769,7 +769,7 @@ export function NeighborDivergence() {
                     {/* Legend - Bottom Right (only when not split) */}
                     {!showMergedMap && (
                         <div className={cn(
-                            'absolute right-2.5 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
+                            'absolute right-2.5 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 transition-all duration-300',
                             selectedPair ? 'bottom-32' : 'bottom-20 sm:bottom-24'
                         )}>
                             <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Avg JSD (Divergence)</div>
@@ -819,7 +819,7 @@ export function NeighborDivergence() {
 
                         {/* Loading overlay */}
                         {mergedMapLoading && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
                                 Recalculating...
                             </div>
                         )}
@@ -843,7 +843,7 @@ export function NeighborDivergence() {
 
                         {/* Legend */}
                         <div className={cn(
-                            'absolute right-2.5 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10',
+                            'absolute right-2.5 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10',
                             selectedPair ? 'bottom-20' : 'bottom-24 sm:bottom-7'
                         )}>
                             <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Avg JSD (Divergence)</div>
@@ -941,7 +941,7 @@ export function NeighborDivergence() {
                                                     <div key={d.value} className={cn('flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm', d.unique && 'bg-blue-50 -mx-2 px-2 py-1 rounded')}>
                                                         <span className="w-20 sm:w-28 flex items-center gap-1 sm:gap-2 truncate">
                                                             {d.value === 'foo' || d.value === 'bar' ? (
-                                                                <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-500 shrink-0">?</span>
+                                                                <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground shrink-0">?</span>
                                                             ) : GROUP_NAMES.has(d.value) ? (
                                                                 <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm shrink-0" style={{ backgroundColor: COLOR_MAP[d.value] ?? '#ccc' }} />
                                                             ) : (
@@ -977,7 +977,7 @@ export function NeighborDivergence() {
                                                     <div key={d.value} className={cn('flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm', d.unique && 'bg-orange-50 -mx-2 px-2 py-1 rounded')}>
                                                         <span className="w-20 sm:w-28 flex items-center gap-1 sm:gap-2 truncate">
                                                             {d.value === 'foo' || d.value === 'bar' ? (
-                                                                <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-500 shrink-0">?</span>
+                                                                <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground shrink-0">?</span>
                                                             ) : GROUP_NAMES.has(d.value) ? (
                                                                 <span className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm shrink-0" style={{ backgroundColor: COLOR_MAP[d.value] ?? '#ccc' }} />
                                                             ) : (

@@ -1,5 +1,6 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 interface SiteHeaderProps {
   title: string
@@ -14,7 +15,10 @@ export function SiteHeader({ title }: SiteHeaderProps) {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">{title}</h1>
+        <h1 className="text-base font-medium text-[var(--button-accent)]">{title}</h1>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )

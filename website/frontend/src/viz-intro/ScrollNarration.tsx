@@ -45,13 +45,8 @@ interface ScrollNarrationProps {
 function NarrationCard({ children, accent = '#21918c' }: { children: React.ReactNode; accent?: string }) {
     return (
         <div
-            className="pointer-events-auto"
-            style={{
-                maxWidth: '22rem',
-                padding: '1.25rem 1.5rem',
-                background: 'rgba(252, 251, 248, 0.92)',
-                borderLeft: `3px solid ${accent}`,
-            }}
+            className="pointer-events-auto max-w-[22rem] p-5 sm:p-6 bg-card/95 border-l-4"
+            style={{ borderLeftColor: accent }}
         >
             {children}
         </div>
@@ -67,22 +62,14 @@ function SolutionCard({ visible: _visible }: { visible: boolean }) {
                 transform: 'translateX(0)',
             }}
         >
-            <div
-                style={{
-                    padding: '1.75rem 2rem',
-                    background: 'rgba(252, 251, 248, 0.97)',
-                    borderLeft: '4px solid #21918c',
-                    borderRadius: '0 12px 12px 0',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-                }}
-            >
-                <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a', margin: 0 }}>
+            <div className="py-7 px-8 bg-card/97 border-l-4 border-[#21918c] rounded-r-xl shadow-lg">
+                <h2 className="font-serif text-2xl font-semibold text-foreground m-0">
                     Our solution: Greedy color pooling
                 </h2>
-                <p style={{ fontSize: '0.9rem', color: '#444', marginTop: '0.75rem', lineHeight: 1.65 }}>
+                <p className="text-[0.9rem] text-muted-foreground mt-3 leading-relaxed">
                     To reconcile county color vocabularies, we use hierarchical merging: similar colors that appear as substitutes across adjacent counties are merged into pooled groups. The algorithm iterates over rounds.
                 </p>
-                <ul style={{ fontSize: '0.875rem', color: '#555', marginTop: '0.6rem', lineHeight: 1.7, paddingLeft: '1.25rem' }}>
+                <ul className="text-[0.875rem] text-muted-foreground mt-2.5 leading-relaxed pl-5">
                     <li><strong>Round 1:</strong> Each color starts as its own cluster.</li>
                     <li><strong>Neighbor votes:</strong> Adjacent counties with shared strata (building type, landcover) vote for which color pairs look interchangeable.</li>
                     <li><strong>Greedy merge:</strong> The most-voted pair merges; one color becomes the canonical label (e.g., red absorbs crimson, scarlet).</li>

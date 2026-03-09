@@ -233,7 +233,7 @@ export function ColorPoolDendrogram() {
                 ref={svgRef}
                 width={WIDTH}
                 height={HEIGHT}
-                className="rounded border border-[#e8e6e1] bg-white"
+                className="rounded border border-border bg-card"
                 style={{ maxWidth: '100%' }}
             />
             <p className="mt-2 text-xs text-[#888] italic">

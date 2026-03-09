@@ -29,7 +29,7 @@ export function NavMain({ items, currentPage, onPageChange }: NavMainProps) {
             if ("href" in item) {
               return (
                 <SidebarMenuItem key={key}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} className="[&_span]:text-[var(--button-accent)] [&_svg]:text-[var(--button-accent)] [&_a:hover_span]:text-[var(--button-accent)] [&_a:hover_svg]:text-[var(--button-accent)]">
                     <a href={item.href}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -44,6 +44,7 @@ export function NavMain({ items, currentPage, onPageChange }: NavMainProps) {
                   tooltip={item.title}
                   isActive={currentPage === item.id}
                   onClick={() => onPageChange(item.id)}
+                  className="[&_span]:text-[var(--button-accent)] [&_svg]:text-[var(--button-accent)] data-[active=true]:[&_span]:text-[var(--button-accent)] data-[active=true]:[&_svg]:text-[var(--button-accent)] hover:[&_span]:text-[var(--button-accent)] hover:[&_svg]:text-[var(--button-accent)]"
                 >
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>

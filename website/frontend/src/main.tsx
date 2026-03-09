@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from 'next-themes'
 import './index.css'
 import { Router } from './Router.tsx'
 import { VizIntroduction } from './VizIntroduction.tsx'
@@ -9,6 +10,8 @@ const isVizRoute = normalizedPath === '/viz'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        {isVizRoute ? <VizIntroduction /> : <Router />}
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            {isVizRoute ? <VizIntroduction /> : <Router />}
+        </ThemeProvider>
     </StrictMode>,
 )

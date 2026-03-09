@@ -34,29 +34,13 @@ export function PostPoolingScoresCard({ sdVsNeighbors, visible }: PostPoolingSco
 
     return (
         <div
-            className="pointer-events-auto"
-            style={{
-                maxWidth: '26rem',
-                padding: '1.5rem',
-                background: 'rgba(252, 251, 248, 0.95)',
-                borderLeft: '3px solid #21918c',
-                opacity: visible ? 1 : 0,
-                transition: 'opacity 0.5s',
-            }}
+            className="pointer-events-auto max-w-[26rem] p-6 bg-card/95 border-l-4 border-[#21918c] transition-opacity duration-500"
+            style={{ opacity: visible ? 1 : 0 }}
         >
-            <h2
-                style={{
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontSize: '1.35rem',
-                    fontWeight: 400,
-                    lineHeight: 1.3,
-                    color: '#282828',
-                    margin: 0,
-                }}
-            >
+            <h2 className="font-serif text-[1.35rem] font-normal leading-snug text-foreground m-0">
                 Post-pooling JSD scores
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
+            <p className="text-[0.85rem] text-muted-foreground mt-1.5 leading-normal">
                 San Diego vs each neighbor: original divergence → pooled (after merging similar colors).
                 Lower = more similar color vocabularies.
             </p>
@@ -70,13 +54,12 @@ export function PostPoolingScoresCard({ sdVsNeighbors, visible }: PostPoolingSco
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '0.6rem 1rem',
-                            background: '#fff',
                             borderRadius: 8,
-                            border: '1px solid #e8e6e1',
                         }}
+                        className="bg-background border border-border"
                     >
-                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#282828' }}>{label}</span>
-                        <span style={{ fontSize: '0.9rem', color: '#555' }}>
+                        <span className="text-[0.9rem] font-semibold text-foreground">{label}</span>
+                        <span className="text-[0.9rem] text-muted-foreground">
                             <strong style={{ color: '#3b528b' }}>{orig.toFixed(3)}</strong>
                             <span style={{ margin: '0 0.4rem', color: '#999' }}>→</span>
                             <strong style={{ color: '#2d6a4f' }}>{pooled.toFixed(3)}</strong>
@@ -86,18 +69,7 @@ export function PostPoolingScoresCard({ sdVsNeighbors, visible }: PostPoolingSco
                 ))}
             </div>
 
-            <div
-                style={{
-                    marginTop: '1rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid #dee2e6',
-                    display: 'flex',
-                    justifyContent: 'flex-start',
-                    gap: '1.25rem',
-                    fontSize: '0.75rem',
-                    color: '#6c757d',
-                }}
-            >
+            <div className="mt-4 pt-3 border-t border-border flex justify-start gap-5 text-[0.75rem] text-muted-foreground">
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <span style={{ width: 10, height: 10, borderRadius: 2, background: '#3b528b' }} />
                     Original
@@ -108,7 +80,7 @@ export function PostPoolingScoresCard({ sdVsNeighbors, visible }: PostPoolingSco
                 </span>
             </div>
 
-            <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.75rem', lineHeight: 1.6 }}>
+            <p className="text-[0.8rem] text-muted-foreground mt-3 leading-relaxed">
                 JSD drops 60–70% after pooling, confirming that much divergence is naming convention rather than true structural difference.
             </p>
         </div>

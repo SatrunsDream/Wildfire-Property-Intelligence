@@ -295,7 +295,7 @@ export function ColorMap() {
 
         {/* Full-screen loading */}
         {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-20 gap-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-20 gap-3">
             <div className="w-8 h-8 border-2 border-sage-400 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-muted-foreground">{loadingMsg || 'Building hexagons…'}</span>
           </div>
@@ -303,7 +303,7 @@ export function ColorMap() {
 
         {/* Layer-update spinner */}
         {!loading && layerLoading && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white/80 rounded-full p-3 shadow">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-background/80 rounded-full p-3 shadow">
             <div className="w-5 h-5 border-2 border-sage-400 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
@@ -315,13 +315,13 @@ export function ColorMap() {
         )}
 
         {/* Controls */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-52">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-52">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Landcover</span>
             <select
               value={selectedLc}
               onChange={e => setSelectedLc(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400"
+              className="px-3 py-1.5 text-xs border border-border rounded bg-background cursor-pointer focus:outline-none focus:border-sage-400"
             >
               <option value="">All Types</option>
               {lcTypes.map(lc => <option key={lc} value={lc}>{lc}</option>)}
@@ -345,7 +345,7 @@ export function ColorMap() {
         </div>
 
         {/* Legend */}
-        <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 max-h-48 sm:max-h-72 overflow-y-auto w-28 sm:w-36">
+        <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10 max-h-48 sm:max-h-72 overflow-y-auto w-28 sm:w-36">
           <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Dominant color</div>
           <div className="flex flex-col gap-1">
             {Object.entries(COLOR_HEX).sort(([a], [b]) => a.localeCompare(b)).map(([name, hex]) => (

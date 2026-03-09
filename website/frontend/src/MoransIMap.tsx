@@ -222,9 +222,9 @@ export function MoransIMap() {
         <div className="relative flex-1 min-h-0">
             <div className="absolute inset-0">
                 <div ref={mapContainer} className="w-full h-full" />
-                {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20">Loading Moran's I data...</div>}
+                {loading && <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">Loading Moran's I data...</div>}
                 {error && <div className="absolute top-2.5 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm z-10">{error}</div>}
-                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-white/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-2 bg-card/95 rounded p-2 sm:p-3 shadow-elevated z-10 w-40 sm:w-48">
                     {stats && (
                         <div className="pb-2 mb-1 border-b border-border">
                             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Statistics</div>
@@ -240,18 +240,18 @@ export function MoransIMap() {
                     )}
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Display</span>
-                        <select value={selectedLandcover} onChange={(e) => { setSelectedLandcover(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400">
+                        <select value={selectedLandcover} onChange={(e) => { setSelectedLandcover(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-background cursor-pointer focus:outline-none focus:border-sage-400">
                             <option value="">All Landcover Types</option>
                             {landcoverTypes.map(lc => <option key={lc} value={lc}>{lc}</option>)}
                         </select>
-                        <select value={selectedBuildingType} onChange={(e) => { setSelectedBuildingType(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-white cursor-pointer focus:outline-none focus:border-sage-400">
+                        <select value={selectedBuildingType} onChange={(e) => { setSelectedBuildingType(e.target.value); setCountyDetail(null); setShowDetailPanel(false) }} className="px-3 py-1.5 text-xs border border-border rounded bg-background cursor-pointer focus:outline-none focus:border-sage-400">
                             <option value="">All Building Types</option>
                             {buildingTypes.map(bldg => <option key={bldg} value={bldg}>{bldg}</option>)}
                         </select>
                     </div>
                 </div>
                 {legendRange && (
-                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-white/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
+                    <div className="absolute right-2.5 bottom-20 sm:bottom-24 bg-card/95 p-2 sm:p-3 rounded shadow-elevated text-xs z-10">
                         <div className="font-semibold mb-1 sm:mb-2 text-foreground text-[10px] sm:text-xs">Local Moran's I</div>
                         <div className="w-28 sm:w-44 h-2 sm:h-2.5 rounded-sm" style={{ background: `linear-gradient(to right, ${d3.interpolateRdBu(0)}, ${d3.interpolateRdBu(0.5)}, ${d3.interpolateRdBu(1)})` }} />
                         <div className="flex justify-between mt-1 text-[9px] sm:text-[10px] text-muted-foreground"><span>{legendRange.min.toFixed(4)}</span><span>{legendRange.max.toFixed(4)}</span></div>
@@ -260,7 +260,7 @@ export function MoransIMap() {
                 )}
             </div>
             {countyDetail && (
-                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
+                <div ref={detailRef} className={cn('absolute bottom-0 left-0 right-0 bg-card shadow-[0_-4px_20px_rgba(0,0,0,0.15)] z-40 transition-all duration-300', showDetailPanel ? 'h-[80%] sm:h-[65%]' : 'h-auto')}>
                     <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-border flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setShowDetailPanel(!showDetailPanel)}>
                         <h3 className="font-semibold text-sm sm:text-base truncate mr-2">{countyDetail.county_name} (FIPS: {countyDetail.fips})</h3>
                         <div className="flex items-center gap-3">

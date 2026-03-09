@@ -24,7 +24,7 @@ function DeviationTable({ distributions }: { distributions: ColorDistribution[] 
         .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
     const maxAbsDiff = Math.max(...sorted.map((d) => Math.abs(d.diff)), 0.001)
     return (
-        <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f8f9fa', borderRadius: 6 }}>
+        <div className="mt-2 p-2 bg-muted/30 rounded-md">
             {sorted.slice(0, 8).map((dist) => {
                 const diff = dist.diff
                 const absDiff = Math.abs(diff)
@@ -128,36 +128,17 @@ export function KLDivergenceCard({ countyDetail, visible }: KLDivergenceCardProp
     if (!allLc) return null
 
     return (
-        <div
-            className="pointer-events-auto"
-            style={{
-                maxWidth: '26rem',
-                maxHeight: '70vh',
-                overflowY: 'auto',
-                padding: '1.5rem',
-                background: 'rgba(252, 251, 248, 0.95)',
-                borderRight: '3px solid #3b528b',
-            }}
-        >
-            <h2
-                style={{
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontSize: '1.35rem',
-                    fontWeight: 400,
-                    lineHeight: 1.3,
-                    color: '#282828',
-                    margin: 0,
-                }}
-            >
+        <div className="pointer-events-auto max-w-[26rem] max-h-[70vh] overflow-y-auto p-6 bg-card/95 border-r-4 border-[#3b528b]">
+            <h2 className="font-serif text-[1.35rem] font-normal leading-snug text-foreground m-0">
                 {countyDetail.county_name} — Deviation from Regional Norm
             </h2>
-            <p style={{ fontSize: '0.8rem', color: '#555', marginTop: '0.35rem', lineHeight: 1.5 }}>
+            <p className="text-[0.8rem] text-muted-foreground mt-1.5 leading-normal">
                 {allLc.lc_type}. County color distribution vs. neighbor-pooled. Red = over-represented, blue = under-represented.
             </p>
             <div style={{ marginTop: '1rem' }}>
                 <DeviationTable distributions={allLc.distributions} />
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '1rem', lineHeight: 1.5 }}>
+            <p className="text-[0.75rem] text-muted-foreground mt-4 leading-normal">
                 Click another county (Orange, Riverside, Imperial) on the map to compare.
             </p>
         </div>

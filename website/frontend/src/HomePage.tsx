@@ -85,10 +85,10 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
   return (
     <div className="w-full space-y-8 sm:space-y-12 py-4 sm:py-8 px-1 sm:px-0">
       <div className="space-y-3">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--button-accent)]">
           Wildfire Property Intelligence
         </h1>
-        <p className="text-base sm:text-lg text-muted-foreground">
+        <p className="text-base sm:text-lg text-[var(--button-accent)]">
           Finding Outliers Before Fire Finds Them First
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm pt-1">
@@ -120,7 +120,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
           <button
             type="button"
             onClick={() => openPdfModal('paper')}
-            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--button-accent)] px-6 py-3 text-base font-medium text-[var(--button-accent)] hover:bg-[var(--button-accent)]/10 transition-colors"
           >
             <FileText className="size-5" />
             Report
@@ -128,7 +128,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
           <button
             type="button"
             onClick={() => openPdfModal('poster')}
-            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--button-accent)] px-6 py-3 text-base font-medium text-[var(--button-accent)] hover:bg-[var(--button-accent)]/10 transition-colors"
           >
             <Presentation className="size-5" />
             Poster
@@ -137,7 +137,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
             href="https://github.com/SatrunsDream/Wildfire-Property-Intelligence"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-2.5 rounded-lg border border-[var(--button-accent)] px-6 py-3 text-base font-medium text-[var(--button-accent)] hover:bg-[var(--button-accent)]/10 transition-colors"
           >
             <Github className="size-5" />
             GitHub

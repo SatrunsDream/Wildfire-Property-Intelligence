@@ -523,15 +523,13 @@ export function StickyGraphic({ scene, progress, onReady, onEdgeSelect, comparis
 
             {/* Divergence / JSD legend (counties, distributions, postPooling) */}
             <div
-                className="absolute bottom-8 right-6 z-30 px-4 py-3 transition-opacity duration-500"
+                className="absolute bottom-8 right-6 z-30 px-4 py-3 transition-opacity duration-500 bg-card/95 border-l-4 border-[#3b528b] text-foreground"
                 style={{
                     opacity: (scene === 'counties' && progress > 0.15) || scene === 'distributions' || scene === 'postPooling' ? 1 : 0,
                     pointerEvents: (scene === 'counties' && progress > 0.15) || scene === 'distributions' || scene === 'postPooling' ? 'auto' : 'none',
-                    background: 'rgba(252, 251, 248, 0.92)',
-                    borderLeft: '3px solid #3b528b',
                 }}
             >
-                <div style={{ fontSize: '11px', color: '#666', marginBottom: '6px' }}>
+                <div className="text-[11px] text-muted-foreground mb-1.5">
                     {scene === 'distributions' ? 'KL Divergence' : scene === 'postPooling' ? 'Post-pooling JSD' : 'Max Divergence'}
                 </div>
                 <div
@@ -541,7 +539,7 @@ export function StickyGraphic({ scene, progress, onReady, onEdgeSelect, comparis
                         background: 'linear-gradient(to right, #fde725, #5ec962, #21918c, #3b528b, #440154)',
                     }}
                 />
-                <div className="flex justify-between" style={{ fontSize: '10px', color: '#999', marginTop: '4px' }}>
+                <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
                     <span>Low</span>
                     <span>High</span>
                 </div>
@@ -550,18 +548,16 @@ export function StickyGraphic({ scene, progress, onReady, onEdgeSelect, comparis
             {/* JSD bar legend (spotlight — Same border. Different data.) */}
             {comparisonData && (
                 <div
-                    className="absolute bottom-8 right-6 z-30 px-4 py-3 transition-opacity duration-500"
+                    className="absolute bottom-8 right-6 z-30 px-4 py-3 transition-opacity duration-500 bg-card/95 border-l-4 border-[#21918c] text-foreground"
                     style={{
                         opacity: scene === 'spotlight' ? 1 : 0,
                         pointerEvents: scene === 'spotlight' ? 'auto' : 'none',
-                        background: 'rgba(252, 251, 248, 0.92)',
-                        borderLeft: '3px solid #21918c',
                     }}
                 >
-                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '8px' }}>
+                    <div className="text-[11px] text-muted-foreground mb-2">
                         Color distribution
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '10px', color: '#6c757d' }}>
+                    <div className="flex gap-4 text-[10px] text-muted-foreground">
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                             <span style={{ width: 10, height: 10, borderRadius: 2, background: '#21918c' }} />
                             {comparisonData.county_a.name}
