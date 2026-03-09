@@ -17,6 +17,69 @@ const MENTORS = [
     { name: 'Peter Nagy', affiliation: 'Cotality', email: 'pnagy@cotality.com' },
 ]
 
+const REFERENCES = [
+    {
+        id: 'augustcomplex2020',
+        citation: 'California Department of Forestry and Fire Protection. August Complex Fire Incident Information.',
+        href: 'https://www.fire.ca.gov/incidents/2020/8/16/august-complex/',
+    },
+    {
+        id: 'campfire2018',
+        citation: 'California Department of Forestry and Fire Protection. Camp Fire Incident Information.',
+        href: 'https://www.fire.ca.gov/incidents/2018/11/8/camp-fire/',
+    },
+    {
+        id: 'pollack2025',
+        citation: 'Pollack, Adam et al. Unrefined national building inventories can mislead risk assessments and decisions.',
+        href: 'https://doi.org/10.2139/ssrn.5575271',
+    },
+    {
+        id: 'nsi-usace',
+        citation: 'U.S. Army Corps of Engineers. National Structure Inventory (NSI).',
+        href: 'https://www.hec.usace.army.mil/confluence/nsi',
+    },
+    {
+        id: 'nsi-docs',
+        citation: 'NSI Technical Documentation.',
+        href: 'https://www.hec.usace.army.mil/confluence/nsi/technicalreferences/latest/technical-documentation',
+    },
+    {
+        id: 'overture',
+        citation: 'Overture Maps Documentation.',
+        href: 'https://docs.overturemaps.org/getting-data/data-mirrors/bigquery/',
+    },
+    {
+        id: 'h3',
+        citation: 'Uber Technologies. H3: A Hexagonal Hierarchical Geospatial Indexing System.',
+        href: 'https://h3geo.org',
+    },
+    {
+        id: 'scipy-jsd',
+        citation: 'SciPy Developers. scipy.spatial.distance.jensenshannon reference.',
+        href: 'https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jensenshannon.html',
+    },
+    {
+        id: 'wang2016',
+        citation: 'Wang, Wei et al. Anomaly detection based on probability density function using Kullback-Leibler divergence.',
+        href: 'https://doi.org/10.1016/j.sigpro.2015.12.004',
+    },
+    {
+        id: 'lopezpaz2017',
+        citation: 'Lopez-Paz, David and Oquab, Maxime. Revisiting classifier two-sample tests.',
+        href: 'https://openreview.net/forum?id=SJkXfE5xx',
+    },
+    {
+        id: 'eum2025',
+        citation: 'Eum, Jenny. Classifier Two-Sample Tests (C2STs).',
+        href: 'https://insightful-data-lab.com/2025/08/23/classifier-two-sample-tests-c2sts/',
+    },
+    {
+        id: 'anselin2023',
+        citation: 'Anselin, Luc. An Introduction to Spatial Data Science with GeoDa.',
+        href: 'https://lanselin.github.io/introbook_vol1/',
+    },
+] as const
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <section className="space-y-4">
@@ -148,15 +211,15 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
             <PdfViewerModal target={pdfModalTarget} onClose={() => setPdfModalTarget(null)} />
             <Section title="Background">
                 <P>
-                    Wildfires are disruptive and costly natural disasters in California. The largest wildfire recorded in the state burned down nearly one million acres of land and resulted in 16 billion dollars of property damage. This issue involves many stakeholders, including insurers, planners, and policymakers who rely on predictive risk models to estimate potential structural damage, allocate emergency resources, and price insurance coverage.
+                    Wildfires are disruptive and costly natural disasters in California. The largest wildfire recorded in the state burned down nearly one million acres of land and resulted in 16 billion dollars of property damage. This issue involves many stakeholders, including insurers, planners, and policymakers who rely on predictive risk models to estimate potential structural damage, allocate emergency resources, and price insurance coverage. [<a href="#ref-augustcomplex2020" className="underline">1</a>, <a href="#ref-campfire2018" className="underline">2</a>]
                 </P>
                 <P>
-                    Pollack et al. showed the importance of having accurate data in risk assessment models, bringing attention to how inaccurate data can distort damage estimates and cause problems with resource allocation. The findings conclude that even fixing misclassifications in story count or basement presence, can significantly improve assessment models. While that study focused on flood risk, the same issues apply to wildfire. In our project we examine property data to explore the following question: how can we detect erroneous property characteristic data, and correct data that is not consistent throughout the dataset?
+                    Pollack et al. showed the importance of having accurate data in risk assessment models, bringing attention to how inaccurate data can distort damage estimates and cause problems with resource allocation. The findings conclude that even fixing misclassifications in story count or basement presence can significantly improve assessment models. While that study focused on flood risk, the same issues apply to wildfire. In our project we examine property data to explore the following question: how can we detect erroneous property characteristic data, and correct data that is not consistent throughout the dataset? [<a href="#ref-pollack2025" className="underline">3</a>]
                 </P>
             </Section>
             <Section title="Data">
                 <P>
-                    We use a representative dataset derived from the National Structure Inventory (NSI) and aggregated into H3 level 9 hexagon cells. Each row represents one H3 cell and contains the following fields: <code className="text-sm bg-muted px-1 rounded">h3</code> (the hex cell ID), <code className="text-sm bg-muted px-1 rounded">fips</code> (county FIPS code), <code className="text-sm bg-muted px-1 rounded">st_damcat</code> (structure damage category - Residential, Commercial, Industrial, or Public), <code className="text-sm bg-muted px-1 rounded">bldgtype</code> (building material - M for Masonry, W for Wood, S for Steel, H for Manufactured), <code className="text-sm bg-muted px-1 rounded">lc_type</code> (land cover type from Overture Maps, e.g. urban, forest, urban+crop), <code className="text-sm bg-muted px-1 rounded">loc</code> (geographic coordinates), <code className="text-sm bg-muted px-1 rounded">clr</code> (a categorical color label), and <code className="text-sm bg-muted px-1 rounded">clr_cc</code> (the count of structures with that color in the cell).
+                    We use a representative dataset derived from the National Structure Inventory (NSI) and aggregated into H3 level 9 hexagon cells. Each row represents one H3 cell and contains the following fields: <code className="text-sm bg-muted px-1 rounded">h3</code> (the hex cell ID), <code className="text-sm bg-muted px-1 rounded">fips</code> (county FIPS code), <code className="text-sm bg-muted px-1 rounded">st_damcat</code> (structure damage category - Residential, Commercial, Industrial, or Public), <code className="text-sm bg-muted px-1 rounded">bldgtype</code> (building material - M for Masonry, W for Wood, S for Steel, H for Manufactured), <code className="text-sm bg-muted px-1 rounded">lc_type</code> (land cover type from Overture Maps, e.g. urban, forest, urban+crop), <code className="text-sm bg-muted px-1 rounded">loc</code> (geographic coordinates), <code className="text-sm bg-muted px-1 rounded">clr</code> (a categorical color label), and <code className="text-sm bg-muted px-1 rounded">clr_cc</code> (the count of structures with that color in the cell). [<a href="#ref-nsi-usace" className="underline">4</a>, <a href="#ref-nsi-docs" className="underline">5</a>, <a href="#ref-overture" className="underline">6</a>, <a href="#ref-h3" className="underline">7</a>]
                 </P>
                 <P>
                     The color labels are designed to mimic the county-to-county reporting discrepancies commonly observed in real property characteristics. For example, a duplex and a small multi-family building might be coded under different labels due to assessor or county conventions, even though they occupy similar urban parcels. It is important to view the color labels as a stand-in for any categorical property field whose distribution may vary systematically across regions due to reporting practices. Land cover assignment reflects real-world spatial overlap, multiple types can combine (e.g. urban+forest, urban+crop), resulting in thirteen distinct land cover categories.
@@ -221,9 +284,25 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                         </div>
                     </div>
                     <div className="space-y-2">
+                        <h3 className="text-base font-semibold">Kullback Leibler Divergence</h3>
+                        <P>
+                            To quantify how county-level color distributions differ from regional patterns, we compute the Kullback Leibler divergence between two probability distributions. In this context, the county-level conditional probability distribution over colors is compared to the corresponding pooled distribution derived from neighboring counties. Higher KL values indicate larger deviations between the two distributions, suggesting that a county's color usage differs from the regional pattern. In contrast, values close to zero indicate that the county distribution closely matches the neighboring distribution. [<a href="#ref-wang2016" className="underline">9</a>]
+                        </P>
+                        <Dropdown title="See the math">
+                            <div className="space-y-2">
+                                <div className="overflow-x-auto">
+                                    <BlockMath>{String.raw`\mathrm{KL}(P \parallel Q) = \sum_{k} P_k \log\left(\frac{P_k}{Q_k}\right)`}</BlockMath>
+                                </div>
+                                <p className="text-muted-foreground">
+                                    <InlineMath>P_k</InlineMath> is the county-level probability of color <InlineMath>k</InlineMath>, and <InlineMath>Q_k</InlineMath> is the pooled neighbor probability for that same context.
+                                </p>
+                            </div>
+                        </Dropdown>
+                    </div>
+                    <div className="space-y-2">
                         <MethodLink title="Jensen Shannon Neighbor Divergence" page="neighbor-divergence" onPageChange={onPageChange} />
                         <P>
-                            To identify differences in how counties report structural data, we computed a neighbor divergence metric using Jensen Shannon divergence. For each county and land cover type, we calculate color counts and convert them into a probability distribution with Laplace smoothing to avoid zero probabilities. For each adjacent county pair, we compute JSD between the smoothed color distributions separately within each land cover type, only including land cover types where both counties have at least 30 observations. Each land cover type is weighted using the smaller of the two counties' sample sizes. We computed a divergence score for each neighboring county pair, then took the average across all 144 edges. The mean edge score was 0.634.
+                            To identify differences in how counties report structural data, we computed a neighbor divergence metric using Jensen Shannon divergence. For each county and land cover type, we calculate color counts and convert them into a probability distribution with Laplace smoothing to avoid zero probabilities. For each adjacent county pair, we compute JSD between the smoothed color distributions separately within each land cover type, only including land cover types where both counties have at least 30 observations. Each land cover type is weighted using the smaller of the two counties' sample sizes. We computed a divergence score for each neighboring county pair, then took the average across all 144 edges. The mean edge score was 0.634. [<a href="#ref-scipy-jsd" className="underline">8</a>, <a href="#ref-wang2016" className="underline">9</a>]
                         </P>
                         <Dropdown title="See the math">
                             <div className="space-y-2">
@@ -256,7 +335,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                     <div className="space-y-2">
                         <MethodLink title="Classifier Two-Sample Test (C2ST)" page="c2st" onPageChange={onPageChange} />
                         <P>
-                            For each neighboring county pair and each land cover type, we trained a binary CatBoost classifier to predict whether a record came from county A or county B using the categorical features occupancy, building type, and color (excluding land cover type since we condition on it). If the accuracy is around 50%, it suggests the two counties are hard to differentiate, while higher accuracy indicates differences in the joint distribution of these categories. We used 3-fold stratified cross-validation to estimate accuracy, ensuring balanced class representation in each fold. We filtered to ensure both counties had at least 50 records for a given land cover type, and since each classifier only sees data from the two counties being compared, there is no spatial leakage across pairs. We then calculated a single score using a weighted average across land cover types. Across California, we found a mean accuracy of 92.1%, meaning most neighboring county pairs are very separable. Feature importance analysis showed that color was consistently the most important feature.
+                            For each neighboring county pair and each land cover type, we trained a binary CatBoost classifier to predict whether a record came from county A or county B using the categorical features occupancy, building type, and color (excluding land cover type since we condition on it). If the accuracy is around 50%, it suggests the two counties are hard to differentiate, while higher accuracy indicates differences in the joint distribution of these categories. We used 3-fold stratified cross-validation to estimate accuracy, ensuring balanced class representation in each fold. We filtered to ensure both counties had at least 50 records for a given land cover type, and since each classifier only sees data from the two counties being compared, there is no spatial leakage across pairs. We then calculated a single score using a weighted average across land cover types. Across California, we found a mean accuracy of 92.1%, meaning most neighboring county pairs are very separable. Feature importance analysis showed that color was consistently the most important feature. [<a href="#ref-lopezpaz2017" className="underline">10</a>, <a href="#ref-eum2025" className="underline">11</a>]
                         </P>
                         <Dropdown title="See the math">
                             <div className="space-y-2">
@@ -273,7 +352,7 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                     <div className="space-y-2">
                         <MethodLink title="Moran's I (Spatial Autocorrelation)" page="morans-i" onPageChange={onPageChange} />
                         <P>
-                            One way to approach this task is to assume neighboring counties have similar traits, since generally areas that are close to each other tend to have similar features. Moran's I, as a spatial autocorrelation statistical measure, is a good measurement under this assumption. We computed both global Moran's I (one value for the whole state) and local Moran's I (one value per county). Larger values indicate that the counties are closely correlated with each other, and smaller values indicate that counties are less correlated. However, Moran's I values tend to have more extreme values when counties have more extreme outliers, making it harder to interpret smaller values. Since Moran's I is a univariate statistic, it is also difficult to measure how clustering multiple colors might improve the results. Overall, Moran's I has multiple issues and is generally a poorer fit for this specific task compared to our other methods.
+                            One way to approach this task is to assume neighboring counties have similar traits, since generally areas that are close to each other tend to have similar features. Moran's I, as a spatial autocorrelation statistical measure, is a good measurement under this assumption. We computed both global Moran's I (one value for the whole state) and local Moran's I (one value per county). Larger values indicate that the counties are closely correlated with each other, and smaller values indicate that counties are less correlated. However, Moran's I values tend to have more extreme values when counties have more extreme outliers, making it harder to interpret smaller values. Since Moran's I is a univariate statistic, it is also difficult to measure how clustering multiple colors might improve the results. Overall, Moran's I has multiple issues and is generally a poorer fit for this specific task compared to our other methods. [<a href="#ref-anselin2023" className="underline">12</a>]
                         </P>
                         <Dropdown title="See the math">
                             <div className="space-y-2">
@@ -364,6 +443,24 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                 <P>
                     We want to thank our industry mentors Lawrence Vulis and Peter Nagy from Cotality for their guidance and domain expertise throughout this project. We also want to thank HDSI and our instructors for their support.
                 </P>
+            </Section>
+
+            <Section title="References">
+                <ol className="list-decimal space-y-2 pl-5 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                    {REFERENCES.map((ref) => (
+                        <li key={ref.id} id={`ref-${ref.id}`}>
+                            {ref.citation}{' '}
+                            <a
+                                href={ref.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                            >
+                                Source
+                            </a>
+                        </li>
+                    ))}
+                </ol>
             </Section>
 
         </div>

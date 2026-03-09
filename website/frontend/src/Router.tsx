@@ -40,6 +40,10 @@ export function Router() {
         return () => window.removeEventListener('hashchange', handleHashChange)
     }, [])
 
+    useEffect(() => {
+        document.title = `Wildfire Property Intelligence | ${pageTitles[page]}`
+    }, [page])
+
     return (
         <SidebarProvider
             style={
