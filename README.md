@@ -125,6 +125,12 @@ Serves at `http://localhost:5173`.
 - `03_color/` — `color_similarity_matrix.csv`, `landcover_color_combinations.csv`
 - `bayesian_shrinkage/` — `bayesian_shrinkage_aggregated_counts.csv`, `bayesian_shrinkage_baseline_distributions.csv`, `bayesian_shrinkage_stabilized_distributions.csv`
 - `conditional_probability/` — `m01_neighbor_pool_county_lc_summary.csv`, `m01_neighbor_pool_county_lc_color_detail.csv`
+- `morans_i/` — `relative_frequencies_lc_type_bldgtype.csv` (Moran's I spatial coherence notebook)
+- `grouplevel_divergence/` — `jsd_conditional_divergence.csv`, `jsd_conditional_county_summary.csv`, `color_pairs_analysis.csv` (group-level anomaly detection)
+- `hierarchical_clustering/` — `hierarchical__color_groups__*.csv`, `hierarchical__jsd_by_k__*.csv`, `hierarchical__color_groups_best_jsd__*.csv`, `hierarchical__color_groups_best_surprisal__*.csv`
+- `leiden_clustering/` — `leiden__color_groups__*.csv`, `leiden__comparison__*.csv`
+- `clustering/` — `clustering__all_methods__*.csv`
+- `color_pool_improved/` — `color_pool_improved__variants__*.csv`
 
 **Figures** (written to `figures/`):
 - `figures/eda/` — exposure distribution, landcover heatmaps, county maps
