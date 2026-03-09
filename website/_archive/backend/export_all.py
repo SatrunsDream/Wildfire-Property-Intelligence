@@ -4,7 +4,7 @@ Export all static JSON files needed to eliminate the backend.
 Run from the backend/ directory:
     python export_all.py
 
-Outputs to: ../frontend/public/data/
+Outputs to: ../../frontend/public/data/
 """
 
 import json
@@ -21,7 +21,7 @@ from constants import (
 )
 
 DATA_DIR = Path(__file__).parent / "data"
-OUT_DIR = Path(__file__).parent.parent / "frontend" / "public" / "data"
+OUT_DIR = Path(__file__).parent.parent.parent / "frontend" / "public" / "data"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 LAPLACE = 1
