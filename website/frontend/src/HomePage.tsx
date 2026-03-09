@@ -284,22 +284,6 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-base font-semibold">Kullback Leibler Divergence</h3>
-                        <P>
-                            To quantify how county-level color distributions differ from regional patterns, we compute the Kullback Leibler divergence between two probability distributions. In this context, the county-level conditional probability distribution over colors is compared to the corresponding pooled distribution derived from neighboring counties. Higher KL values indicate larger deviations between the two distributions, suggesting that a county's color usage differs from the regional pattern. In contrast, values close to zero indicate that the county distribution closely matches the neighboring distribution. [<a href="#ref-wang2016" className="underline">9</a>]
-                        </P>
-                        <Dropdown title="See the math">
-                            <div className="space-y-2">
-                                <div className="overflow-x-auto">
-                                    <BlockMath>{String.raw`\mathrm{KL}(P \parallel Q) = \sum_{k} P_k \log\left(\frac{P_k}{Q_k}\right)`}</BlockMath>
-                                </div>
-                                <p className="text-muted-foreground">
-                                    <InlineMath>P_k</InlineMath> is the county-level probability of color <InlineMath>k</InlineMath>, and <InlineMath>Q_k</InlineMath> is the pooled neighbor probability for that same context.
-                                </p>
-                            </div>
-                        </Dropdown>
-                    </div>
-                    <div className="space-y-2">
                         <MethodLink title="Jensen Shannon Neighbor Divergence" page="neighbor-divergence" onPageChange={onPageChange} />
                         <P>
                             To identify differences in how counties report structural data, we computed a neighbor divergence metric using Jensen Shannon divergence. For each county and land cover type, we calculate color counts and convert them into a probability distribution with Laplace smoothing to avoid zero probabilities. For each adjacent county pair, we compute JSD between the smoothed color distributions separately within each land cover type, only including land cover types where both counties have at least 30 observations. Each land cover type is weighted using the smaller of the two counties' sample sizes. We computed a divergence score for each neighboring county pair, then took the average across all 144 edges. The mean edge score was 0.634. [<a href="#ref-scipy-jsd" className="underline">8</a>, <a href="#ref-wang2016" className="underline">9</a>]
