@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { HomePage } from './HomePage'
 import { ConditionalProbability } from './ConditionalProbability'
 import { EmpiricalBayesPooling } from './EmpiricalBayesPooling'
@@ -22,8 +22,23 @@ const pageTitles: Record<Page, string> = {
     'color-map': 'Color Distribution Map',
 }
 
+function getPdfHashPage(): Page | null {
+    const hash = window.location.hash?.replace('#', '')
+    if (hash === 'poster' || hash === 'paper') return 'home'
+    return null
+}
+
 export function Router() {
     const [page, setPage] = useState<Page>('home')
+
+    useEffect(() => {
+        if (getPdfHashPage()) setPage('home')
+        const handleHashChange = () => {
+            if (getPdfHashPage()) setPage('home')
+        }
+        window.addEventListener('hashchange', handleHashChange)
+        return () => window.removeEventListener('hashchange', handleHashChange)
+    }, [])
 
     return (
         <SidebarProvider

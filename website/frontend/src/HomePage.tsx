@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import 'katex/dist/katex.min.css'
 import { BlockMath, InlineMath } from 'react-katex'
+import { FileText, Github, Presentation } from 'lucide-react'
 import type { Page } from './components/app-sidebar'
+import { PdfViewerModal, getPdfTargetFromHash, type PdfModalTarget } from './components/PdfViewerModal'
 
 const AUTHORS = [
   { name: 'Angela Shen', email: 'a9shen@ucsd.edu' },
@@ -63,6 +65,23 @@ function MethodLink({ title, page, onPageChange }: {
 }
 
 export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void }) {
+  const [pdfModalTarget, setPdfModalTarget] = useState<PdfModalTarget>(null)
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      const target = getPdfTargetFromHash()
+      setPdfModalTarget(target)
+    }
+    syncFromHash()
+    window.addEventListener('hashchange', syncFromHash)
+    return () => window.removeEventListener('hashchange', syncFromHash)
+  }, [])
+
+  const openPdfModal = (target: Exclude<PdfModalTarget, null>) => {
+    window.location.hash = target
+    setPdfModalTarget(target)
+  }
+
   return (
     <div className="w-full space-y-8 sm:space-y-12 py-4 sm:py-8 px-1 sm:px-0">
       <div className="space-y-3">
@@ -97,17 +116,36 @@ export function HomePage({ onPageChange }: { onPageChange?: (page: Page) => void
         <P>
           This capstone project explores approaches for improving the consistency and reliability of large-scale geospatial property datasets used in nationwide risk assessment. Using aggregated NSI data structured at the H3 hex level with land cover information, we explore how regional differences affect categorical property attributes. We implemented different statistical and machine learning approaches, including Empirical Bayes shrinkage, Jensen Shannon divergence, spatial pooling, a classifier two-sample test, and Moran's I to build a pipeline for detecting anomalies. Our results show that most of the variation between neighboring counties comes from inconsistent naming conventions rather than real structural differences, and that merging certain attributes can reduce this noise. This website will briefly walk through our data, methods, results, and takeaways from this project.
         </P>
-        <div className="flex gap-3 pt-1">
+        <div className="flex flex-wrap justify-center gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => openPdfModal('paper')}
+            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
+          >
+            <FileText className="size-5" />
+            Report
+          </button>
+          <button
+            type="button"
+            onClick={() => openPdfModal('poster')}
+            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
+          >
+            <Presentation className="size-5" />
+            Poster
+          </button>
           <a
             href="https://github.com/SatrunsDream/Wildfire-Property-Intelligence"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+            className="inline-flex items-center gap-2.5 rounded-lg border px-6 py-3 text-base font-medium hover:bg-muted transition-colors"
           >
-            GitHub Repository
+            <Github className="size-5" />
+            GitHub
           </a>
         </div>
       </Section>
+
+      <PdfViewerModal target={pdfModalTarget} onClose={() => setPdfModalTarget(null)} />
       <Section title="Background">
         <P>
           Wildfires are disruptive and costly natural disasters in California. The largest wildfire recorded in the state burned down nearly one million acres of land and resulted in 16 billion dollars of property damage. This issue involves many stakeholders, including insurers, planners, and policymakers who rely on predictive risk models to estimate potential structural damage, allocate emergency resources, and price insurance coverage.
